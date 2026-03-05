@@ -1,10 +1,12 @@
-import { pgTable, uuid, text, timestamp, doublePrecision, integer } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean } from 'drizzle-orm/pg-core'
 
 export const adventures = pgTable('adventures', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   title: text('title').notNull(),
   description: text('description').notNull().default(''),
   userEmail: text('user_email'),
+  isPublic: boolean('is_public').notNull().default(false),
+  shareToken: text('share_token').unique(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })

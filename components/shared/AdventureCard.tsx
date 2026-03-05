@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Pencil, Play, Trash2, GitBranch } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
+import ShareToggle from './ShareToggle'
 
 interface Props {
   adventure: AdventureWithCounts
@@ -39,7 +40,16 @@ export default function AdventureCard({ adventure, onDelete }: Props) {
           Created {new Date(adventure.createdAt).toLocaleDateString()}
         </p>
       </div>
-      <div className="flex gap-2 pt-2 border-t border-gray-100">
+
+      <div className="pt-2 border-t border-gray-100">
+        <ShareToggle
+          adventureId={adventure.id}
+          initialIsPublic={adventure.isPublic}
+          initialShareToken={adventure.shareToken ?? null}
+        />
+      </div>
+
+      <div className="flex gap-2">
         <Link
           href={`/play/${adventure.id}`}
           className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"

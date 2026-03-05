@@ -81,6 +81,15 @@ export async function getAdventure(id: string) {
   return adventure ?? null
 }
 
+export async function getAdventureByToken(token: string) {
+  const [adventure] = await db
+    .select()
+    .from(adventures)
+    .where(eq(adventures.shareToken, token))
+  if (!adventure || !adventure.isPublic) return null
+  return adventure
+}
+
 export async function getAdventureWithData(id: string) {
   const [adventure] = await db.select().from(adventures).where(eq(adventures.id, id))
   if (!adventure) return null
