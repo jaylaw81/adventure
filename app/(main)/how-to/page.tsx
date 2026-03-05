@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import JsonLd from '@/components/JsonLd'
 import {
   Plus, GitBranch, Share2, Sparkles, Play,
   MousePointerClick, BookOpen, ChevronRight,
@@ -45,9 +46,43 @@ function Tip({ children }: { children: React.ReactNode }) {
   )
 }
 
+const howToSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'How to Use StoryQuestor',
+  description: 'Learn how to create branching interactive stories and how to play them on StoryQuestor.',
+  step: [
+    {
+      '@type': 'HowToSection',
+      name: 'Creating a Story',
+      itemListElement: [
+        { '@type': 'HowToStep', position: 1, name: 'Create a new story', text: 'Sign in, then click New Story on the home page. Give your story a title and an optional description.' },
+        { '@type': 'HowToStep', position: 2, name: 'Set your story\'s audience and tags', text: 'Click the Settings button in the editor toolbar to set the audience (All Ages, Teens, or Adults Only) and tags that describe your story.' },
+        { '@type': 'HowToStep', position: 3, name: 'Add scenes to the canvas', text: 'Click Add Scene in the toolbar. Click any scene card to open the editor panel where you can set the scene type, title, and content.' },
+        { '@type': 'HowToStep', position: 4, name: 'Connect scenes with choices', text: 'Hover over a scene card to reveal connection handles. Drag from a handle on one scene to another to create a named choice.' },
+        { '@type': 'HowToStep', position: 5, name: 'Generate AI scene images', text: 'Open a completed scene and click Generate Image with AI to create a cinematic illustration. You can regenerate up to two times per scene.' },
+        { '@type': 'HowToStep', position: 6, name: 'Share your story', text: 'On the home page, toggle the Make Public switch on your story card to generate a shareable link. This also lists your story on the Explore page.' },
+      ],
+    },
+    {
+      '@type': 'HowToSection',
+      name: 'Playing a Story',
+      itemListElement: [
+        { '@type': 'HowToStep', position: 1, name: 'Find a story to play', text: 'Browse the Explore page to discover stories shared by creators, or open a direct link someone shared with you.' },
+        { '@type': 'HowToStep', position: 2, name: 'Read each scene', text: 'Each scene shows a title, illustrated image, and story prose. Read through it before making a decision.' },
+        { '@type': 'HowToStep', position: 3, name: 'Make your choice', text: 'At the bottom of every scene you\'ll see up to three choice buttons. Click a choice to move to the next scene.' },
+        { '@type': 'HowToStep', position: 4, name: 'Navigate and go back', text: 'Use the Back button to undo your last choice and try a different path.' },
+        { '@type': 'HowToStep', position: 5, name: 'Reach an ending', text: 'When you arrive at an Ending scene the story concludes. Click Play Again to restart and discover different outcomes.' },
+        { '@type': 'HowToStep', position: 6, name: 'Copy a scene for sharing', text: 'Each scene has a Copy for SMS button that copies the scene content and choices formatted for a text message or chat.' },
+      ],
+    },
+  ],
+}
+
 export default function HowToPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
+      <JsonLd data={howToSchema} />
       <div className="mb-10 text-center">
         <div className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 text-sm font-medium px-4 py-1.5 rounded-full mb-4">
           <BookOpen size={14} />

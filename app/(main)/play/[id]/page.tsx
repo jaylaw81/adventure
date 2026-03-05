@@ -6,6 +6,15 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getAdventure, getStartNode } from '@/lib/queries'
 import StartStoryButton from '@/components/reader/StartStoryButton'
+import JsonLd from '@/components/JsonLd'
+
+const SITE_URL = 'https://www.storyquestor.com'
+
+const AUDIENCE_SCHEMA: Record<string, string> = {
+  all: 'All Ages',
+  teens: 'Teenagers',
+  adults: 'Adults',
+}
 
 const AUDIENCE_LABEL: Record<string, string> = {
   all: 'All Ages',
@@ -79,8 +88,30 @@ export default async function StoryLandingPage({ params }: Props) {
 
   const audienceLabel = AUDIENCE_LABEL[adventure.audience ?? 'all'] ?? adventure.audience
 
+  const storySchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: adventure.title,
+    ...(adventure.description && { description: adventure.description }),
+    url: `${SITE_URL}/play/${id}`,
+    ...(tags.length > 0 && { genre: tags }),
+    interactivityType: 'active',
+    audience: {
+      '@type': 'Audience',
+      audienceType: AUDIENCE_SCHEMA[adventure.audience ?? 'all'] ?? 'All Ages',
+    },
+    datePublished: new Date(adventure.createdAt).toISOString().split('T')[0],
+    ...(startNode.imageUrl && { image: startNode.imageUrl }),
+    publisher: {
+      '@type': 'Organization',
+      name: 'StoryQuestor',
+      url: SITE_URL,
+    },
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-6 py-16">
+      <JsonLd data={storySchema} />
       {/* Back */}
       <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 mb-10 inline-block">
         ← Home

@@ -86,6 +86,7 @@ export async function getPublicAdventures() {
       tags: adventures.tags,
       shareToken: adventures.shareToken,
       createdAt: adventures.createdAt,
+      updatedAt: adventures.updatedAt,
     })
     .from(adventures)
     .where(eq(adventures.isPublic, true))
