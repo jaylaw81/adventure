@@ -73,6 +73,7 @@ export default function Header() {
               <NavLink href="/how-to">Guide</NavLink>
             </>
           )}
+          {!session && <NavLink href="/demo">Try Demo</NavLink>}
         </nav>
 
         {/* Right side */}

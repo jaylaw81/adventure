@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Plus, BookOpen, GitBranch, Share2, Sparkles } from 'lucide-react'
-import { useSession, signIn } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { analytics } from '@/lib/analytics'
 import AdventureCard from '@/components/shared/AdventureCard'
 import type { AdventureWithCounts } from '@/lib/queries'
@@ -34,10 +34,10 @@ function LandingPage() {
               Start Creating — it's free
             </Link>
             <Link
-              href="/explore"
+              href="/demo"
               className="px-7 py-3.5 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl shadow-sm border border-gray-200 transition-colors text-lg"
             >
-              Browse Stories
+              Try the editor
             </Link>
           </div>
         </div>
@@ -83,12 +83,12 @@ function LandingPage() {
           >
             Create a free account
           </Link>
-          <button
-            onClick={() => signIn('google')}
+          <Link
+            href="/demo"
             className="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-colors text-lg border border-white/20"
           >
-            Sign in with Google
-          </button>
+            Try the editor first
+          </Link>
         </div>
       </section>
     </div>

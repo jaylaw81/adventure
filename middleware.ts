@@ -32,6 +32,6 @@ export default withAuth(
 
 export const config = {
   // Include every route that should enforce the birthdate gate for logged-in users,
-  // plus the auth-required routes
+  // plus the auth-required routes. /demo is intentionally excluded — fully public.
   matcher: ['/', '/create', '/edit/:path*', '/profile', '/explore', '/how-to'],
 }
