@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'How to Use StoryQuestor | Guide',
+  title: { absolute: 'How to Create Choose Your Own Adventure Stories | StoryQuestor Guide' },
   description: 'Learn how to create branching interactive stories and how to play them on StoryQuestor.',
 }
 

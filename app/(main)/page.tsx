@@ -44,27 +44,30 @@ function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="max-w-5xl mx-auto px-6 py-16 grid grid-cols-1 sm:grid-cols-3 gap-8">
-        <div className="flex flex-col items-start gap-3">
-          <div className="p-3 bg-amber-100 rounded-xl">
-            <GitBranch size={22} className="text-amber-600" />
+      <section className="max-w-5xl mx-auto px-6 py-16">
+        <h2 className="text-2xl font-bold text-gray-900 text-center mb-10">Everything you need to build branching stories</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div className="flex flex-col items-start gap-3">
+            <div className="p-3 bg-amber-100 rounded-xl">
+              <GitBranch size={22} className="text-amber-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Visual Story Canvas</h3>
+            <p className="text-gray-500 text-sm">Drag-and-drop scenes onto a canvas and connect them with choices. See your whole non-linear story at a glance.</p>
           </div>
-          <h3 className="text-lg font-bold text-gray-900">Visual Story Canvas</h3>
-          <p className="text-gray-500 text-sm">Drag-and-drop scenes onto a canvas and connect them with choices. See your whole story at a glance.</p>
-        </div>
-        <div className="flex flex-col items-start gap-3">
-          <div className="p-3 bg-amber-100 rounded-xl">
-            <Sparkles size={22} className="text-amber-600" />
+          <div className="flex flex-col items-start gap-3">
+            <div className="p-3 bg-amber-100 rounded-xl">
+              <Sparkles size={22} className="text-amber-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">AI Scene Images</h3>
+            <p className="text-gray-500 text-sm">Generate cinematic illustrations for each scene automatically using AI — no art skills required.</p>
           </div>
-          <h3 className="text-lg font-bold text-gray-900">AI Scene Images</h3>
-          <p className="text-gray-500 text-sm">Generate cinematic illustrations for each scene automatically using AI — no art skills required.</p>
-        </div>
-        <div className="flex flex-col items-start gap-3">
-          <div className="p-3 bg-amber-100 rounded-xl">
-            <Share2 size={22} className="text-amber-600" />
+          <div className="flex flex-col items-start gap-3">
+            <div className="p-3 bg-amber-100 rounded-xl">
+              <Share2 size={22} className="text-amber-600" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Share & Play</h3>
+            <p className="text-gray-500 text-sm">Publish your adventure with a link. Readers play through branching paths and discover every ending.</p>
           </div>
-          <h3 className="text-lg font-bold text-gray-900">Share & Play</h3>
-          <p className="text-gray-500 text-sm">Publish your story with a link. Readers play through branching paths and discover every outcome.</p>
         </div>
       </section>
 

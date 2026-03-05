@@ -10,19 +10,22 @@ const SITE_URL = 'https://www.storyquestor.com'
 const geist = Geist({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'StoryQuestor',
-  description: 'Create branching stories where every choice matters. Build with a visual canvas, generate AI scene images, and share with the world.',
+  title: {
+    default: 'StoryQuestor — Free Choose Your Own Adventure Story Creator',
+    template: '%s | StoryQuestor',
+  },
+  description: 'Create free choose-your-own-adventure stories with a visual canvas. Build non-linear, branching tales where every reader choice leads somewhere different — then share them with the world.',
   openGraph: {
-    title: 'StoryQuestor',
-    description: 'Create branching stories where every choice matters.',
+    title: 'StoryQuestor — Free Choose Your Own Adventure Story Creator',
+    description: 'Create free choose-your-own-adventure stories. Build non-linear, branching tales where every reader choice leads somewhere different.',
     url: 'https://www.storyquestor.com',
     siteName: 'StoryQuestor',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'StoryQuestor',
-    description: 'Create branching stories where every choice matters.',
+    title: 'StoryQuestor — Free Choose Your Own Adventure Story Creator',
+    description: 'Create free choose-your-own-adventure stories. Build non-linear, branching tales where every reader choice leads somewhere different.',
   },
 }
 

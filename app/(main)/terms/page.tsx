@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | StoryQuestor',
+  title: { absolute: 'Terms of Service | StoryQuestor' },
   description: 'Terms of service for StoryQuestor — rules for using the platform.',
   robots: { index: true, follow: true },
 }
