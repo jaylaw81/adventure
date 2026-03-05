@@ -9,7 +9,7 @@ export default function SignInPage() {
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-10 flex flex-col items-center gap-6 w-full max-w-sm">
         <div className="flex items-center gap-2 text-gray-900">
           <BookOpen size={32} className="text-amber-500" />
-          <span className="text-2xl font-bold">Adventure Maker</span>
+          <span className="text-2xl font-bold">StoryQuestor</span>
         </div>
         <p className="text-gray-500 text-sm text-center">
           Sign in to create and manage your adventures

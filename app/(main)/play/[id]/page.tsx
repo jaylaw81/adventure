@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const adventure = await getAdventure(id)
   if (!adventure) return { title: 'Story Not Found' }
 
-  const title = `${adventure.title} | Adventure Maker`
-  const description = adventure.description || `Play "${adventure.title}" — a branching interactive story on Adventure Maker.`
+  const title = `${adventure.title} | StoryQuestor`
+  const description = adventure.description || `Play "${adventure.title}" — a branching interactive story on StoryQuestor.`
 
   return {
     title,
@@ -131,7 +131,7 @@ export default async function StoryLandingPage({ params }: Props) {
       <p className="text-center text-xs text-gray-400 mt-8">
         Made with{' '}
         <Link href="/" className="hover:text-amber-500 transition-colors">
-          Adventure Maker
+          StoryQuestor
         </Link>
       </p>
     </div>

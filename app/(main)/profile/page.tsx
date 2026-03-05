@@ -106,7 +106,7 @@ function ProfileContent() {
           <div>
             <p className="text-sm font-semibold text-amber-800">Complete your profile to continue</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              Your date of birth is required so we can ensure age-appropriate content. You must be at least 13 years old to use Adventure Maker.
+              Your date of birth is required so we can ensure age-appropriate content. You must be at least 13 years old to use StoryQuestor.
             </p>
           </div>
         </div>
@@ -181,7 +181,7 @@ function ProfileContent() {
             </div>
           )}
           {birthDate && age !== null && age < 13 && (
-            <p className="text-xs text-red-500 mt-1">You must be at least 13 years old to use Adventure Maker.</p>
+            <p className="text-xs text-red-500 mt-1">You must be at least 13 years old to use StoryQuestor.</p>
           )}
           <p className="text-xs text-gray-400 mt-1">Required. Used only to verify your age for content filtering.</p>
         </div>

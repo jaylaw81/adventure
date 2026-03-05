@@ -7,8 +7,8 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'How to Use Adventure Maker | Guide',
-  description: 'Learn how to create branching interactive stories and how to play them on Adventure Maker.',
+  title: 'How to Use StoryQuestor | Guide',
+  description: 'Learn how to create branching interactive stories and how to play them on StoryQuestor.',
 }
 
 function Step({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
@@ -53,7 +53,7 @@ export default function HowToPage() {
           <BookOpen size={14} />
           User Guide
         </div>
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-3">How to Use Adventure Maker</h1>
+        <h1 className="text-4xl font-extrabold text-gray-900 mb-3">How to Use StoryQuestor</h1>
         <p className="text-gray-500 text-lg max-w-xl mx-auto">
           Everything you need to know to create your own branching stories and play through adventures made by others.
         </p>
@@ -91,7 +91,7 @@ export default function HowToPage() {
           </Step>
 
           <Step number={5} title="Generate AI scene images">
-            Open a completed scene in the editor panel and click <strong>Generate Image with AI</strong>. Adventure Maker will create a cinematic illustration based on your scene's title and content. You can regenerate up to two times per scene. Images are also generated automatically when you mark a scene as Completed.
+            Open a completed scene in the editor panel and click <strong>Generate Image with AI</strong>. StoryQuestor will create a cinematic illustration based on your scene's title and content. You can regenerate up to two times per scene. Images are also generated automatically when you mark a scene as Completed.
           </Step>
 
           <Step number={6} title="Share your story">

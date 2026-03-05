@@ -7,7 +7,7 @@ import GoogleAnalytics from '@/components/GoogleAnalytics'
 const geist = Geist({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Adventure Maker',
+  title: 'StoryQuestor',
   description: 'Create and play choose-your-own-adventure stories',
 }
 

@@ -60,7 +60,7 @@ export default function Header() {
             <Scroll size={16} className="text-white" strokeWidth={2.5} />
           </div>
           <span className="text-white font-extrabold text-lg tracking-tight group-hover:text-amber-300 transition-colors">
-            Adventure<span className="text-amber-400">Maker</span>
+            Story<span className="text-amber-400">Questor</span>
           </span>
         </Link>
 
