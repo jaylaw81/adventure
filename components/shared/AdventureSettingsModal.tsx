@@ -3,6 +3,7 @@
 import { useState, useRef, KeyboardEvent } from 'react'
 import { X, Plus } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
+import { analytics } from '@/lib/analytics'
 
 interface Props {
   adventure: AdventureWithCounts
@@ -55,6 +56,7 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
         body: JSON.stringify({ title: title.trim(), description: description.trim(), audience, tags }),
       })
       if (!res.ok) throw new Error('Failed to save')
+      analytics.adventureSettingsSaved(adventure.id, audience)
       onSave({ title: title.trim(), description: description.trim(), audience, tags: JSON.stringify(tags) })
       onClose()
     } catch {

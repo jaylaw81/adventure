@@ -27,6 +27,7 @@ import Toolbar from './Toolbar'
 import AdventureSettingsModal from '@/components/shared/AdventureSettingsModal'
 import type { Node, Choice, Adventure } from '@/lib/schema'
 import type { AdventureWithCounts } from '@/lib/queries'
+import { analytics } from '@/lib/analytics'
 
 const nodeTypes = { storyNode: StoryNode }
 const edgeTypes = { editableEdge: EditableEdge }
@@ -94,6 +95,7 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
   const handleEdgeDelete = useCallback(async (edgeId: string) => {
     setRfEdges(prev => prev.filter(e => e.id !== edgeId))
     await fetch(`/api/adventures/${adventure.id}/choices/${edgeId}`, { method: 'DELETE' })
+    analytics.choiceDeleted(adventure.id)
   }, [adventure.id])
 
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState(initialNodes.map(toRFNode))
@@ -116,6 +118,7 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
         }),
       })
       const choice: Choice = await res.json()
+      analytics.choiceCreated(adventure.id)
       setRfEdges(eds => addEdge(toRFEdge(choice, handleLabelChange, handleEdgeDelete), eds))
     },
     [adventure.id, handleLabelChange, handleEdgeDelete]
@@ -165,6 +168,7 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
       }),
     })
     const node: Node = await res.json()
+    analytics.sceneAdded(adventure.id)
     setDbNodes(prev => [...prev, node])
     setRfNodes(prev => [...prev, toRFNode(node)])
     setSelectedNodeId(node.id)

@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { RotateCcw } from 'lucide-react'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getNode, getNodeChoices, getAdventure } from '@/lib/queries'
@@ -8,6 +7,8 @@ import SceneView from '@/components/reader/SceneView'
 import ChoiceButton from '@/components/reader/ChoiceButton'
 import CopySceneButton from '@/components/reader/CopySceneButton'
 import BackButton from '@/components/reader/BackButton'
+import SceneTracker from '@/components/reader/SceneTracker'
+import RestartButton from '@/components/reader/RestartButton'
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string; nodeId: string }> }) {
   const { id, nodeId } = await params
@@ -26,6 +27,12 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">
+      <SceneTracker
+        adventureId={id}
+        adventureTitle={adventure?.title ?? ''}
+        nodeId={nodeId}
+        nodeType={node.nodeType}
+      />
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           {!isStart && <BackButton />}
@@ -34,7 +41,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
           </Link>
         </div>
         <div className="flex items-center gap-3">
-          <CopySceneButton content={node.content} choices={choices} />
+          <CopySceneButton content={node.content} choices={choices} adventureId={id} />
           {isOwner && (
             <Link href={`/edit/${id}`} className="text-xs text-gray-400 hover:text-gray-600">
               Edit
@@ -50,24 +57,14 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
           <div className="text-center py-8">
             <p className="text-2xl font-bold text-gray-800 mb-2">— The End —</p>
             <p className="text-gray-500 mb-6">Thank you for playing!</p>
-            <Link
-              href={`/play/${id}`}
-              className="inline-flex items-center gap-2 px-5 py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition-colors"
-            >
-              <RotateCcw size={16} />
-              Play Again
-            </Link>
+            <RestartButton href={`/play/${id}`} adventureId={id} />
           </div>
         ) : choices.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-400">No choices available. This story ends here.</p>
-            <Link
-              href={`/play/${id}`}
-              className="inline-flex items-center gap-2 mt-4 px-5 py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition-colors"
-            >
-              <RotateCcw size={16} />
-              Start Over
-            </Link>
+            <div className="mt-4">
+              <RestartButton href={`/play/${id}`} adventureId={id} />
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -78,6 +75,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
                 href={`/play/${id}/${choice.targetNodeId}`}
                 label={choice.label}
                 index={index}
+                adventureId={id}
               />
             ))}
           </div>

@@ -6,6 +6,7 @@ import { Pencil, Play, Trash2, GitBranch, Settings } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import ShareToggle from './ShareToggle'
 import AdventureSettingsModal from './AdventureSettingsModal'
+import { analytics } from '@/lib/analytics'
 
 interface Props {
   adventure: AdventureWithCounts
@@ -96,7 +97,7 @@ export default function AdventureCard({ adventure, onDelete }: Props) {
           </Link>
           {onDelete && (
             <button
-              onClick={() => onDelete(current.id)}
+              onClick={() => { analytics.adventureDeleted(current.id); onDelete(current.id) }}
               className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
             >
               <Trash2 size={14} />

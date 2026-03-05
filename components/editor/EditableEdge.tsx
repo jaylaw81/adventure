@@ -8,6 +8,7 @@ import {
   type EdgeProps,
 } from '@xyflow/react'
 import { X } from 'lucide-react'
+import { analytics } from '@/lib/analytics'
 
 interface EditableEdgeData {
   label: string
@@ -53,6 +54,7 @@ export default function EditableEdge({
     const trimmed = value.trim() || 'Continue'
     setValue(trimmed)
     edgeData?.onLabelChange(id, trimmed)
+    if (edgeData?.adventureId) analytics.choiceLabelEdited(edgeData.adventureId)
   }, [value, id, edgeData])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

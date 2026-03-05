@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { X, Trash2, Sparkles, RefreshCw, ImageOff } from 'lucide-react'
 import type { Node } from '@/lib/schema'
+import { analytics } from '@/lib/analytics'
 
 interface Props {
   node: Node | null
@@ -51,7 +52,8 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
 
   const handleGenerateImage = async (isRegen = false) => {
     if (!node) return
-    if (isRegen) setRegenCount(c => c + 1)
+    const nextCount = isRegen ? regenCount + 1 : regenCount
+    if (isRegen) setRegenCount(nextCount)
     setGeneratingImage(true)
     try {
       const res = await fetch(`/api/adventures/${adventureId}/nodes/${node.id}/image`, {
@@ -60,6 +62,8 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
       const updated: Node = await res.json()
       setImageUrl(updated.imageUrl ?? null)
       onUpdate(updated)
+      if (isRegen) analytics.imageRegenerated(adventureId, node.id, nextCount)
+      else analytics.imageGenerated(adventureId, node.id)
     } finally {
       setGeneratingImage(false)
     }
@@ -68,6 +72,7 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
   const handleRemoveImage = async () => {
     if (!node) return
     await fetch(`/api/adventures/${adventureId}/nodes/${node.id}/image`, { method: 'DELETE' })
+    analytics.imageRemoved(adventureId, node.id)
     setImageUrl(null)
     onUpdate({ ...node, imageUrl: null })
   }
@@ -147,7 +152,7 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
           <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
           <div className="flex gap-2">
             <button
-              onClick={() => { setStatus('in_progress'); save({ status: 'in_progress' }) }}
+              onClick={() => { setStatus('in_progress'); save({ status: 'in_progress' }); analytics.sceneStatusChanged(adventureId, node!.id, 'in_progress') }}
               className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-colors ${
                 status === 'in_progress'
                   ? 'border-blue-400 bg-blue-50 text-blue-700'
@@ -160,6 +165,7 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
               onClick={() => {
                 setStatus('completed')
                 save({ status: 'completed' })
+                analytics.sceneStatusChanged(adventureId, node!.id, 'completed')
                 if (!imageUrl && content.trim()) handleGenerateImage()
               }}
               className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-colors ${
@@ -181,6 +187,7 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
               const val = e.target.value as 'start' | 'scene' | 'ending'
               setNodeType(val)
               save({ nodeType: val })
+              analytics.sceneTypeChanged(adventureId, node!.id, val)
             }}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
           >

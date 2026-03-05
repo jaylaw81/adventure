@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Link2, Link2Off, Copy, Check } from 'lucide-react'
+import { analytics } from '@/lib/analytics'
 
 interface Props {
   adventureId: string
@@ -23,14 +24,15 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
     setLoading(true)
     try {
       if (isPublic) {
-        const res = await fetch(`/api/adventures/${adventureId}/share`, { method: 'DELETE' })
-        const data = await res.json()
+        await fetch(`/api/adventures/${adventureId}/share`, { method: 'DELETE' })
         setIsPublic(false)
+        analytics.shareDisabled(adventureId)
       } else {
         const res = await fetch(`/api/adventures/${adventureId}/share`, { method: 'POST' })
         const data = await res.json()
         setIsPublic(true)
         setShareToken(data.shareToken)
+        analytics.shareEnabled(adventureId)
       }
     } finally {
       setLoading(false)
@@ -40,6 +42,7 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
   const handleCopy = async () => {
     if (!shareUrl) return
     await navigator.clipboard.writeText(shareUrl)
+    analytics.shareLinkCopied(adventureId)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }

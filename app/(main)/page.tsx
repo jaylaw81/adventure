@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Plus, BookOpen, GitBranch, Share2, Sparkles } from 'lucide-react'
 import { useSession, signIn } from 'next-auth/react'
+import { analytics } from '@/lib/analytics'
 import AdventureCard from '@/components/shared/AdventureCard'
 import type { AdventureWithCounts } from '@/lib/queries'
 
@@ -26,7 +27,7 @@ function LandingPage() {
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <button
-              onClick={() => signIn('google')}
+              onClick={() => { analytics.landingSignInClicked('hero'); signIn('google') }}
               className="px-7 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl shadow-md transition-colors text-lg"
             >
               Start Creating — it's free
@@ -71,7 +72,7 @@ function LandingPage() {
         <h2 className="text-3xl font-bold mb-3">Ready to tell your story?</h2>
         <p className="text-gray-400 mb-7">Sign in with Google and start building in minutes.</p>
         <button
-          onClick={() => signIn('google')}
+          onClick={() => { analytics.landingSignInClicked('cta_bottom'); signIn('google') }}
           className="px-8 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors text-lg"
         >
           Sign in with Google

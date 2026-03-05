@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Play, BookOpen } from 'lucide-react'
+import { analytics } from '@/lib/analytics'
 
 const AUDIENCE_LABEL: Record<string, string> = {
   all: 'All Ages',
@@ -73,6 +74,7 @@ export default function ExplorePage() {
                 </div>
                 <Link
                   href={`/play/${story.id}`}
+                  onClick={() => analytics.exploreStoryClicked(story.id, story.title)}
                   className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
                 >
                   <Play size={14} />

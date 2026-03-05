@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { analytics } from '@/lib/analytics'
 
 export default function CreatePage() {
   const router = useRouter()
@@ -23,6 +24,7 @@ export default function CreatePage() {
         body: JSON.stringify({ title: title.trim(), description: description.trim() }),
       })
       const adventure = await res.json()
+      analytics.adventureCreated(title.trim())
       router.push(`/edit/${adventure.id}`)
     } catch (e) {
       setError('Failed to create adventure')

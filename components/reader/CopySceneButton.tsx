@@ -2,15 +2,17 @@
 
 import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
+import { analytics } from '@/lib/analytics'
 
 const CHOICE_EMOJIS = ['❤️', '😘', '🔥']
 
 interface Props {
   content: string
   choices: { label: string }[]
+  adventureId: string
 }
 
-export default function CopySceneButton({ content, choices }: Props) {
+export default function CopySceneButton({ content, choices, adventureId }: Props) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -27,6 +29,7 @@ export default function CopySceneButton({ content, choices }: Props) {
     }
 
     await navigator.clipboard.writeText(lines.join('\n'))
+    analytics.sceneCopied(adventureId)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
