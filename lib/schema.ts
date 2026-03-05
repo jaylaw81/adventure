@@ -1,5 +1,12 @@
 import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean } from 'drizzle-orm/pg-core'
 
+export const users = pgTable('users', {
+  email: text('email').primaryKey(),
+  displayName: text('display_name').notNull().default(''),
+  birthDate: text('birth_date'), // YYYY-MM-DD, nullable until user sets it
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 export const adventures = pgTable('adventures', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   title: text('title').notNull(),
@@ -34,6 +41,7 @@ export const choices = pgTable('choices', {
   orderIndex: integer('order_index').notNull().default(0),
 })
 
+export type User = typeof users.$inferSelect
 export type Adventure = typeof adventures.$inferSelect
 export type Node = typeof nodes.$inferSelect
 export type Choice = typeof choices.$inferSelect

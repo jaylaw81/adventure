@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { choices } from '@/lib/schema'
+import { requireOwner } from '@/lib/requireOwner'
 import { eq } from 'drizzle-orm'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string; choiceId: string }> }) {
   try {
-    const { choiceId } = await params
+    const { id, choiceId } = await params
+    const owned = await requireOwner(id)
+    if (owned.error) return owned.error
+
     const body = await req.json()
     const updateData: Partial<typeof choices.$inferInsert> = {}
     if (body.label !== undefined) updateData.label = body.label
@@ -22,7 +26,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string; choiceId: string }> }) {
   try {
-    const { choiceId } = await params
+    const { id, choiceId } = await params
+    const owned = await requireOwner(id)
+    if (owned.error) return owned.error
+
     await db.delete(choices).where(eq(choices.id, choiceId))
     return NextResponse.json({ success: true })
   } catch (e) {

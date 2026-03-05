@@ -1,6 +1,11 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 import { authOptions } from '@/lib/auth'
 import { getNode, getNodeChoices, getAdventure } from '@/lib/queries'
 import SceneView from '@/components/reader/SceneView'

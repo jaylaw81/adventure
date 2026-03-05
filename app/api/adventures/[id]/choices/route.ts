@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { choices } from '@/lib/schema'
+import { requireOwner } from '@/lib/requireOwner'
 import { eq } from 'drizzle-orm'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -16,6 +17,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const owned = await requireOwner(id)
+    if (owned.error) return owned.error
+
     const body = await req.json()
     const { sourceNodeId, targetNodeId, label, orderIndex } = body
     if (!sourceNodeId || !targetNodeId) {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { adventures } from '@/lib/schema'
 import { getAdventureWithData } from '@/lib/queries'
+import { requireOwner } from '@/lib/requireOwner'
 import { eq } from 'drizzle-orm'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -18,6 +19,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const owned = await requireOwner(id)
+    if (owned.error) return owned.error
+
     const body = await req.json()
     const { title, description, audience, tags } = body
     const updateData: Partial<typeof adventures.$inferInsert> = { updatedAt: new Date() }
@@ -40,6 +44,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const owned = await requireOwner(id)
+    if (owned.error) return owned.error
+
     await db.delete(adventures).where(eq(adventures.id, id))
     return NextResponse.json({ success: true })
   } catch (e) {

@@ -18,22 +18,31 @@ export default function Header() {
       <Link href="/explore" className="ml-6 text-sm text-gray-300 hover:text-amber-400 transition-colors hidden sm:block">
         Explore
       </Link>
+      <Link href="/how-to" className="text-sm text-gray-300 hover:text-amber-400 transition-colors hidden sm:block">
+        Guide
+      </Link>
 
       <div className="ml-auto flex items-center gap-3">
         {status === 'loading' ? null : session ? (
           <>
-            {session.user?.image && (
-              <Image
-                src={session.user.image}
-                alt={session.user.name ?? 'User'}
-                width={32}
-                height={32}
-                className="rounded-full"
-              />
-            )}
-            <span className="text-sm text-gray-300 hidden sm:block">
-              {session.user?.name ?? session.user?.email}
-            </span>
+            <Link href="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              {session.user?.image ? (
+                <Image
+                  src={session.user.image}
+                  alt={session.user.name ?? 'User'}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-sm font-bold">
+                  {(session.user?.name ?? session.user?.email ?? '?')[0].toUpperCase()}
+                </div>
+              )}
+              <span className="text-sm text-gray-300 hidden sm:block">
+                {session.user?.name ?? session.user?.email}
+              </span>
+            </Link>
             <button
               onClick={() => signOut()}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
