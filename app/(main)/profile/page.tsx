@@ -195,7 +195,7 @@ function ProfileContent() {
             readOnly
             className="w-full border border-gray-100 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
           />
-          <p className="text-xs text-gray-400 mt-1">Managed by Google — cannot be changed here.</p>
+          <p className="text-xs text-gray-400 mt-1">Your sign-in email — cannot be changed here.</p>
         </div>
 
         <div className="flex items-center gap-3">

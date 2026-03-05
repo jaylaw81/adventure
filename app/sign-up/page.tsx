@@ -6,35 +6,66 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Scroll, Eye, EyeOff } from 'lucide-react'
 
-export default function SignInPage() {
+export default function SignUpPage() {
   const router = useRouter()
+  const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email.trim() || !password) return
+    if (!email.trim() || !password || !displayName.trim()) return
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+
     setLoading(true)
     setError('')
-    const res = await signIn('credentials', {
+
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim(), password, displayName: displayName.trim() }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      setLoading(false)
+      setError(data.error ?? 'Registration failed')
+      return
+    }
+
+    // Auto sign-in after successful registration
+    const signInRes = await signIn('credentials', {
       email: email.trim().toLowerCase(),
       password,
       redirect: false,
     })
+
     setLoading(false)
-    if (res?.error) {
-      setError('Incorrect email or password')
+
+    if (signInRes?.error) {
+      setError('Account created but sign-in failed. Please sign in manually.')
+      router.push('/sign-in')
     } else {
-      router.push('/')
+      router.push('/profile?required=1')
       router.refresh()
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4"
+    <div className="min-h-screen flex items-center justify-center px-4 py-10"
       style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}
     >
       <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col gap-6 w-full max-w-sm">
@@ -50,12 +81,23 @@ export default function SignInPage() {
             <h1 className="text-2xl font-extrabold text-gray-900">
               Story<span className="text-amber-500">Questor</span>
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">Sign in to your account</p>
+            <p className="text-sm text-gray-500 mt-0.5">Create your account</p>
           </div>
         </div>
 
-        {/* Email / password form */}
+        {/* Registration form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Display Name</label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              placeholder="Your name"
+              required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+            />
+          </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
             <input
@@ -74,7 +116,7 @@ export default function SignInPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="At least 8 characters"
                 required
                 className="w-full border border-gray-200 rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
@@ -88,20 +130,41 @@ export default function SignInPage() {
               </button>
             </div>
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Confirm Password</label>
+            <div className="relative">
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter your password"
+                required
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                tabIndex={-1}
+              >
+                {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
           {error && <p className="text-xs text-red-500">{error}</p>}
           <button
             type="submit"
             disabled={loading}
             className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg text-sm transition-colors disabled:opacity-50"
           >
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? 'Creating account…' : 'Create Account'}
           </button>
         </form>
 
         <p className="text-center text-xs text-gray-500">
-          Don&apos;t have an account?{' '}
-          <Link href="/sign-up" className="text-amber-600 hover:underline font-medium">
-            Create one
+          Already have an account?{' '}
+          <Link href="/sign-in" className="text-amber-600 hover:underline font-medium">
+            Sign in
           </Link>
         </p>
 

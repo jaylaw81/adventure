@@ -1,5 +1,7 @@
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
@@ -10,6 +12,25 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    CredentialsProvider({
+      name: 'Email',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null
+        try {
+          const [user] = await db.select().from(users).where(eq(users.email, credentials.email.toLowerCase()))
+          if (!user?.passwordHash) return null // no account or Google-only account
+          const valid = await bcrypt.compare(credentials.password, user.passwordHash)
+          if (!valid) return null
+          return { id: user.email, email: user.email, name: user.displayName || user.email }
+        } catch {
+          return null
+        }
+      },
     }),
   ],
   session: { strategy: 'jwt' },
@@ -56,6 +77,7 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email as string
         session.user.name = (token.displayName as string) || (token.name as string) || session.user.email
         session.user.isAdult = token.isAdult ?? false
+        session.user.profileComplete = !!token.birthDate
       }
       return session
     },

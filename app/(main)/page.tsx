@@ -26,12 +26,13 @@ function LandingPage() {
             Build branching stories with a visual canvas, then share them with the world. Your readers decide the outcome.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            <button
-              onClick={() => { analytics.landingSignInClicked('hero'); signIn('google') }}
+            <Link
+              href="/sign-up"
+              onClick={() => analytics.landingSignInClicked('hero')}
               className="px-7 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl shadow-md transition-colors text-lg"
             >
               Start Creating — it's free
-            </button>
+            </Link>
             <Link
               href="/explore"
               className="px-7 py-3.5 bg-white hover:bg-gray-50 text-gray-700 font-semibold rounded-xl shadow-sm border border-gray-200 transition-colors text-lg"
@@ -70,13 +71,22 @@ function LandingPage() {
       {/* CTA */}
       <section className="bg-gray-900 text-white px-6 py-16 text-center">
         <h2 className="text-3xl font-bold mb-3">Ready to tell your story?</h2>
-        <p className="text-gray-400 mb-7">Sign in with Google and start building in minutes.</p>
-        <button
-          onClick={() => { analytics.landingSignInClicked('cta_bottom'); signIn('google') }}
-          className="px-8 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors text-lg"
-        >
-          Sign in with Google
-        </button>
+        <p className="text-gray-400 mb-7">Create a free account and start building in minutes.</p>
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <Link
+            href="/sign-up"
+            onClick={() => analytics.landingSignInClicked('cta_bottom')}
+            className="px-8 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors text-lg"
+          >
+            Create a free account
+          </Link>
+          <button
+            onClick={() => signIn('google')}
+            className="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-colors text-lg border border-white/20"
+          >
+            Sign in with Google
+          </button>
+        </div>
       </section>
     </div>
   )

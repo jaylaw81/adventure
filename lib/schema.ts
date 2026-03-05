@@ -4,6 +4,7 @@ export const users = pgTable('users', {
   email: text('email').primaryKey(),
   displayName: text('display_name').notNull().default(''),
   birthDate: text('birth_date'), // YYYY-MM-DD, nullable until user sets it
+  passwordHash: text('password_hash'), // null for Google-only accounts
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

@@ -66,9 +66,13 @@ export default function Header() {
 
         {/* Nav links */}
         <nav className="hidden sm:flex items-center gap-5 ml-2">
-          {session && <NavLink href="/">My Stories</NavLink>}
-          <NavLink href="/explore">Explore</NavLink>
-          <NavLink href="/how-to">Guide</NavLink>
+          {session?.user.profileComplete && <NavLink href="/">My Stories</NavLink>}
+          {(!session || session.user.profileComplete) && (
+            <>
+              <NavLink href="/explore">Explore</NavLink>
+              <NavLink href="/how-to">Guide</NavLink>
+            </>
+          )}
         </nav>
 
         {/* Right side */}
@@ -77,14 +81,25 @@ export default function Header() {
             <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
           ) : session ? (
             <>
-              {/* Create button */}
-              <Link
-                href="/create"
-                className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 transition-all hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
-              >
-                + New Story
-              </Link>
+              {/* Create button — only when profile is complete */}
+              {session.user.profileComplete && (
+                <Link
+                  href="/create"
+                  className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 transition-all hover:scale-105"
+                  style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+                >
+                  + New Story
+                </Link>
+              )}
+              {/* Onboarding nudge — profile not yet complete */}
+              {!session.user.profileComplete && (
+                <Link
+                  href="/profile?required=1"
+                  className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition-colors"
+                >
+                  Complete your profile →
+                </Link>
+              )}
 
               {/* User menu */}
               <div ref={menuRef} className="relative">
@@ -150,13 +165,21 @@ export default function Header() {
               </div>
             </>
           ) : (
-            <button
-              onClick={() => signIn('google')}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 transition-all hover:scale-105 hover:shadow-lg"
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
-            >
-              Sign in with Google
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/sign-in"
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-3 py-2"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/sign-up"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 transition-all hover:scale-105 hover:shadow-lg"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+              >
+                Sign up free
+              </Link>
+            </div>
           )}
         </div>
       </div>
