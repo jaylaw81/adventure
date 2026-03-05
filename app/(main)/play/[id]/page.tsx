@@ -1,10 +1,11 @@
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Play, Tag, Users, ShieldOff } from 'lucide-react'
+import { Tag, Users, ShieldOff } from 'lucide-react'
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getAdventure, getStartNode } from '@/lib/queries'
+import StartStoryButton from '@/components/reader/StartStoryButton'
 
 const AUDIENCE_LABEL: Record<string, string> = {
   all: 'All Ages',
@@ -120,13 +121,10 @@ export default async function StoryLandingPage({ params }: Props) {
             </div>
           )}
 
-          <Link
+          <StartStoryButton
             href={`/play/${id}/${startNode.id}`}
-            className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors text-lg shadow-sm"
-          >
-            <Play size={18} />
-            Start Playing
-          </Link>
+            audience={adventure.audience ?? 'all'}
+          />
         </div>
       </div>
 
