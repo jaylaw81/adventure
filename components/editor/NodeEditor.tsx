@@ -130,7 +130,7 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
             </div>
           ) : (
             <button
-              onClick={handleGenerateImage}
+              onClick={() => handleGenerateImage()}
               disabled={generatingImage || !content.trim()}
               className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-200 rounded-lg text-sm text-gray-500 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >

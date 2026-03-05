@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { RotateCcw } from 'lucide-react'
-import { getNode, getNodeChoices } from '@/lib/queries'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { getNode, getNodeChoices, getAdventure } from '@/lib/queries'
 import SceneView from '@/components/reader/SceneView'
 import ChoiceButton from '@/components/reader/ChoiceButton'
 import CopySceneButton from '@/components/reader/CopySceneButton'
@@ -9,11 +11,15 @@ import BackButton from '@/components/reader/BackButton'
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string; nodeId: string }> }) {
   const { id, nodeId } = await params
-  const [node, choices] = await Promise.all([
+  const [node, choices, adventure, session] = await Promise.all([
     getNode(nodeId),
     getNodeChoices(nodeId),
+    getAdventure(id),
+    getServerSession(authOptions),
   ])
   if (!node) notFound()
+
+  const isOwner = !!session?.user?.email && session.user.email === adventure?.userEmail
 
   const isEnding = node.nodeType === 'ending'
   const isStart = node.nodeType === 'start'
@@ -29,9 +35,11 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         </div>
         <div className="flex items-center gap-3">
           <CopySceneButton content={node.content} choices={choices} />
-          <Link href={`/edit/${id}`} className="text-xs text-gray-400 hover:text-gray-600">
-            Edit
-          </Link>
+          {isOwner && (
+            <Link href={`/edit/${id}`} className="text-xs text-gray-400 hover:text-gray-600">
+              Edit
+            </Link>
+          )}
         </div>
       </div>
 
