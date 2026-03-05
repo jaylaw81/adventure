@@ -1,0 +1,43 @@
+import { NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { adventures } from '@/lib/schema'
+import { getAdventureWithData } from '@/lib/queries'
+import { eq } from 'drizzle-orm'
+
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params
+    const adventure = await getAdventureWithData(id)
+    if (!adventure) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json(adventure)
+  } catch (e) {
+    return NextResponse.json({ error: 'Failed to fetch adventure' }, { status: 500 })
+  }
+}
+
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params
+    const body = await req.json()
+    const { title, description } = body
+    const [updated] = await db
+      .update(adventures)
+      .set({ title, description, updatedAt: new Date() })
+      .where(eq(adventures.id, id))
+      .returning()
+    if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json(updated)
+  } catch (e) {
+    return NextResponse.json({ error: 'Failed to update adventure' }, { status: 500 })
+  }
+}
+
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params
+    await db.delete(adventures).where(eq(adventures.id, id))
+    return NextResponse.json({ success: true })
+  } catch (e) {
+    return NextResponse.json({ error: 'Failed to delete adventure' }, { status: 500 })
+  }
+}
