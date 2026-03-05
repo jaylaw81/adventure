@@ -46,10 +46,14 @@ export default function ExplorePage() {
       .then(data => { setStories(data); setLoading(false) })
   }, [])
 
-  // Build sorted tag list with counts
+  const isAdult = session?.user?.isAdult ?? false
+  const isSignedIn = !!session
+
+  // Build sorted tag list with counts — only from stories visible to this user
   const tagStats = useMemo(() => {
     const counts = new Map<string, number>()
     for (const story of stories) {
+      if (story.audience === 'adults' && !isAdult) continue
       for (const tag of parseTags(story.tags)) {
         counts.set(tag, (counts.get(tag) ?? 0) + 1)
       }
@@ -61,12 +65,11 @@ export default function ExplorePage() {
     // "Popular" = top third by count (min 2 stories)
     const popularThreshold = Math.max(2, Math.ceil(maxCount * 0.6))
     return sorted.map(([tag, count]) => ({ tag, count, popular: count >= popularThreshold }))
-  }, [stories])
+  }, [stories, isAdult])
 
   // Filtered stories
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const isAdult = session?.user?.isAdult ?? false
     return stories.filter(story => {
       // Hide adults-only stories from non-adults and guests
       if (story.audience === 'adults' && !isAdult) return false
@@ -80,7 +83,7 @@ export default function ExplorePage() {
       }
       return true
     })
-  }, [stories, selectedAudience, selectedTag, search])
+  }, [stories, selectedAudience, selectedTag, search, isAdult])
 
   const activeFilterCount = (selectedAudience ? 1 : 0) + (selectedTag ? 1 : 0) + (search.trim() ? 1 : 0)
 
@@ -91,6 +94,21 @@ export default function ExplorePage() {
         <h1 className="text-3xl font-bold text-gray-900">Explore Stories</h1>
         <p className="text-gray-500 mt-1">Play public adventures shared by creators</p>
       </div>
+
+      {/* Registration nudge for guests */}
+      {!isSignedIn && (
+        <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm text-amber-800">
+            <span className="font-semibold">Sign in for full access</span> — some stories and tags are only visible to registered members.
+          </p>
+          <Link
+            href="/sign-in"
+            className="shrink-0 px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors"
+          >
+            Sign in
+          </Link>
+        </div>
+      )}
 
       {/* Search bar */}
       <div className="relative mb-8">
@@ -197,7 +215,7 @@ export default function ExplorePage() {
             >
               All Audiences
             </button>
-            {AUDIENCE_OPTIONS.map(opt => (
+            {AUDIENCE_OPTIONS.filter(opt => opt.value !== 'adults' || isAdult).map(opt => (
               <button
                 key={opt.value}
                 onClick={() => setSelectedAudience(selectedAudience === opt.value ? null : opt.value)}
