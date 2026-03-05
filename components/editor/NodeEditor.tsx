@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { X, Trash2, Sparkles, RefreshCw, ImageOff } from 'lucide-react'
+import { X, Trash2, Sparkles, RefreshCw, ImageOff, Save } from 'lucide-react'
 import type { Node } from '@/lib/schema'
 import { analytics } from '@/lib/analytics'
 
@@ -11,11 +11,15 @@ interface Props {
   onClose: () => void
   onUpdate: (node: Node) => void
   onDelete: (nodeId: string) => void
+  onDirtyChange: (dirty: boolean) => void
+  externalSaveRef: React.MutableRefObject<(() => Promise<void>) | null>
 }
 
-export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDelete }: Props) {
+export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDelete, onDirtyChange, externalSaveRef }: Props) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [savedTitle, setSavedTitle] = useState('')
+  const [savedContent, setSavedContent] = useState('')
   const [nodeType, setNodeType] = useState<'start' | 'scene' | 'ending'>('scene')
   const [status, setStatus] = useState<'in_progress' | 'completed'>('in_progress')
   const [imageUrl, setImageUrl] = useState<string | null>(null)
@@ -23,10 +27,19 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
   const [generatingImage, setGeneratingImage] = useState(false)
   const [regenCount, setRegenCount] = useState(0)
 
+  const isDirty = title !== savedTitle || content !== savedContent
+
+  // Notify Canvas whenever dirty state changes
+  useEffect(() => {
+    onDirtyChange(isDirty)
+  }, [isDirty, onDirtyChange])
+
   useEffect(() => {
     if (node) {
       setTitle(node.title)
       setContent(node.content)
+      setSavedTitle(node.title)
+      setSavedContent(node.content)
       setNodeType(node.nodeType as 'start' | 'scene' | 'ending')
       setStatus((node.status ?? 'in_progress') as 'in_progress' | 'completed')
       setImageUrl(node.imageUrl ?? null)
@@ -44,11 +57,27 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
         body: JSON.stringify(updates),
       })
       const updated = await res.json()
+      if ('title' in updates) setSavedTitle(updates.title as string)
+      if ('content' in updates) setSavedContent(updates.content as string)
       onUpdate(updated)
     } finally {
       setSaving(false)
     }
   }, [node, adventureId, onUpdate])
+
+  const handleSave = useCallback(async () => {
+    await save({ title, content })
+  }, [save, title, content])
+
+  // Expose save to Canvas so Toolbar can trigger it
+  useEffect(() => {
+    externalSaveRef.current = isDirty ? handleSave : null
+  }, [isDirty, handleSave, externalSaveRef])
+
+  // Clean up ref on unmount
+  useEffect(() => {
+    return () => { externalSaveRef.current = null }
+  }, [externalSaveRef])
 
   const handleGenerateImage = async (isRegen = false) => {
     if (!node) return
@@ -85,18 +114,36 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
     onClose()
   }
 
+  const handleClose = () => {
+    if (isDirty && !confirm('You have unsaved changes. Discard them?')) return
+    onDirtyChange(false)
+    onClose()
+  }
+
   if (!node) return null
 
   return (
     <div className="w-80 h-full bg-white border-l border-gray-200 shadow-xl flex flex-col">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <h3 className="font-semibold text-gray-900">Edit Scene</h3>
-        <div className="flex gap-2">
-          {saving && <span className="text-xs text-gray-400 self-center">Saving…</span>}
+        <div className="flex items-center gap-2">
+          {isDirty && (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              <Save size={12} />
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          )}
+          {!isDirty && saving === false && (
+            <span className="text-xs text-gray-400">Saved</span>
+          )}
           <button onClick={handleDelete} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
             <Trash2 size={16} />
           </button>
-          <button onClick={onClose} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+          <button onClick={handleClose} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -203,7 +250,6 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
             type="text"
             value={title}
             onChange={e => setTitle(e.target.value)}
-            onBlur={() => save({ title })}
             placeholder="Scene title…"
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
@@ -214,13 +260,28 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
-            onBlur={() => save({ content })}
             placeholder="Write the scene content…"
             rows={10}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
           />
         </div>
+
       </div>
+
+      {/* Sticky save footer — visible when dirty */}
+      {isDirty && (
+        <div className="px-4 py-3 border-t border-amber-100 bg-amber-50 flex items-center justify-between gap-3">
+          <span className="text-xs text-amber-700 font-medium">Unsaved changes</span>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+          >
+            <Save size={12} />
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

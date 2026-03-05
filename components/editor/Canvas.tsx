@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -80,6 +80,22 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
   const [saving, setSaving] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [currentAdventure, setCurrentAdventure] = useState(adventure)
+  const [nodeEditorDirty, setNodeEditorDirty] = useState(false)
+  const externalSaveRef = useRef<(() => Promise<void>) | null>(null)
+
+  // Warn before leaving the page if there are unsaved changes
+  useEffect(() => {
+    if (!nodeEditorDirty) return
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault() }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [nodeEditorDirty])
+
+  // Confirm discard helper — returns true if safe to proceed
+  const confirmDiscard = useCallback(() => {
+    if (!nodeEditorDirty) return true
+    return confirm('You have unsaved changes. Discard them?')
+  }, [nodeEditorDirty])
 
   const handleLabelChange = useCallback(async (edgeId: string, label: string) => {
     setRfEdges(prev =>
@@ -133,9 +149,19 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
     [adventure.id]
   )
 
-  const onNodeClick: NodeMouseHandler = useCallback((_evt, node) => {
-    setSelectedNodeId(node.id)
-  }, [])
+  const onNodeClick: NodeMouseHandler = useCallback((_evt, rfNode) => {
+    if (rfNode.id === selectedNodeId) return
+    if (!confirmDiscard()) return
+    setNodeEditorDirty(false)
+    setSelectedNodeId(rfNode.id)
+  }, [selectedNodeId, confirmDiscard])
+
+  const handlePaneClick = useCallback(() => {
+    if (!selectedNodeId) return
+    if (!confirmDiscard()) return
+    setNodeEditorDirty(false)
+    setSelectedNodeId(null)
+  }, [selectedNodeId, confirmDiscard])
 
   const onNodeDragStop: NodeMouseHandler = useCallback(
     async (_evt, node) => {
@@ -149,7 +175,9 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
   )
 
   const handleAddNode = async () => {
-    // Place new node at the center of the visible canvas area
+    if (!confirmDiscard()) return
+    setNodeEditorDirty(false)
+
     const canvasEl = document.querySelector('.react-flow__renderer') as HTMLElement | null
     const rect = canvasEl?.getBoundingClientRect() ?? { left: 0, top: 0, width: 800, height: 600 }
     const centerX = rect.left + rect.width / 2
@@ -174,6 +202,14 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
     setSelectedNodeId(node.id)
   }
 
+  const handleToolbarSave = useCallback(async () => {
+    if (externalSaveRef.current) {
+      setSaving(true)
+      await externalSaveRef.current()
+      setSaving(false)
+    }
+  }, [])
+
   const handleNodeUpdate = (updated: Node) => {
     setDbNodes(prev => prev.map(n => (n.id === updated.id ? updated : n)))
     setRfNodes(prev =>
@@ -197,9 +233,10 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
         adventureTitle={currentAdventure.title}
         adventureId={currentAdventure.id}
         onAddNode={handleAddNode}
-        onSave={() => {}}
+        onSave={handleToolbarSave}
         onSettings={() => setShowSettings(true)}
         saving={saving}
+        dirty={nodeEditorDirty}
       />
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 relative">
@@ -212,7 +249,7 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
             onEdgesDelete={onEdgesDelete}
             onNodeClick={onNodeClick}
             onNodeDragStop={onNodeDragStop}
-            onPaneClick={() => setSelectedNodeId(null)}
+            onPaneClick={handlePaneClick}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
@@ -234,6 +271,8 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
             onClose={() => setSelectedNodeId(null)}
             onUpdate={handleNodeUpdate}
             onDelete={handleNodeDelete}
+            onDirtyChange={setNodeEditorDirty}
+            externalSaveRef={externalSaveRef}
           />
         )}
       </div>
