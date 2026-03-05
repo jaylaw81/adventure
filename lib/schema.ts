@@ -5,6 +5,8 @@ export const adventures = pgTable('adventures', {
   title: text('title').notNull(),
   description: text('description').notNull().default(''),
   userEmail: text('user_email'),
+  audience: text('audience').notNull().default('all'), // 'all' | 'teens' | 'adults'
+  tags: text('tags').notNull().default('[]'), // JSON array of strings
   isPublic: boolean('is_public').notNull().default(false),
   shareToken: text('share_token').unique(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

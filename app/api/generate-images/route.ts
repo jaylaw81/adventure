@@ -4,6 +4,7 @@ import { eq, inArray } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, nodes } from '@/lib/schema'
+import type { Adventure } from '@/lib/schema'
 import { generateSceneImage } from '@/lib/generateImage'
 
 export const maxDuration = 60
@@ -16,7 +17,7 @@ export async function POST() {
     }
 
     const userAdventures = await db
-      .select({ id: adventures.id })
+      .select({ id: adventures.id, audience: adventures.audience })
       .from(adventures)
       .where(eq(adventures.userEmail, session.user.email))
 
@@ -33,11 +34,14 @@ export async function POST() {
       n => n.status === 'completed' && !n.imageUrl && (n.title || n.content).trim()
     )
 
+    const audienceMap = new Map(userAdventures.map(a => [a.id, a.audience]))
+
     // Process sequentially to avoid overwhelming the HF API
     let processed = 0
     for (const node of pending) {
       try {
-        const imageUrl = await generateSceneImage(node.title, node.content)
+        const audience = audienceMap.get(node.adventureId) ?? 'all'
+        const imageUrl = await generateSceneImage(node.title, node.content, audience)
         await db.update(nodes).set({ imageUrl }).where(eq(nodes.id, node.id))
         processed++
       } catch (e) {

@@ -24,7 +24,9 @@ import StoryNode, { type StoryNodeData } from './StoryNode'
 import EditableEdge from './EditableEdge'
 import NodeEditor from './NodeEditor'
 import Toolbar from './Toolbar'
+import AdventureSettingsModal from '@/components/shared/AdventureSettingsModal'
 import type { Node, Choice, Adventure } from '@/lib/schema'
+import type { AdventureWithCounts } from '@/lib/queries'
 
 const nodeTypes = { storyNode: StoryNode }
 const edgeTypes = { editableEdge: EditableEdge }
@@ -75,6 +77,8 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
   const [dbNodes, setDbNodes] = useState<Node[]>(initialNodes)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [currentAdventure, setCurrentAdventure] = useState(adventure)
 
   const handleLabelChange = useCallback(async (edgeId: string, label: string) => {
     setRfEdges(prev =>
@@ -186,10 +190,11 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
   return (
     <div className="flex flex-col h-screen">
       <Toolbar
-        adventureTitle={adventure.title}
-        adventureId={adventure.id}
+        adventureTitle={currentAdventure.title}
+        adventureId={currentAdventure.id}
         onAddNode={handleAddNode}
         onSave={() => {}}
+        onSettings={() => setShowSettings(true)}
         saving={saving}
       />
       <div className="flex flex-1 overflow-hidden">
@@ -228,6 +233,13 @@ function CanvasInner({ adventure, initialNodes, initialChoices }: Props) {
           />
         )}
       </div>
+      {showSettings && (
+        <AdventureSettingsModal
+          adventure={currentAdventure as AdventureWithCounts}
+          onClose={() => setShowSettings(false)}
+          onSave={updated => setCurrentAdventure(prev => ({ ...prev, ...updated }))}
+        />
+      )}
     </div>
   )
 }

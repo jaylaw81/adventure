@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { nodes } from '@/lib/schema'
+import { nodes, adventures } from '@/lib/schema'
 import { generateSceneImage } from '@/lib/generateImage'
 
 export const maxDuration = 60
@@ -15,11 +15,14 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { nodeId } = await params
-    const [node] = await db.select().from(nodes).where(eq(nodes.id, nodeId))
+    const { id, nodeId } = await params
+    const [[node], [adventure]] = await Promise.all([
+      db.select().from(nodes).where(eq(nodes.id, nodeId)),
+      db.select().from(adventures).where(eq(adventures.id, id)),
+    ])
     if (!node) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    const imageUrl = await generateSceneImage(node.title, node.content)
+    const imageUrl = await generateSceneImage(node.title, node.content, adventure?.audience ?? 'all')
 
     const [updated] = await db
       .update(nodes)

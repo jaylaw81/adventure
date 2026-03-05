@@ -1,17 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, Plus, Save } from 'lucide-react'
+import { ArrowLeft, Plus, Save, Settings } from 'lucide-react'
 
 interface Props {
   adventureTitle: string
   adventureId: string
   onAddNode: () => void
   onSave: () => void
+  onSettings: () => void
   saving: boolean
 }
 
-export default function Toolbar({ adventureTitle, adventureId, onAddNode, onSave, saving }: Props) {
+export default function Toolbar({ adventureTitle, adventureId, onAddNode, onSave, onSettings, saving }: Props) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 shadow-sm z-10">
       <Link
@@ -24,6 +25,13 @@ export default function Toolbar({ adventureTitle, adventureId, onAddNode, onSave
       <span className="text-gray-300">|</span>
       <span className="font-semibold text-gray-800 truncate max-w-xs">{adventureTitle}</span>
       <div className="ml-auto flex gap-2">
+        <button
+          onClick={onSettings}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+        >
+          <Settings size={16} />
+          Settings
+        </button>
         <button
           onClick={onAddNode}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
