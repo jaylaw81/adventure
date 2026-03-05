@@ -149,7 +149,7 @@ export default function HowToPage() {
             At the bottom of every scene you'll see up to three choice buttons. Each choice is marked with an emoji:
             <ul className="mt-2 space-y-1 list-disc list-inside">
               <li>❤️ First choice</li>
-              <li>😘 Second choice</li>
+              <li>👍 Second choice</li>
               <li>🔥 Third choice</li>
             </ul>
             Click a choice to move to the next scene. Your decisions shape which path through the story you experience.

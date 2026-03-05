@@ -10,7 +10,8 @@
     "generate-images": "tsx scripts/bulk-generate-images.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
     "@huggingface/inference": "^4.13.14",

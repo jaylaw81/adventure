@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 
-const CHOICE_EMOJIS = ['❤️', '😘', '🔥']
+const CHOICE_EMOJIS = ['❤️', '👍', '🔥']
 
 interface Props {
   href: string
