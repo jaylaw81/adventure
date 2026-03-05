@@ -57,7 +57,7 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col gap-5 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900">Adventure Settings</h2>
+          <h2 className="text-lg font-bold text-gray-900">Story Settings</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X size={20} />
           </button>
@@ -71,7 +71,7 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
             value={title}
             onChange={e => setTitle(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-            placeholder="Adventure title"
+            placeholder="Story title"
           />
         </div>
 
@@ -83,7 +83,7 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
             onChange={e => setDescription(e.target.value)}
             rows={3}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
-            placeholder="A short description of your adventure…"
+            placeholder="A short description of your story…"
           />
         </div>
 

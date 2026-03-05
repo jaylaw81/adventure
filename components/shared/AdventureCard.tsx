@@ -31,7 +31,7 @@ export default function AdventureCard({ adventure, onDelete }: Props) {
             <button
               onClick={() => setShowSettings(true)}
               className="text-gray-400 hover:text-gray-600 transition-colors shrink-0 mt-0.5"
-              title="Adventure settings"
+              title="Story settings"
             >
               <Settings size={16} />
             </button>

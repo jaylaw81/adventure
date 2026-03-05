@@ -66,6 +66,7 @@ export default function Header() {
 
         {/* Nav links */}
         <nav className="hidden sm:flex items-center gap-5 ml-2">
+          {session && <NavLink href="/">My Stories</NavLink>}
           <NavLink href="/explore">Explore</NavLink>
           <NavLink href="/how-to">Guide</NavLink>
         </nav>
@@ -133,7 +134,7 @@ export default function Header() {
                       className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors"
                     >
                       <span className="w-4 h-4 text-center text-xs">📚</span>
-                      My Adventures
+                      My Stories
                     </Link>
                     <div className="border-t border-white/10 mt-1">
                       <button

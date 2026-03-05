@@ -27,7 +27,7 @@ export default function CreatePage() {
       analytics.adventureCreated(title.trim())
       router.push(`/edit/${adventure.id}`)
     } catch (e) {
-      setError('Failed to create adventure')
+      setError('Failed to create story')
       setLoading(false)
     }
   }
@@ -38,7 +38,7 @@ export default function CreatePage() {
         <ArrowLeft size={16} />
         Back
       </Link>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Adventure</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Story</h1>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col gap-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -55,7 +55,7 @@ export default function CreatePage() {
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
-            placeholder="A short description of your adventure…"
+            placeholder="A short description of your story…"
             rows={3}
             className="w-full border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
           />

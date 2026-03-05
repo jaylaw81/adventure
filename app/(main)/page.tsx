@@ -23,7 +23,7 @@ function LandingPage() {
             <span className="text-amber-500">Every Choice Matters</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-xl mx-auto">
-            Build branching adventures with a visual canvas, then share them with the world. Your readers decide the outcome.
+            Build branching stories with a visual canvas, then share them with the world. Your readers decide the outcome.
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <button
@@ -63,7 +63,7 @@ function LandingPage() {
             <Share2 size={22} className="text-amber-600" />
           </div>
           <h3 className="text-lg font-bold text-gray-900">Share & Play</h3>
-          <p className="text-gray-500 text-sm">Publish your adventure with a link. Readers play through branching paths and discover every outcome.</p>
+          <p className="text-gray-500 text-sm">Publish your story with a link. Readers play through branching paths and discover every outcome.</p>
         </div>
       </section>
 
@@ -94,7 +94,7 @@ function Dashboard() {
   }, [])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this adventure?')) return
+    if (!confirm('Delete this story?')) return
     await fetch(`/api/adventures/${id}`, { method: 'DELETE' })
     setAdventures(prev => prev.filter(a => a.id !== id))
   }
@@ -103,7 +103,7 @@ function Dashboard() {
     <div className="max-w-5xl mx-auto px-6 py-10">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Your Adventures</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Your Stories</h1>
           <p className="text-gray-500 mt-1">Create and play branching stories</p>
         </div>
         <Link
@@ -111,7 +111,7 @@ function Dashboard() {
           className="flex items-center gap-2 px-4 py-2.5 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition-colors shadow-sm"
         >
           <Plus size={18} />
-          New Adventure
+          New Story
         </Link>
       </div>
 
@@ -119,13 +119,13 @@ function Dashboard() {
         <div className="text-center py-20 text-gray-400">Loading…</div>
       ) : adventures.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-gray-400 text-lg mb-4">No adventures yet. Create your first one!</p>
+          <p className="text-gray-400 text-lg mb-4">No stories yet. Create your first one!</p>
           <Link
             href="/create"
             className="inline-flex items-center gap-2 px-5 py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition-colors"
           >
             <Plus size={18} />
-            Create Adventure
+            Create Story
           </Link>
         </div>
       ) : (

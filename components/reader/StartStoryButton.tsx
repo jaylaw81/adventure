@@ -39,7 +39,7 @@ const AUDIENCE_CONFIG: Record<string, AudienceConfig> = {
     icon: <Star size={32} className="text-green-500" />,
     headline: 'Family Friendly',
     body: 'This story is suitable for all ages! It contains family-friendly content with no mature themes, violence, or inappropriate language. Enjoy the adventure with the whole family.',
-    cta: 'Start Adventure',
+    cta: 'Start Story',
     ctaColor: 'bg-green-600 hover:bg-green-700',
   },
 }

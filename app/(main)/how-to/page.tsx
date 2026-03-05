@@ -55,7 +55,7 @@ export default function HowToPage() {
         </div>
         <h1 className="text-4xl font-extrabold text-gray-900 mb-3">How to Use StoryQuestor</h1>
         <p className="text-gray-500 text-lg max-w-xl mx-auto">
-          Everything you need to know to create your own branching stories and play through adventures made by others.
+          Everything you need to know to create your own branching stories and play through stories made by others.
         </p>
       </div>
 
@@ -63,8 +63,8 @@ export default function HowToPage() {
 
         {/* Creating Stories */}
         <Section icon={<Pencil size={20} />} title="Creating a Story">
-          <Step number={1} title="Create a new adventure">
-            Sign in, then click <strong>New Adventure</strong> on the home page. Give your story a title and an optional description — you can always change these later in settings.
+          <Step number={1} title="Create a new story">
+            Sign in, then click <strong>New Story</strong> on the home page. Give your story a title and an optional description — you can always change these later in settings.
           </Step>
 
           <Step number={2} title="Set your story's audience and tags">
@@ -140,7 +140,7 @@ export default function HowToPage() {
             Quick Tips
           </h2>
           <ul className="space-y-3 text-sm text-gray-700">
-            <li className="flex items-start gap-2"><ChevronRight size={15} className="text-amber-400 shrink-0 mt-0.5" />Every adventure must have a <strong>Start</strong> scene or readers won't be able to begin.</li>
+            <li className="flex items-start gap-2"><ChevronRight size={15} className="text-amber-400 shrink-0 mt-0.5" />Every story must have a <strong>Start</strong> scene or readers won't be able to begin.</li>
             <li className="flex items-start gap-2"><ChevronRight size={15} className="text-amber-400 shrink-0 mt-0.5" />Scenes marked as <strong>Completed</strong> are highlighted red on the canvas — blue means still in progress.</li>
             <li className="flex items-start gap-2"><ChevronRight size={15} className="text-amber-400 shrink-0 mt-0.5" />You can rearrange scenes freely by dragging them around the canvas. Positions are saved automatically.</li>
             <li className="flex items-start gap-2"><ChevronRight size={15} className="text-amber-400 shrink-0 mt-0.5" />The home page shows how many distinct <strong>endings are reachable</strong> — this counts all unique paths through your story.</li>
@@ -150,7 +150,7 @@ export default function HowToPage() {
         </section>
 
         <div className="text-center py-6">
-          <p className="text-gray-500 mb-5">Ready to start your first adventure?</p>
+          <p className="text-gray-500 mb-5">Ready to start your first story?</p>
           <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors">
               <Plus size={16} />

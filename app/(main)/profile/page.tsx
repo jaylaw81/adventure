@@ -220,7 +220,7 @@ function ProfileContent() {
         <div className="mt-8 bg-white rounded-2xl shadow-sm border border-red-100 p-6">
           <h2 className="text-base font-semibold text-red-700 mb-1">Danger Zone</h2>
           <p className="text-sm text-gray-500 mb-4">
-            Deleting your account is permanent. All your adventures, scenes, and images will be removed and cannot be recovered.
+            Deleting your account is permanent. All your stories, scenes, and images will be removed and cannot be recovered.
           </p>
 
           {!confirmDelete ? (
