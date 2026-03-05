@@ -76,6 +76,22 @@ export async function getAdventures(userEmail: string) {
   })
 }
 
+export async function getPublicAdventures() {
+  return db
+    .select({
+      id: adventures.id,
+      title: adventures.title,
+      description: adventures.description,
+      audience: adventures.audience,
+      tags: adventures.tags,
+      shareToken: adventures.shareToken,
+      createdAt: adventures.createdAt,
+    })
+    .from(adventures)
+    .where(eq(adventures.isPublic, true))
+    .orderBy(adventures.updatedAt)
+}
+
 export async function getAdventure(id: string) {
   const [adventure] = await db.select().from(adventures).where(eq(adventures.id, id))
   return adventure ?? null

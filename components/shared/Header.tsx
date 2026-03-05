@@ -15,6 +15,10 @@ export default function Header() {
         <span className="text-xl font-bold">Adventure Maker</span>
       </Link>
 
+      <Link href="/explore" className="ml-6 text-sm text-gray-300 hover:text-amber-400 transition-colors hidden sm:block">
+        Explore
+      </Link>
+
       <div className="ml-auto flex items-center gap-3">
         {status === 'loading' ? null : session ? (
           <>
