@@ -20,6 +20,7 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [generatingImage, setGeneratingImage] = useState(false)
+  const [regenCount, setRegenCount] = useState(0)
 
   useEffect(() => {
     if (node) {
@@ -28,6 +29,7 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
       setNodeType(node.nodeType as 'start' | 'scene' | 'ending')
       setStatus((node.status ?? 'in_progress') as 'in_progress' | 'completed')
       setImageUrl(node.imageUrl ?? null)
+      setRegenCount(0)
     }
   }, [node?.id])
 
@@ -47,8 +49,9 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
     }
   }, [node, adventureId, onUpdate])
 
-  const handleGenerateImage = async () => {
+  const handleGenerateImage = async (isRegen = false) => {
     if (!node) return
+    if (isRegen) setRegenCount(c => c + 1)
     setGeneratingImage(true)
     try {
       const res = await fetch(`/api/adventures/${adventureId}/nodes/${node.id}/image`, {
@@ -109,10 +112,10 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
               />
               <div className="absolute top-1.5 right-1.5 flex gap-1">
                 <button
-                  onClick={handleGenerateImage}
-                  disabled={generatingImage}
-                  title="Regenerate"
-                  className="p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors disabled:opacity-50"
+                  onClick={() => handleGenerateImage(true)}
+                  disabled={generatingImage || regenCount >= 2}
+                  title={regenCount >= 2 ? 'Regeneration limit reached (2/2)' : `Regenerate (${regenCount}/2 used)`}
+                  className="p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw size={12} className={generatingImage ? 'animate-spin' : ''} />
                 </button>
