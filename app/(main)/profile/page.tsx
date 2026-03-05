@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -29,7 +29,7 @@ function minBirthDate() {
   return d.toISOString().split('T')[0]
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { data: session, update } = useSession()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -261,5 +261,13 @@ export default function ProfilePage() {
         </p>
       )}
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="text-center py-20 text-gray-400">Loading…</div>}>
+      <ProfileContent />
+    </Suspense>
   )
 }
