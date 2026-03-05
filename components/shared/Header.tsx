@@ -54,13 +54,10 @@ export default function Header() {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-          <div className="relative w-8 h-8 rounded-lg flex items-center justify-center"
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all group-hover:brightness-110"
             style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
           >
             <Scroll size={16} className="text-white" strokeWidth={2.5} />
-            <div className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ background: 'linear-gradient(135deg, #fbbf24, #f97316)' }}
-            />
           </div>
           <span className="text-white font-extrabold text-lg tracking-tight group-hover:text-amber-300 transition-colors">
             Adventure<span className="text-amber-400">Maker</span>
