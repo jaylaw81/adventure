@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef, KeyboardEvent } from 'react'
-import { X, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { X } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { analytics } from '@/lib/analytics'
+import { STORY_TAGS } from '@/lib/tags'
 
 interface Props {
   adventure: AdventureWithCounts
@@ -24,25 +25,11 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
   const [tags, setTags] = useState<string[]>(() => {
     try { return JSON.parse(adventure.tags ?? '[]') } catch { return [] }
   })
-  const [tagInput, setTagInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const tagRef = useRef<HTMLInputElement>(null)
 
-  const addTag = () => {
-    const t = tagInput.trim().toLowerCase()
-    if (t && !tags.includes(t)) setTags(prev => [...prev, t])
-    setTagInput('')
-    tagRef.current?.focus()
-  }
-
-  const removeTag = (tag: string) => setTags(prev => prev.filter(t => t !== tag))
-
-  const handleTagKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag() }
-    if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
-      setTags(prev => prev.slice(0, -1))
-    }
+  const toggleTag = (tag: string) => {
+    setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
   }
 
   const handleSave = async () => {
@@ -102,26 +89,32 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
 
         {/* Tags */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-700">Tags</label>
-          <div className="border border-gray-300 rounded-lg px-3 py-2 flex flex-wrap gap-1.5 min-h-[42px] focus-within:ring-2 focus-within:ring-amber-400">
-            {tags.map(tag => (
-              <span key={tag} className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                {tag}
-                <button onClick={() => removeTag(tag)} className="hover:text-amber-600 leading-none">×</button>
-              </span>
-            ))}
-            <input
-              ref={tagRef}
-              type="text"
-              value={tagInput}
-              onChange={e => setTagInput(e.target.value)}
-              onKeyDown={handleTagKeyDown}
-              onBlur={addTag}
-              className="flex-1 min-w-[80px] text-sm outline-none bg-transparent"
-              placeholder={tags.length === 0 ? 'Add tags (press Enter)…' : ''}
-            />
+          <label className="text-sm font-medium text-gray-700">
+            Tags
+            {tags.length > 0 && (
+              <span className="ml-2 text-xs font-normal text-amber-600">{tags.length} selected</span>
+            )}
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {STORY_TAGS.map(tag => {
+              const selected = tags.includes(tag)
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    selected
+                      ? 'bg-amber-500 text-white border-amber-500'
+                      : 'bg-white text-gray-600 border-gray-300 hover:border-amber-400 hover:text-amber-600'
+                  }`}
+                >
+                  {tag}
+                </button>
+              )
+            })}
           </div>
-          <p className="text-xs text-gray-400">Press Enter or comma to add a tag</p>
+          <p className="text-xs text-gray-400">Select all that apply</p>
         </div>
 
         {/* Audience */}
