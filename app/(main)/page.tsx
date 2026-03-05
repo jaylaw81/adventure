@@ -14,6 +14,8 @@ export default function HomePage() {
     fetch('/api/adventures')
       .then(r => r.json())
       .then(data => { setAdventures(data); setLoading(false) })
+    // Silently generate images for any completed scenes that don't have one yet
+    fetch('/api/generate-images', { method: 'POST' })
   }, [])
 
   const handleDelete = async (id: string) => {

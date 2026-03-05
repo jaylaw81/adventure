@@ -18,6 +18,7 @@ export const nodes = pgTable('nodes', {
   content: text('content').notNull().default(''),
   nodeType: text('node_type').notNull().default('scene'), // 'start' | 'scene' | 'ending'
   status: text('status').notNull().default('in_progress'), // 'in_progress' | 'completed'
+  imageUrl: text('image_url'),
   positionX: doublePrecision('position_x').notNull().default(0),
   positionY: doublePrecision('position_y').notNull().default(0),
 })
