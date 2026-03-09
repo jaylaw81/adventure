@@ -50,6 +50,14 @@ export const choices = pgTable('choices', {
   index('choices_source_node_id_idx').on(t.sourceNodeId),
 ])
 
+export const passwordResetTokens = pgTable('password_reset_tokens', {
+  token: text('token').primaryKey(),
+  email: text('email').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  usedAt: timestamp('used_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 export type User = typeof users.$inferSelect
 export type Adventure = typeof adventures.$inferSelect
 export type Node = typeof nodes.$inferSelect
