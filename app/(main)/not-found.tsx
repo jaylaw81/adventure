@@ -1,31 +1,12 @@
 import Link from 'next/link'
-import { Scroll, BookOpen, Compass, ArrowLeft } from 'lucide-react'
+import { BookOpen, Compass, ArrowLeft } from 'lucide-react'
 
 export default function NotFound() {
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
+      className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center"
       style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}
     >
-      {/* Shimmer line */}
-      <div
-        className="fixed top-0 left-0 right-0 h-px"
-        style={{ background: 'linear-gradient(90deg, transparent, #f59e0b66, #a78bfa66, transparent)' }}
-      />
-
-      {/* Logo */}
-      <Link href="/" className="flex items-center gap-2.5 group mb-16">
-        <div
-          className="w-9 h-9 rounded-lg flex items-center justify-center transition-all group-hover:brightness-110"
-          style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
-        >
-          <Scroll size={18} className="text-white" strokeWidth={2.5} />
-        </div>
-        <span className="text-white font-extrabold text-xl tracking-tight group-hover:text-amber-300 transition-colors">
-          Story<span className="text-amber-400">Questor</span>
-        </span>
-      </Link>
-
       {/* Big 404 */}
       <div className="relative mb-8 select-none">
         <p
@@ -39,7 +20,6 @@ export default function NotFound() {
         >
           404
         </p>
-        {/* Faint glow behind number */}
         <div
           className="absolute inset-0 blur-3xl opacity-20 -z-10"
           style={{ background: 'radial-gradient(ellipse at center, #f59e0b, #a78bfa, transparent)' }}
@@ -53,7 +33,6 @@ export default function NotFound() {
         The story you&apos;re looking for may have been made private, deleted, or the link might be wrong.
       </p>
 
-      {/* Actions */}
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <Link
           href="/"
@@ -73,7 +52,7 @@ export default function NotFound() {
       </div>
 
       {/* Decorative story path */}
-      <div className="mt-20 flex items-center gap-4 opacity-20">
+      <div className="mt-16 flex items-center gap-4 opacity-20">
         <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
         <div className="w-12 h-px bg-amber-400/60" />
         <BookOpen size={16} className="text-amber-400" />
