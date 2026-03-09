@@ -5,8 +5,19 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = process.env.EMAIL_FROM ?? 'StoryQuestor <noreply@storyquestor.com>'
 const SITE_URL = process.env.NEXTAUTH_URL ?? 'https://www.storyquestor.com'
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
+
 export async function sendPasswordResetEmail(email: string, token: string) {
+  // token is hex (a-f0-9 only) — safe to embed directly in a URL
   const resetUrl = `${SITE_URL}/reset-password?token=${token}`
+  const safeEmail = escapeHtml(email)
 
   await resend.emails.send({
     from: FROM,
@@ -24,7 +35,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
 
           <p style="font-size: 15px; line-height: 1.6;">
-            We received a request to reset the password for your account (<strong>${email}</strong>).
+            We received a request to reset the password for your account (<strong>${safeEmail}</strong>).
             Click the button below to choose a new password.
           </p>
 
