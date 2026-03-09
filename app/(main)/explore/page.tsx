@@ -134,6 +134,47 @@ export default function ExplorePage() {
         )}
       </div>
 
+      {/* Mobile filters (horizontal scroll) */}
+      <div className="md:hidden mb-4 flex flex-col gap-3">
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button
+            onClick={() => setSelectedAudience(null)}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+              !selectedAudience ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200'
+            }`}
+          >
+            All Audiences
+          </button>
+          {AUDIENCE_OPTIONS.filter(opt => opt.value !== 'adults' || isAdult).map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setSelectedAudience(selectedAudience === opt.value ? null : opt.value)}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                selectedAudience === opt.value ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {tagStats.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {tagStats.slice(0, 10).map(({ tag, popular }) => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  selectedTag === tag ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200'
+                }`}
+              >
+                {popular && <Flame size={10} className={selectedTag === tag ? 'text-orange-200' : 'text-orange-400'} />}
+                {tag}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="flex gap-8 items-start">
         {/* Sidebar */}
         <aside className="hidden md:flex flex-col gap-6 w-52 shrink-0 sticky top-6">
@@ -207,47 +248,6 @@ export default function ExplorePage() {
             </button>
           )}
         </aside>
-
-        {/* Mobile filters (horizontal scroll) */}
-        <div className="md:hidden w-full mb-4 flex flex-col gap-3">
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-            <button
-              onClick={() => setSelectedAudience(null)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                !selectedAudience ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200'
-              }`}
-            >
-              All Audiences
-            </button>
-            {AUDIENCE_OPTIONS.filter(opt => opt.value !== 'adults' || isAdult).map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setSelectedAudience(selectedAudience === opt.value ? null : opt.value)}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  selectedAudience === opt.value ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          {tagStats.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-              {tagStats.slice(0, 10).map(({ tag, popular }) => (
-                <button
-                  key={tag}
-                  onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                  className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    selectedTag === tag ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200'
-                  }`}
-                >
-                  {popular && <Flame size={10} className={selectedTag === tag ? 'text-orange-200' : 'text-orange-400'} />}
-                  {tag}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Main content */}
         <div className="flex-1 min-w-0">
