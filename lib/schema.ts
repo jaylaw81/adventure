@@ -58,6 +58,21 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
+export const storyReports = pgTable('story_reports', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  adventureId: uuid('adventure_id').notNull().references(() => adventures.id, { onDelete: 'cascade' }),
+  reporterEmail: text('reporter_email'), // null for anonymous reporters
+  reason: text('reason').notNull(),
+  details: text('details'),
+  status: text('status').notNull().default('pending'), // 'pending' | 'reviewed' | 'dismissed'
+  reviewNote: text('review_note'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  reviewedAt: timestamp('reviewed_at'),
+}, (t) => [
+  index('story_reports_adventure_id_idx').on(t.adventureId),
+  index('story_reports_status_idx').on(t.status),
+])
+
 export type User = typeof users.$inferSelect
 export type Adventure = typeof adventures.$inferSelect
 export type Node = typeof nodes.$inferSelect

@@ -14,6 +14,7 @@ import CopySceneButton from '@/components/reader/CopySceneButton'
 import BackButton from '@/components/reader/BackButton'
 import SceneTracker from '@/components/reader/SceneTracker'
 import RestartButton from '@/components/reader/RestartButton'
+import ReportButton from '@/components/reader/ReportButton'
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string; nodeId: string }> }) {
   const { id, nodeId } = await params
@@ -85,6 +86,10 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-10 pt-6 border-t border-gray-100 flex justify-end">
+        <ReportButton adventureId={id} />
       </div>
     </div>
   )

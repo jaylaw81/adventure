@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { desc, sql } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { adventures, nodes } from '@/lib/schema'
+import { adventures, nodes, storyReports } from '@/lib/schema'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const [allAdventures, nodeCounts] = await Promise.all([
+  const [allAdventures, nodeCounts, reportCounts] = await Promise.all([
     db
       .select({
         id: adventures.id,
@@ -27,16 +27,24 @@ export async function GET() {
       .from(adventures)
       .orderBy(desc(adventures.createdAt)),
     db
-      .select({
-        adventureId: nodes.adventureId,
-        count: sql<number>`count(*)::int`,
-      })
+      .select({ adventureId: nodes.adventureId, count: sql<number>`count(*)::int` })
       .from(nodes)
       .groupBy(nodes.adventureId),
+    db
+      .select({ adventureId: storyReports.adventureId, count: sql<number>`count(*)::int` })
+      .from(storyReports)
+      .where(eq(storyReports.status, 'pending'))
+      .groupBy(storyReports.adventureId),
   ])
 
-  const countMap = new Map(nodeCounts.map(r => [r.adventureId, r.count]))
-  const stories = allAdventures.map(a => ({ ...a, sceneCount: countMap.get(a.id) ?? 0 }))
+  const nodeMap = new Map(nodeCounts.map(r => [r.adventureId, r.count]))
+  const reportMap = new Map(reportCounts.map(r => [r.adventureId, r.count]))
+
+  const stories = allAdventures.map(a => ({
+    ...a,
+    sceneCount: nodeMap.get(a.id) ?? 0,
+    pendingReports: reportMap.get(a.id) ?? 0,
+  }))
 
   return NextResponse.json(stories)
 }

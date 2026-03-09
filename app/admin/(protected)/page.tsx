@@ -25,6 +25,7 @@ interface AdminStory {
   isPublic: boolean
   tags: string
   sceneCount: number
+  pendingReports: number
   createdAt: string
   updatedAt: string
 }
@@ -134,7 +135,14 @@ export default function AdminDashboard() {
               {filtered.map(story => (
                 <tr key={story.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-4 max-w-xs">
-                    <p className="font-medium text-slate-900 truncate">{story.title}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-slate-900 truncate">{story.title}</p>
+                      {story.pendingReports > 0 && (
+                        <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full">
+                          ⚠ {story.pendingReports}
+                        </span>
+                      )}
+                    </div>
                     {story.description && (
                       <p className="text-xs text-slate-400 truncate mt-0.5">{story.description}</p>
                     )}

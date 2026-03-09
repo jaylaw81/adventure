@@ -15,6 +15,13 @@
       "when": 1773062710908,
       "tag": "0001_mean_tiger_shark",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773066814303,
+      "tag": "0002_familiar_magik",
+      "breakpoints": true
     }
   ]
 }

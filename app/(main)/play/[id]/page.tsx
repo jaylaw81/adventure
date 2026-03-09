@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getAdventure, getStartNode } from '@/lib/queries'
 import StartStoryButton from '@/components/reader/StartStoryButton'
+import ReportButton from '@/components/reader/ReportButton'
 import JsonLd from '@/components/JsonLd'
 
 const SITE_URL = 'https://www.storyquestor.com'
@@ -159,12 +160,15 @@ export default async function StoryLandingPage({ params }: Props) {
         </div>
       </div>
 
-      <p className="text-center text-xs text-gray-400 mt-8">
-        Made with{' '}
-        <Link href="/" className="hover:text-amber-500 transition-colors">
-          StoryQuestor
-        </Link>
-      </p>
+      <div className="flex items-center justify-between mt-8">
+        <p className="text-xs text-gray-400">
+          Made with{' '}
+          <Link href="/" className="hover:text-amber-500 transition-colors">
+            StoryQuestor
+          </Link>
+        </p>
+        <ReportButton adventureId={id} />
+      </div>
     </div>
   )
 }
