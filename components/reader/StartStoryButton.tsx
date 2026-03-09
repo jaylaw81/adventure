@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Play, X, ShieldAlert, Star, AlertTriangle } from 'lucide-react'
+import { Play, X, ShieldAlert, Star, AlertTriangle, Loader2 } from 'lucide-react'
 
 interface AudienceConfig {
   rating: string
@@ -52,6 +52,7 @@ interface Props {
 export default function StartStoryButton({ href, audience }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [navigating, setNavigating] = useState(false)
   const config = AUDIENCE_CONFIG[audience] ?? AUDIENCE_CONFIG.all
 
   return (
@@ -94,11 +95,16 @@ export default function StartStoryButton({ href, audience }: Props) {
             {/* Actions */}
             <div className="px-6 pb-6 flex flex-col gap-2.5">
               <button
-                onClick={() => router.push(href)}
-                className={`w-full flex items-center justify-center gap-2 py-3 text-white font-semibold rounded-xl transition-colors ${config.ctaColor}`}
+                onClick={() => { setNavigating(true); router.push(href) }}
+                disabled={navigating}
+                className={`w-full flex items-center justify-center gap-2 py-3 text-white font-semibold rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed ${config.ctaColor}`}
               >
-                <Play size={16} />
-                {config.cta}
+                {navigating ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Play size={16} />
+                )}
+                {navigating ? 'Loading…' : config.cta}
               </button>
               <button
                 onClick={() => setOpen(false)}
