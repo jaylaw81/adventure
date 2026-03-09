@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean, index } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
   email: text('email').primaryKey(),
@@ -19,7 +19,10 @@ export const adventures = pgTable('adventures', {
   shareToken: text('share_token').unique(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-})
+}, (t) => [
+  index('adventures_user_email_idx').on(t.userEmail),
+  index('adventures_is_public_idx').on(t.isPublic),
+])
 
 export const nodes = pgTable('nodes', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -31,7 +34,9 @@ export const nodes = pgTable('nodes', {
   imageUrl: text('image_url'),
   positionX: doublePrecision('position_x').notNull().default(0),
   positionY: doublePrecision('position_y').notNull().default(0),
-})
+}, (t) => [
+  index('nodes_adventure_id_idx').on(t.adventureId),
+])
 
 export const choices = pgTable('choices', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -40,7 +45,10 @@ export const choices = pgTable('choices', {
   targetNodeId: uuid('target_node_id').notNull().references(() => nodes.id, { onDelete: 'cascade' }),
   label: text('label').notNull().default('Continue'),
   orderIndex: integer('order_index').notNull().default(0),
-})
+}, (t) => [
+  index('choices_adventure_id_idx').on(t.adventureId),
+  index('choices_source_node_id_idx').on(t.sourceNodeId),
+])
 
 export type User = typeof users.$inferSelect
 export type Adventure = typeof adventures.$inferSelect

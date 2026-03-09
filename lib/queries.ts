@@ -1,4 +1,4 @@
-import { eq, sql, and } from 'drizzle-orm'
+import { eq, sql, and, inArray } from 'drizzle-orm'
 import { db } from './db'
 import { adventures, nodes, choices } from './schema'
 
@@ -38,10 +38,15 @@ export async function getAdventures(userEmail: string) {
     .orderBy(adventures.createdAt)
   if (allAdventures.length === 0) return []
 
-  // Fetch all nodes and choices across all adventures in 2 queries
+  // Fetch only nodes and choices belonging to this user's adventures
+  const adventureIds = allAdventures.map(a => a.id)
   const [allNodes, allChoices] = await Promise.all([
-    db.select({ id: nodes.id, adventureId: nodes.adventureId, nodeType: nodes.nodeType }).from(nodes),
-    db.select({ adventureId: choices.adventureId, sourceNodeId: choices.sourceNodeId, targetNodeId: choices.targetNodeId }).from(choices),
+    db.select({ id: nodes.id, adventureId: nodes.adventureId, nodeType: nodes.nodeType })
+      .from(nodes)
+      .where(inArray(nodes.adventureId, adventureIds)),
+    db.select({ adventureId: choices.adventureId, sourceNodeId: choices.sourceNodeId, targetNodeId: choices.targetNodeId })
+      .from(choices)
+      .where(inArray(choices.adventureId, adventureIds)),
   ])
 
   // Group by adventureId
@@ -127,6 +132,17 @@ export async function getNodeChoices(nodeId: string) {
 }
 
 export async function getStartNode(adventureId: string) {
-  const allNodes = await db.select().from(nodes).where(eq(nodes.adventureId, adventureId))
-  return allNodes.find(n => n.nodeType === 'start') ?? allNodes[0] ?? null
+  const [startNode] = await db
+    .select()
+    .from(nodes)
+    .where(and(eq(nodes.adventureId, adventureId), eq(nodes.nodeType, 'start')))
+    .limit(1)
+  if (startNode) return startNode
+  // Fallback: return the first node for adventures without an explicit start node
+  const [first] = await db
+    .select()
+    .from(nodes)
+    .where(eq(nodes.adventureId, adventureId))
+    .limit(1)
+  return first ?? null
 }
