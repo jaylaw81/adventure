@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Play, BookOpen, Search, X, Flame } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/lib/analytics'
+import ReviewsModal from '@/components/explore/ReviewsModal'
 
 const AUDIENCE_OPTIONS = [
   { value: 'all', label: 'All Ages' },
@@ -41,6 +42,7 @@ export default function ExplorePage() {
   const [search, setSearch] = useState('')
   const [selectedAudience, setSelectedAudience] = useState<string | null>(null)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [reviewsModal, setReviewsModal] = useState<{ id: string; title: string } | null>(null)
 
   useEffect(() => {
     fetch('/api/explore')
@@ -308,10 +310,17 @@ export default function ExplorePage() {
                         </span>
                       </div>
                       {story.avgRating !== null && (
-                        <div className="flex items-center gap-1.5 mt-1 mb-1">
+                        <button
+                          onClick={() => setReviewsModal({ id: story.id, title: story.title })}
+                          className="flex items-center gap-1.5 mt-1 mb-1 hover:opacity-75 transition-opacity"
+                          title="Read reviews"
+                        >
                           <span className="text-amber-400 text-sm leading-none">{'★'.repeat(Math.round(story.avgRating))}{'☆'.repeat(5 - Math.round(story.avgRating))}</span>
-                          <span className="text-xs text-gray-500">{story.avgRating.toFixed(1)} ({story.reviewCount})</span>
-                        </div>
+                          <span className="text-xs text-gray-500">{story.avgRating.toFixed(1)}</span>
+                          <span className="text-xs text-amber-600 underline underline-offset-2">
+                            {story.reviewCount} {story.reviewCount === 1 ? 'review' : 'reviews'}
+                          </span>
+                        </button>
                       )}
                       {story.description && (
                         <p className="text-gray-500 text-sm line-clamp-3">{story.description}</p>
@@ -349,6 +358,13 @@ export default function ExplorePage() {
           )}
         </div>
       </div>
+      {reviewsModal && (
+        <ReviewsModal
+          adventureId={reviewsModal.id}
+          adventureTitle={reviewsModal.title}
+          onClose={() => setReviewsModal(null)}
+        />
+      )}
     </div>
   )
 }
