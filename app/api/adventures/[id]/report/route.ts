@@ -18,9 +18,9 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid reason' }, { status: 400 })
     }
 
-    // Verify the story exists
-    const [adventure] = await db.select({ id: adventures.id }).from(adventures).where(eq(adventures.id, id))
-    if (!adventure) return NextResponse.json({ error: 'Story not found' }, { status: 404 })
+    // Verify the story exists and is public (private stories can't be reported)
+    const [adventure] = await db.select({ id: adventures.id, isPublic: adventures.isPublic }).from(adventures).where(eq(adventures.id, id)).limit(1)
+    if (!adventure || !adventure.isPublic) return NextResponse.json({ error: 'Story not found' }, { status: 404 })
 
     const session = await getServerSession(authOptions)
     const reporterEmail = session?.user?.email ?? null

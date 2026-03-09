@@ -29,6 +29,9 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
 
   const isOwner = !!session?.user?.email && session.user.email === adventure?.userEmail
 
+  // Block private stories from non-owners
+  if (!adventure?.isPublic && !isOwner) notFound()
+
   const isEnding = node.nodeType === 'ending'
   const isStart = node.nodeType === 'start'
 

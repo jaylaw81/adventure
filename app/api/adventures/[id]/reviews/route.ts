@@ -12,6 +12,13 @@ export async function GET(
   const { id } = await params
   const session = await getServerSession(authOptions)
 
+  // Validate story exists and is accessible
+  const [adventure] = await db.select({ isPublic: adventures.isPublic, userEmail: adventures.userEmail })
+    .from(adventures).where(eq(adventures.id, id)).limit(1)
+  if (!adventure) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const isOwner = !!session?.user?.email && session.user.email === adventure.userEmail
+  if (!adventure.isPublic && !isOwner) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
   const visible = and(eq(storyReviews.adventureId, id), eq(storyReviews.hidden, false))
 
   const [reviews, [aggregate]] = await Promise.all([
@@ -73,9 +80,12 @@ export async function POST(
     return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 })
   }
 
-  const [adventure] = await db.select({ id: adventures.id, userEmail: adventures.userEmail })
-    .from(adventures).where(eq(adventures.id, id))
+  const [adventure] = await db.select({ id: adventures.id, isPublic: adventures.isPublic, userEmail: adventures.userEmail })
+    .from(adventures).where(eq(adventures.id, id)).limit(1)
   if (!adventure) return NextResponse.json({ error: 'Story not found' }, { status: 404 })
+  if (!adventure.isPublic && adventure.userEmail !== session.user.email) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
 
   if (adventure.userEmail === session.user.email) {
     return NextResponse.json({ error: 'You cannot review your own story' }, { status: 403 })

@@ -63,6 +63,10 @@ export default async function StoryLandingPage({ params }: Props) {
   if (!adventure) notFound()
   if (!startNode) redirect('/')
 
+  // Block private stories from non-owners
+  const isOwner = !!session?.user?.email && session.user.email === adventure.userEmail
+  if (!adventure.isPublic && !isOwner) notFound()
+
   // Block adults-only stories for non-adults and unauthenticated users
   if (adventure.audience === 'adults' && !session?.user?.isAdult) {
     return (

@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { storyReviews, reviewReports } from '@/lib/schema'
+import { storyReviews, reviewReports, adventures } from '@/lib/schema'
 import { VALID_REVIEW_REPORT_REASONS } from '@/lib/reviewReportReasons'
 
 export async function POST(
@@ -17,6 +17,10 @@ export async function POST(
     if (!reason || !VALID_REVIEW_REPORT_REASONS.has(reason)) {
       return NextResponse.json({ error: 'Invalid reason' }, { status: 400 })
     }
+
+    // Verify story is public before allowing any report
+    const [adventure] = await db.select({ isPublic: adventures.isPublic }).from(adventures).where(eq(adventures.id, id)).limit(1)
+    if (!adventure?.isPublic) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     const [review] = await db
       .select({ id: storyReviews.id, adventureId: storyReviews.adventureId })
