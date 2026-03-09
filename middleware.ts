@@ -6,6 +6,14 @@ export default withAuth(
     const token = req.nextauth.token
     const { pathname } = req.nextUrl
 
+    // Admin routes: require isAdmin, redirect to /admin/sign-in otherwise
+    if (pathname.startsWith('/admin') && pathname !== '/admin/sign-in') {
+      if (!token?.isAdmin) {
+        return NextResponse.redirect(new URL('/admin/sign-in', req.url))
+      }
+      return NextResponse.next()
+    }
+
     // Authenticated user without a birthdate → force profile completion
     if (token && !token.birthDate && pathname !== '/profile') {
       return NextResponse.redirect(new URL('/profile?required=1', req.url))
@@ -18,12 +26,13 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl
+        // Admin routes are handled in the middleware function above
+        if (pathname.startsWith('/admin')) return true
         // These routes require a logged-in user
         if (pathname.startsWith('/create') || pathname.startsWith('/edit')) {
           return !!token
         }
-        // All other matched routes are publicly accessible;
-        // the middleware function above handles the birthdate redirect for logged-in users
+        // All other matched routes are publicly accessible
         return true
       },
     },
@@ -31,7 +40,5 @@ export default withAuth(
 )
 
 export const config = {
-  // Include every route that should enforce the birthdate gate for logged-in users,
-  // plus the auth-required routes. /demo is intentionally excluded — fully public.
-  matcher: ['/', '/create', '/edit/:path*', '/profile', '/explore', '/how-to'],
+  matcher: ['/', '/create', '/edit/:path*', '/profile', '/explore', '/how-to', '/admin', '/admin/:path*'],
 }

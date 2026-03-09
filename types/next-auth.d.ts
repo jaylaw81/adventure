@@ -9,6 +9,7 @@ declare module 'next-auth' {
       image?: string | null
       isAdult: boolean
       profileComplete: boolean
+      isAdmin: boolean
     }
   }
 }
@@ -18,5 +19,6 @@ declare module 'next-auth/jwt' {
     displayName?: string
     birthDate?: string
     isAdult?: boolean
+    isAdmin?: boolean
   }
 }
