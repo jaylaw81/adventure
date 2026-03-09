@@ -1,12 +1,16 @@
 import Link from 'next/link'
 import { BookOpen, Compass, ArrowLeft } from 'lucide-react'
+import Header from '@/components/shared/Header'
+import Footer from '@/components/shared/Footer'
 
 export default function NotFound() {
   return (
-    <div
-      className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center"
-      style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}
-    >
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main
+        className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center"
+        style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}
+      >
       {/* Big 404 */}
       <div className="relative mb-8 select-none">
         <p
@@ -62,6 +66,8 @@ export default function NotFound() {
         <div className="w-2.5 h-2.5 rounded-full border-2 border-purple-400/60" />
       </div>
       <p className="mt-3 text-xs text-white/20 tracking-widest uppercase">Dead end</p>
+      </main>
+      <Footer />
     </div>
   )
 }
