@@ -15,6 +15,7 @@ import BackButton from '@/components/reader/BackButton'
 import SceneTracker from '@/components/reader/SceneTracker'
 import RestartButton from '@/components/reader/RestartButton'
 import ReportButton from '@/components/reader/ReportButton'
+import ReviewForm from '@/components/reader/ReviewForm'
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string; nodeId: string }> }) {
   const { id, nodeId } = await params
@@ -60,10 +61,13 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
 
       <div className="mt-10">
         {isEnding ? (
-          <div className="text-center py-8">
-            <p className="text-2xl font-bold text-gray-800 mb-2">— The End —</p>
-            <p className="text-gray-500 mb-6">Thank you for playing!</p>
-            <RestartButton href={`/play/${id}`} adventureId={id} />
+          <div>
+            <div className="text-center py-8">
+              <p className="text-2xl font-bold text-gray-800 mb-2">— The End —</p>
+              <p className="text-gray-500 mb-6">Thank you for playing!</p>
+              <RestartButton href={`/play/${id}`} adventureId={id} />
+            </div>
+            <ReviewForm adventureId={id} />
           </div>
         ) : choices.length === 0 ? (
           <div className="text-center py-8">

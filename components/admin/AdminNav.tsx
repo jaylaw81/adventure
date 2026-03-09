@@ -11,12 +11,15 @@ export default function AdminNav() {
   const [pendingReports, setPendingReports] = useState(0)
 
   useEffect(() => {
-    fetch('/api/admin/reports')
-      .then(r => r.json())
-      .then((data: { status: string }[]) => {
-        setPendingReports(data.filter(r => r.status === 'pending').length)
-      })
-      .catch(() => {})
+    Promise.all([
+      fetch('/api/admin/reports').then(r => r.json()).catch(() => []),
+      fetch('/api/admin/review-reports').then(r => r.json()).catch(() => []),
+    ]).then(([stories, reviews]: [{ status: string }[], { status: string }[]]) => {
+      const pending =
+        stories.filter(r => r.status === 'pending').length +
+        reviews.filter(r => r.status === 'pending').length
+      setPendingReports(pending)
+    })
   }, [pathname]) // refresh count whenever navigation changes
 
   const NAV_ITEMS = [

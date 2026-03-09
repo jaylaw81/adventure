@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth'
 import { getAdventure, getStartNode } from '@/lib/queries'
 import StartStoryButton from '@/components/reader/StartStoryButton'
 import ReportButton from '@/components/reader/ReportButton'
+import ReviewsSection from '@/components/reader/ReviewsSection'
 import JsonLd from '@/components/JsonLd'
 
 const SITE_URL = 'https://www.storyquestor.com'
@@ -159,6 +160,8 @@ export default async function StoryLandingPage({ params }: Props) {
           />
         </div>
       </div>
+
+      <ReviewsSection adventureId={id} />
 
       <div className="flex items-center justify-between mt-8">
         <p className="text-xs text-gray-400">

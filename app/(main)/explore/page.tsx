@@ -26,6 +26,8 @@ interface PublicStory {
   tags: string
   shareToken: string | null
   createdAt: string
+  avgRating: number | null
+  reviewCount: number
 }
 
 function parseTags(raw: string): string[] {
@@ -305,6 +307,12 @@ export default function ExplorePage() {
                           {AUDIENCE_LABEL[story.audience] ?? story.audience}
                         </span>
                       </div>
+                      {story.avgRating !== null && (
+                        <div className="flex items-center gap-1.5 mt-1 mb-1">
+                          <span className="text-amber-400 text-sm leading-none">{'★'.repeat(Math.round(story.avgRating))}{'☆'.repeat(5 - Math.round(story.avgRating))}</span>
+                          <span className="text-xs text-gray-500">{story.avgRating.toFixed(1)} ({story.reviewCount})</span>
+                        </div>
+                      )}
                       {story.description && (
                         <p className="text-gray-500 text-sm line-clamp-3">{story.description}</p>
                       )}

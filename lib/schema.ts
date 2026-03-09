@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean, index } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
 export const users = pgTable('users', {
   email: text('email').primaryKey(),
@@ -57,6 +57,36 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
   usedAt: timestamp('used_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+export const storyReviews = pgTable('story_reviews', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  adventureId: uuid('adventure_id').notNull().references(() => adventures.id, { onDelete: 'cascade' }),
+  reviewerEmail: text('reviewer_email').notNull(),
+  rating: integer('rating').notNull(), // 1–5
+  reviewText: text('review_text'),
+  hidden: boolean('hidden').notNull().default(false), // admin-hidden; excluded from display and scoring
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('story_reviews_unique_reviewer_idx').on(t.adventureId, t.reviewerEmail),
+  index('story_reviews_adventure_id_idx').on(t.adventureId),
+])
+
+export const reviewReports = pgTable('review_reports', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  reviewId: uuid('review_id').notNull().references(() => storyReviews.id, { onDelete: 'cascade' }),
+  adventureId: uuid('adventure_id').notNull(), // denormalised for easy admin joins
+  reporterEmail: text('reporter_email'),
+  reason: text('reason').notNull(),
+  details: text('details'),
+  status: text('status').notNull().default('pending'), // 'pending' | 'reviewed' | 'dismissed'
+  reviewNote: text('review_note'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  reviewedAt: timestamp('reviewed_at'),
+}, (t) => [
+  index('review_reports_review_id_idx').on(t.reviewId),
+  index('review_reports_status_idx').on(t.status),
+])
 
 export const storyReports = pgTable('story_reports', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
