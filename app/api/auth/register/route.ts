@@ -29,15 +29,15 @@ export async function POST(req: Request) {
 
     if (existing) {
       if (existing.passwordHash) {
-        // Already has a password account
         return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
       } else {
-        // Exists as Google-only — allow adding a password
-        const passwordHash = await bcrypt.hash(password, 12)
-        await db.update(users)
-          .set({ passwordHash, displayName: displayName?.trim() || existing.email })
-          .where(eq(users.email, normalizedEmail))
-        return NextResponse.json({ ok: true })
+        // Google-only account — block sign-up to prevent account takeover.
+        // Anyone can call this endpoint; we must not let them add a password to
+        // a Google account they don't own.
+        return NextResponse.json(
+          { error: 'This email is already registered. Please sign in with Google.' },
+          { status: 409 }
+        )
       }
     }
 

@@ -16,6 +16,7 @@ export default function SignUpPage() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [suggestGoogle, setSuggestGoogle] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,6 +44,7 @@ export default function SignUpPage() {
     if (!res.ok) {
       setLoading(false)
       setError(data.error ?? 'Registration failed')
+      if (data.error?.includes('sign in with Google')) setSuggestGoogle(true)
       return
     }
 
@@ -151,7 +153,20 @@ export default function SignUpPage() {
               </button>
             </div>
           </div>
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && (
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-red-500">{error}</p>
+              {suggestGoogle && (
+                <button
+                  type="button"
+                  onClick={() => signIn('google', { callbackUrl: '/' })}
+                  className="text-xs text-amber-600 hover:underline text-left"
+                >
+                  Continue with Google instead →
+                </button>
+              )}
+            </div>
+          )}
           <button
             type="submit"
             disabled={loading}
