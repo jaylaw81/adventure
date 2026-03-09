@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LogOut, Scroll, ChevronDown } from 'lucide-react'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { LogOut, Scroll, ChevronDown, Menu, X } from 'lucide-react'
+import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 
@@ -28,9 +28,11 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 export default function Header() {
   const { data: session, status } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const pathname = usePathname()
 
-  // Close dropdown on outside click
+  // Close user dropdown on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -40,6 +42,9 @@ export default function Header() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  // Close mobile menu on route change
+  useEffect(() => { setMobileOpen(false) }, [pathname])
 
   return (
     <header className="relative z-30 border-b border-white/10"
@@ -76,8 +81,17 @@ export default function Header() {
           {!session && <NavLink href="/demo">Try Demo</NavLink>}
         </nav>
 
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={() => setMobileOpen(v => !v)}
+          className="sm:hidden ml-auto p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+
         {/* Right side */}
-        <div className="ml-auto flex items-center gap-3">
+        <div className="hidden sm:flex ml-auto items-center gap-3">
           {status === 'loading' ? (
             <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
           ) : session ? (
@@ -184,6 +198,81 @@ export default function Header() {
           )}
         </div>
       </div>
+
+      {/* Mobile menu panel */}
+      {mobileOpen && (
+        <div
+          className="sm:hidden border-t border-white/10 px-5 py-4 flex flex-col gap-1"
+          style={{ background: 'linear-gradient(160deg, #1e1b3a, #0f172a)' }}
+        >
+          {/* Nav links */}
+          {session?.user.profileComplete && (
+            <Link href="/" onClick={() => setMobileOpen(false)}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+              My Stories
+            </Link>
+          )}
+          {(!session || session.user.profileComplete) && (
+            <>
+              <Link href="/explore" onClick={() => setMobileOpen(false)}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/explore' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+                Explore
+              </Link>
+              <Link href="/how-to" onClick={() => setMobileOpen(false)}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/how-to' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+                Guide
+              </Link>
+            </>
+          )}
+          {!session && (
+            <Link href="/demo" onClick={() => setMobileOpen(false)}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/demo' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+              Try Demo
+            </Link>
+          )}
+
+          <div className="border-t border-white/10 mt-2 pt-3 flex flex-col gap-2">
+            {session ? (
+              <>
+                <div className="px-3 py-1 text-xs text-gray-500">{session.user?.email}</div>
+                {session.user.profileComplete ? (
+                  <Link href="/create" onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-900 transition-all"
+                    style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
+                    + New Story
+                  </Link>
+                ) : (
+                  <Link href="/profile?required=1" onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    Complete your profile →
+                  </Link>
+                )}
+                <Link href="/profile" onClick={() => setMobileOpen(false)}
+                  className="px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
+                  Profile Settings
+                </Link>
+                <button onClick={() => { setMobileOpen(false); signOut() }}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-left">
+                  <LogOut size={14} />
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/sign-in" onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300 border border-white/15 hover:bg-white/5 hover:text-white transition-colors">
+                  Sign in
+                </Link>
+                <Link href="/sign-up" onClick={() => setMobileOpen(false)}
+                  className="flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-900"
+                  style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
+                  Sign up free
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   )
 }
