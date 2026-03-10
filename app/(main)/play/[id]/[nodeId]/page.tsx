@@ -28,9 +28,10 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
   if (!node) notFound()
 
   const isOwner = !!session?.user?.email && session.user.email === adventure?.userEmail
+  const isAdmin = !!session?.user?.isAdmin
 
-  // Block private stories from non-owners
-  if (!adventure?.isPublic && !isOwner) notFound()
+  // Block private stories from non-owners (admins can always access)
+  if (!adventure?.isPublic && !isOwner && !isAdmin) notFound()
 
   const isEnding = node.nodeType === 'ending'
   const isStart = node.nodeType === 'start'

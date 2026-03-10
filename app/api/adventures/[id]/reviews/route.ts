@@ -17,7 +17,8 @@ export async function GET(
     .from(adventures).where(eq(adventures.id, id)).limit(1)
   if (!adventure) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   const isOwner = !!session?.user?.email && session.user.email === adventure.userEmail
-  if (!adventure.isPublic && !isOwner) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const isAdmin = !!session?.user?.isAdmin
+  if (!adventure.isPublic && !isOwner && !isAdmin) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const visible = and(eq(storyReviews.adventureId, id), eq(storyReviews.hidden, false))
 
@@ -83,7 +84,7 @@ export async function POST(
   const [adventure] = await db.select({ id: adventures.id, isPublic: adventures.isPublic, userEmail: adventures.userEmail })
     .from(adventures).where(eq(adventures.id, id)).limit(1)
   if (!adventure) return NextResponse.json({ error: 'Story not found' }, { status: 404 })
-  if (!adventure.isPublic && adventure.userEmail !== session.user.email) {
+  if (!adventure.isPublic && adventure.userEmail !== session.user.email && !session.user.isAdmin) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
