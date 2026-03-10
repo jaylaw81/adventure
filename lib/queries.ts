@@ -1,6 +1,6 @@
 import { eq, sql, and, inArray } from 'drizzle-orm'
 import { db } from './db'
-import { adventures, nodes, choices } from './schema'
+import { adventures, nodes, choices, chapters } from './schema'
 
 export type AdventureWithCounts = Awaited<ReturnType<typeof getAdventures>>[number]
 
@@ -115,11 +115,12 @@ export async function getAdventureByToken(token: string) {
 export async function getAdventureWithData(id: string) {
   const [adventure] = await db.select().from(adventures).where(eq(adventures.id, id))
   if (!adventure) return null
-  const [adventureNodes, adventureChoices] = await Promise.all([
+  const [adventureNodes, adventureChoices, adventureChapters] = await Promise.all([
     db.select().from(nodes).where(eq(nodes.adventureId, id)),
     db.select().from(choices).where(eq(choices.adventureId, id)),
+    db.select().from(chapters).where(eq(chapters.adventureId, id)).orderBy(chapters.orderIndex),
   ])
-  return { ...adventure, nodes: adventureNodes, choices: adventureChoices }
+  return { ...adventure, nodes: adventureNodes, choices: adventureChoices, chapters: adventureChapters }
 }
 
 export async function getNode(nodeId: string) {
@@ -129,6 +130,20 @@ export async function getNode(nodeId: string) {
 
 export async function getNodeChoices(nodeId: string) {
   return db.select().from(choices).where(eq(choices.sourceNodeId, nodeId)).orderBy(choices.orderIndex)
+}
+
+export async function getChapterStartNode(adventureId: string, chapterId: string) {
+  const [startNode] = await db
+    .select()
+    .from(nodes)
+    .where(and(eq(nodes.adventureId, adventureId), eq(nodes.chapterId, chapterId), eq(nodes.nodeType, 'start')))
+    .limit(1)
+  return startNode ?? null
+}
+
+export async function getChapter(chapterId: string) {
+  const [chapter] = await db.select().from(chapters).where(eq(chapters.id, chapterId))
+  return chapter ?? null
 }
 
 export async function getStartNode(adventureId: string) {

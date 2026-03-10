@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Plus, BookOpen, GitBranch, Share2, Sparkles, Star,
-  ArrowRight, Check, Play, ChevronRight, Zap, Users, Globe
+  ArrowRight, Check, Play, ChevronRight, Zap, Users, Globe, BookMarked
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/lib/analytics'
@@ -40,95 +40,98 @@ function CanvasMockup() {
           Publish
         </div>
       </div>
-      {/* Canvas area */}
-      <div className="relative h-64 overflow-hidden px-4 py-4" style={{ background: 'radial-gradient(ellipse at 30% 50%, #1e1b3a 0%, #0f0e17 70%)' }}>
-        {/* Grid dots */}
-        <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="1" fill="#fff" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#dots)" />
-        </svg>
-
-        {/* Connector lines */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-          {/* Start → Scene A */}
-          <path d="M 155 72 C 210 72 220 60 265 60" stroke="#f59e0b" strokeWidth="1.5" fill="none" strokeDasharray="0" opacity="0.6" markerEnd="url(#arrowAmber)" />
-          {/* Start → Scene B */}
-          <path d="M 155 88 C 210 88 220 118 265 118" stroke="#a78bfa" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowPurple)" />
-          {/* Scene A → Ending */}
-          <path d="M 370 60 C 420 60 430 72 460 72" stroke="#f59e0b" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowAmber)" />
-          {/* Scene B → Ending */}
-          <path d="M 370 118 C 420 118 440 90 460 86" stroke="#a78bfa" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowPurple)" />
-          <defs>
-            <marker id="arrowAmber" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-              <path d="M 0 0 L 6 3 L 0 6 Z" fill="#f59e0b" opacity="0.8" />
-            </marker>
-            <marker id="arrowPurple" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-              <path d="M 0 0 L 6 3 L 0 6 Z" fill="#a78bfa" opacity="0.8" />
-            </marker>
-          </defs>
-        </svg>
-
-        {/* Start node */}
-        <div className="absolute top-10 left-8 w-36 rounded-xl border border-green-500/40 shadow-lg" style={{ background: '#1a1025' }}>
-          <div className="px-3 py-1.5 rounded-t-xl border-b border-green-500/30 bg-green-500/10 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-            <span className="text-xs font-semibold text-green-400">Start</span>
+      {/* Editor body: chapter sidebar + canvas */}
+      <div className="flex" style={{ background: '#0f0e17' }}>
+        {/* Chapter sidebar */}
+        <div className="w-36 shrink-0 border-r border-white/5 flex flex-col hidden sm:flex" style={{ background: '#0d0c1a' }}>
+          <div className="px-3 py-2.5 border-b border-white/5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">Chapters</p>
           </div>
-          <div className="px-3 py-2">
-            <p className="text-xs font-medium text-white leading-snug">The forest path splits before you…</p>
-          </div>
-        </div>
-
-        {/* Scene A */}
-        <div className="absolute top-3 left-[265px] w-36 rounded-xl border border-amber-500/30 shadow-lg" style={{ background: '#1a1025' }}>
-          <div className="px-3 py-1.5 rounded-t-xl border-b border-amber-500/20 bg-amber-500/10 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            <span className="text-xs font-semibold text-amber-400">Scene</span>
-          </div>
-          <div className="px-3 py-2">
-            <p className="text-xs font-medium text-white leading-snug">You take the left path into the caves…</p>
-          </div>
-        </div>
-
-        {/* Scene B */}
-        <div className="absolute top-[84px] left-[265px] w-36 rounded-xl border border-purple-500/30 shadow-lg" style={{ background: '#1a1025' }}>
-          <div className="px-3 py-1.5 rounded-t-xl border-b border-purple-500/20 bg-purple-500/10 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-            <span className="text-xs font-semibold text-purple-400">Scene</span>
-          </div>
-          <div className="px-3 py-2">
-            <p className="text-xs font-medium text-white leading-snug">The river flows east toward the village…</p>
-          </div>
-        </div>
-
-        {/* Ending node */}
-        <div className="absolute top-[44px] left-[460px] w-36 rounded-xl border border-red-500/40 shadow-lg" style={{ background: '#1a1025' }}>
-          <div className="px-3 py-1.5 rounded-t-xl border-b border-red-500/30 bg-red-500/10 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-red-400" />
-            <span className="text-xs font-semibold text-red-400">Ending</span>
-          </div>
-          <div className="px-3 py-2">
-            <p className="text-xs font-medium text-white leading-snug">The hero emerges victorious!</p>
-          </div>
-        </div>
-
-        {/* Side panel hint */}
-        <div className="absolute inset-y-0 right-0 w-48 border-l border-white/5 hidden sm:block" style={{ background: '#16142a' }}>
-          <div className="px-4 py-3">
-            <p className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Edit Scene</p>
-            <div className="space-y-2">
-              <div className="h-2 bg-white/10 rounded-full w-full" />
-              <div className="h-2 bg-white/10 rounded-full w-4/5" />
-              <div className="h-2 bg-white/10 rounded-full w-3/5" />
+          <div className="flex flex-col p-2 gap-1">
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/25">
+              <BookMarked size={10} className="text-amber-400 shrink-0" />
+              <span className="text-xs font-semibold text-amber-300 truncate">Chapter 1</span>
             </div>
-            <div className="mt-4 h-16 rounded-lg bg-white/5 border border-white/10" />
-            <div className="mt-3 flex gap-2">
-              <div className="flex-1 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30" />
-              <div className="flex-1 h-7 rounded-lg bg-white/5 border border-white/10" />
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5">
+              <BookMarked size={10} className="text-white/30 shrink-0" />
+              <span className="text-xs text-white/40 truncate">Chapter 2</span>
+            </div>
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5">
+              <BookMarked size={10} className="text-white/30 shrink-0" />
+              <span className="text-xs text-white/40 truncate">Chapter 3</span>
+            </div>
+          </div>
+          <div className="mt-auto p-2 border-t border-white/5">
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] text-teal-400 border border-teal-500/20 bg-teal-500/10">
+              <Plus size={9} /> Add Chapter
+            </div>
+          </div>
+        </div>
+
+        {/* Canvas area */}
+        <div className="relative flex-1 h-60 overflow-hidden px-4 py-4" style={{ background: 'radial-gradient(ellipse at 30% 50%, #1e1b3a 0%, #0f0e17 70%)' }}>
+          {/* Grid dots */}
+          <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="#fff" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dots)" />
+          </svg>
+          {/* Connector lines */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 118 64 C 160 64 165 52 200 52" stroke="#f59e0b" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowAmber)" />
+            <path d="M 118 78 C 160 78 165 106 200 106" stroke="#a78bfa" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowPurple)" />
+            <path d="M 305 52 C 340 52 348 64 368 64" stroke="#f59e0b" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowAmber)" />
+            <path d="M 305 106 C 340 106 352 80 368 76" stroke="#a78bfa" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowPurple)" />
+            <defs>
+              <marker id="arrowAmber" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                <path d="M 0 0 L 6 3 L 0 6 Z" fill="#f59e0b" opacity="0.8" />
+              </marker>
+              <marker id="arrowPurple" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                <path d="M 0 0 L 6 3 L 0 6 Z" fill="#a78bfa" opacity="0.8" />
+              </marker>
+            </defs>
+          </svg>
+          {/* Start node */}
+          <div className="absolute top-8 left-4 w-28 rounded-xl border border-green-500/40 shadow-lg" style={{ background: '#1a1025' }}>
+            <div className="px-2.5 py-1.5 rounded-t-xl border-b border-green-500/30 bg-green-500/10 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+              <span className="text-[10px] font-semibold text-green-400">Start</span>
+            </div>
+            <div className="px-2.5 py-1.5">
+              <p className="text-[10px] font-medium text-white leading-snug">The path splits before you…</p>
+            </div>
+          </div>
+          {/* Scene A */}
+          <div className="absolute top-2 left-[200px] w-28 rounded-xl border border-amber-500/30 shadow-lg" style={{ background: '#1a1025' }}>
+            <div className="px-2.5 py-1.5 rounded-t-xl border-b border-amber-500/20 bg-amber-500/10 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span className="text-[10px] font-semibold text-amber-400">Scene</span>
+            </div>
+            <div className="px-2.5 py-1.5">
+              <p className="text-[10px] font-medium text-white leading-snug">Into the dark cave…</p>
+            </div>
+          </div>
+          {/* Scene B */}
+          <div className="absolute top-[72px] left-[200px] w-28 rounded-xl border border-purple-500/30 shadow-lg" style={{ background: '#1a1025' }}>
+            <div className="px-2.5 py-1.5 rounded-t-xl border-b border-purple-500/20 bg-purple-500/10 flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+              <span className="text-[10px] font-semibold text-purple-400">Scene</span>
+            </div>
+            <div className="px-2.5 py-1.5">
+              <p className="text-[10px] font-medium text-white leading-snug">The river flows east…</p>
+            </div>
+          </div>
+          {/* Next Chapter node */}
+          <div className="absolute top-[36px] left-[368px] w-28 rounded-xl border border-teal-400/40 shadow-lg" style={{ background: '#1a1025' }}>
+            <div className="px-2.5 py-1.5 rounded-t-xl border-b border-teal-400/30 bg-teal-400/10 flex items-center gap-1.5">
+              <BookMarked size={9} className="text-teal-400" />
+              <span className="text-[10px] font-semibold text-teal-400">Next Chapter</span>
+            </div>
+            <div className="px-2.5 py-1.5">
+              <p className="text-[10px] font-medium text-white/60 leading-snug">→ Chapter 2</p>
             </div>
           </div>
         </div>
@@ -331,9 +334,9 @@ function LandingPage() {
                 {[
                   'Drag-and-drop scene nodes onto an infinite canvas',
                   'Draw connections between scenes with choices',
-                  'Mark scenes as Start, Scene, or Ending',
+                  'Organize scenes into chapters for longer stories',
+                  'Mark scenes as Start, Scene, Ending, or Next Chapter',
                   'Generate AI illustrations per scene',
-                  'Preview your story at any time',
                 ].map(item => (
                   <li key={item} className="flex items-center gap-3 text-gray-300">
                     <Check size={15} className="text-amber-400 shrink-0" />
@@ -395,14 +398,14 @@ function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               { icon: GitBranch, title: 'Visual Canvas', desc: 'Map your full story structure with drag-and-drop nodes on an infinite canvas.', color: 'amber' },
+              { icon: BookMarked, title: 'Chapters', desc: 'Break long stories into chapters — each with its own scenes, branches, and a "Next Chapter" transition.', color: 'teal' },
               { icon: Sparkles, title: 'AI Scene Images', desc: 'Auto-generate cinematic illustrations for every scene — no art skills required.', color: 'purple' },
               { icon: Share2, title: 'One-click Publish', desc: 'Share your story instantly with a public link. Control who can see it.', color: 'blue' },
               { icon: Users, title: 'Audience Controls', desc: 'Set age ratings (All Ages / Teens / Adults) and tag stories by genre.', color: 'green' },
               { icon: Star, title: 'Ratings & Reviews', desc: 'Readers rate and review stories. Build credibility through community feedback.', color: 'amber' },
-              { icon: Zap, title: 'Fast & Responsive', desc: 'Stories load instantly on any device. Optimised for mobile and desktop.', color: 'orange' },
             ].map(({ icon: Icon, title, desc, color }) => {
-              const bg: Record<string, string> = { amber: 'bg-amber-100', purple: 'bg-purple-100', blue: 'bg-blue-100', green: 'bg-green-100', orange: 'bg-orange-100' }
-              const text: Record<string, string> = { amber: 'text-amber-600', purple: 'text-purple-600', blue: 'text-blue-600', green: 'text-green-600', orange: 'text-orange-600' }
+              const bg: Record<string, string> = { amber: 'bg-amber-100', purple: 'bg-purple-100', blue: 'bg-blue-100', green: 'bg-green-100', orange: 'bg-orange-100', teal: 'bg-teal-100' }
+              const text: Record<string, string> = { amber: 'text-amber-600', purple: 'text-purple-600', blue: 'text-blue-600', green: 'text-green-600', orange: 'text-orange-600', teal: 'text-teal-600' }
               return (
                 <div key={title} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${bg[color]}`}>

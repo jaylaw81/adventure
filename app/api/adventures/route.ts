@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { isNull, eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { adventures } from '@/lib/schema'
+import { adventures, chapters, nodes } from '@/lib/schema'
 import { getAdventures } from '@/lib/queries'
 
 const ORIGINAL_OWNER = 'jaylaw81@gmail.com'
@@ -44,6 +44,22 @@ export async function POST(req: Request) {
       .insert(adventures)
       .values({ title, description: description ?? '', userEmail: session.user.email })
       .returning()
+
+    // Bootstrap Chapter 1 and its start node
+    const [chapter1] = await db
+      .insert(chapters)
+      .values({ adventureId: adventure.id, title: 'Chapter 1', orderIndex: 0 })
+      .returning()
+    await db.insert(nodes).values({
+      adventureId: adventure.id,
+      chapterId: chapter1.id,
+      title: 'Chapter Start',
+      content: '',
+      nodeType: 'start',
+      positionX: 100,
+      positionY: 100,
+    })
+
     return NextResponse.json(adventure, { status: 201 })
   } catch (e) {
     return NextResponse.json({ error: 'Failed to create adventure' }, { status: 500 })

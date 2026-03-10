@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 import { authOptions } from '@/lib/auth'
-import { getNode, getNodeChoices, getAdventure } from '@/lib/queries'
+import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter } from '@/lib/queries'
 import SceneView from '@/components/reader/SceneView'
 import ChoiceButton from '@/components/reader/ChoiceButton'
 import CopySceneButton from '@/components/reader/CopySceneButton'
@@ -34,6 +34,15 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
 
   const isEnding = node.nodeType === 'ending'
   const isStart = node.nodeType === 'start'
+  const isChapterEnd = node.nodeType === 'chapter_end'
+
+  // For chapter_end nodes, find the start node of the next chapter
+  const [nextChapterStartNode, nextChapter] = isChapterEnd && node.nextChapterId
+    ? await Promise.all([
+        getChapterStartNode(id, node.nextChapterId),
+        getChapter(node.nextChapterId),
+      ])
+    : [null, null]
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">
@@ -63,7 +72,33 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
       <SceneView node={node} />
 
       <div className="mt-10">
-        {isEnding ? (
+        {isChapterEnd ? (
+          <div className="text-center py-10">
+            <div className="inline-flex items-center gap-3 px-6 py-3 bg-teal-50 border border-teal-200 rounded-2xl mb-6">
+              <span className="text-teal-600 text-lg">✦</span>
+              <p className="text-teal-800 font-semibold text-lg">End of Chapter</p>
+              <span className="text-teal-600 text-lg">✦</span>
+            </div>
+            {nextChapterStartNode ? (
+              <div>
+                <p className="text-gray-500 mb-6">
+                  Continue to: <span className="font-medium text-gray-700">{nextChapter?.title ?? 'Next Chapter'}</span>
+                </p>
+                <Link
+                  href={`/play/${id}/${nextChapterStartNode.id}`}
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors shadow-md"
+                >
+                  Continue →
+                </Link>
+              </div>
+            ) : (
+              <div>
+                <p className="text-gray-400 mb-4">No next chapter has been set.</p>
+                <RestartButton href={`/play/${id}`} adventureId={id} />
+              </div>
+            )}
+          </div>
+        ) : isEnding ? (
           <div>
             <div className="text-center py-8">
               <p className="text-2xl font-bold text-gray-800 mb-2">— The End —</p>

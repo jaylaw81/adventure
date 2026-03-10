@@ -4,7 +4,7 @@ import JsonLd from '@/components/JsonLd'
 import {
   Plus, GitBranch, Share2, Sparkles, Play,
   BookOpen, ChevronRight, CheckCircle2, Pencil,
-  ArrowRight, MousePointerClick, Settings, Lightbulb,
+  ArrowRight, MousePointerClick, Settings, Lightbulb, BookMarked,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -167,18 +167,21 @@ function NodeTypeLegend() {
       </div>
       <div className="p-4 flex flex-col gap-3">
         {[
-          { color: 'green', label: 'Start', desc: 'Where every reader begins — exactly one per story.' },
+          { color: 'green', label: 'Start', desc: 'Where every reader begins — one per chapter.' },
           { color: 'amber', label: 'Scene', desc: 'Regular story moments. Add as many as you like.' },
-          { color: 'purple', label: 'Scene', desc: 'Scenes can branch off into multiple paths.' },
           { color: 'red', label: 'Ending', desc: 'Concludes a path. Stories can have many endings.' },
+          { color: 'teal', label: 'Next Chapter', desc: 'Ends a chapter and sends readers to the start of the next one.' },
         ].map(({ color, label, desc }) => {
-          const ring = color === 'green' ? 'border-green-500/40 bg-green-500/10' : color === 'amber' ? 'border-amber-500/30 bg-amber-500/10' : color === 'purple' ? 'border-purple-500/30 bg-purple-500/10' : 'border-red-500/40 bg-red-500/10'
-          const dot = color === 'green' ? 'bg-green-400' : color === 'amber' ? 'bg-amber-400' : color === 'purple' ? 'bg-purple-400' : 'bg-red-400'
-          const text = color === 'green' ? 'text-green-400' : color === 'amber' ? 'text-amber-400' : color === 'purple' ? 'text-purple-400' : 'text-red-400'
+          const ring = color === 'green' ? 'border-green-500/40 bg-green-500/10' : color === 'amber' ? 'border-amber-500/30 bg-amber-500/10' : color === 'teal' ? 'border-teal-400/40 bg-teal-400/10' : 'border-red-500/40 bg-red-500/10'
+          const dot = color === 'green' ? 'bg-green-400' : color === 'amber' ? 'bg-amber-400' : color === 'teal' ? 'bg-teal-400' : 'bg-red-400'
+          const text = color === 'green' ? 'text-green-400' : color === 'amber' ? 'text-amber-400' : color === 'teal' ? 'text-teal-400' : 'text-red-400'
           return (
             <div key={desc} className={`rounded-xl border px-3 py-2.5 ${ring}`}>
               <div className="flex items-center gap-2 mb-1">
-                <div className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+                {color === 'teal'
+                  ? <BookMarked size={11} className="text-teal-400" />
+                  : <div className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+                }
                 <span className={`text-xs font-bold ${text}`}>{label}</span>
               </div>
               <p className="text-xs text-white/50 leading-snug">{desc}</p>
@@ -253,9 +256,10 @@ const howToSchema = {
         { '@type': 'HowToStep', position: 1, name: 'Create a new story', text: 'Sign in, then click New Story on the home page. Give your story a title and an optional description.' },
         { '@type': 'HowToStep', position: 2, name: 'Set audience and tags', text: 'Click Settings in the toolbar to set the audience (All Ages, Teens, or Adults Only) and tags.' },
         { '@type': 'HowToStep', position: 3, name: 'Add scenes to the canvas', text: 'Click Add Scene in the toolbar. Click any scene card to open the editor panel.' },
-        { '@type': 'HowToStep', position: 4, name: 'Connect scenes with choices', text: 'Hover a scene card to reveal handles. Drag from a handle to another scene to create a choice.' },
-        { '@type': 'HowToStep', position: 5, name: 'Generate AI scene images', text: 'Open a completed scene and click Generate Image with AI.' },
-        { '@type': 'HowToStep', position: 6, name: 'Publish your story', text: 'Toggle Make Public on your story card to publish and list it on the Explore page.' },
+        { '@type': 'HowToStep', position: 4, name: 'Organize scenes into chapters', text: 'Use the chapter sidebar to add chapters. Each chapter gets its own canvas view and a Start scene. Use Next Chapter scenes to link chapters together.' },
+        { '@type': 'HowToStep', position: 5, name: 'Connect scenes with choices', text: 'Hover a scene card to reveal handles. Drag from a handle to another scene to create a choice.' },
+        { '@type': 'HowToStep', position: 6, name: 'Generate AI scene images', text: 'Open a completed scene and click Generate Image with AI.' },
+        { '@type': 'HowToStep', position: 7, name: 'Publish your story', text: 'Toggle Make Public on your story card to publish and list it on the Explore page.' },
       ],
     },
     {
@@ -305,19 +309,19 @@ export default function HowToPage() {
       </section>
 
       {/* ── Quick Nav ── */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20 shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-6 overflow-x-auto no-scrollbar">
-          <a href="#creating" className="shrink-0 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-amber-600 transition-colors py-1">
-            <Pencil size={14} />
+      <div className="sticky top-0 z-20 border-b border-white/8" style={{ background: 'rgba(15,14,23,0.92)', backdropFilter: 'blur(12px)' }}>
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <a href="#creating" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
+            <Pencil size={13} />
             Creating Stories
           </a>
-          <a href="#playing" className="shrink-0 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-amber-600 transition-colors py-1">
-            <Play size={14} />
+          <a href="#playing" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
+            <Play size={13} />
             Playing Stories
           </a>
-          <a href="#tips" className="shrink-0 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-amber-600 transition-colors py-1">
-            <Lightbulb size={14} />
-            Tips & Tricks
+          <a href="#tips" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
+            <Lightbulb size={13} />
+            Tips &amp; Tricks
           </a>
         </div>
       </div>
@@ -363,11 +367,11 @@ export default function HowToPage() {
                 <StepCard number={3} title="Add scenes to the canvas" accent="amber">
                   Click <Kbd>Add Scene</Kbd> in the toolbar. A new scene card appears on the canvas. Click any card to open the editor panel where you can:
                   <ul className="mt-3 flex flex-col gap-2">
-                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Set the <strong className="text-white">Scene Type</strong> — Start, Scene, or Ending</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Set the <strong className="text-white">Scene Type</strong> — Start, Scene, Ending, or Next Chapter</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Write a <strong className="text-white">Title</strong> and <strong className="text-white">Content</strong></span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Mark the scene as <strong className="text-white">Completed</strong> when you&apos;re done</span></li>
                   </ul>
-                  <Callout>Every story needs exactly one <strong>Start</strong> scene and at least one <strong>Ending</strong> scene.</Callout>
+                  <Callout>Each chapter needs one <strong>Start</strong> scene. Use <strong>Ending</strong> to conclude a path, or <strong>Next Chapter</strong> to send readers onward.</Callout>
                 </StepCard>
               </div>
               <div className="flex-1 w-full max-w-sm">
@@ -375,10 +379,29 @@ export default function HowToPage() {
               </div>
             </div>
 
-            {/* Step 4: Connections */}
+            {/* Step 4: Chapters */}
             <div className="flex flex-col lg:flex-row gap-10 items-start">
               <div className="flex-1">
-                <StepCard number={4} title="Connect scenes with choices" accent="amber">
+                <StepCard number={4} title="Organize scenes into chapters" accent="amber">
+                  Use the <strong className="text-white">chapter sidebar</strong> on the left to break your story into acts or chapters. Every new story starts with Chapter 1 already created.
+                  <ul className="mt-3 flex flex-col gap-2">
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Click <strong className="text-white">Add Chapter</strong> in the sidebar to create a new chapter — a Start scene is added automatically</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Select a chapter to view only its scenes on the canvas</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Add a <strong className="text-white">Next Chapter</strong> scene to link the end of one chapter to the start of the next</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Click <Kbd>View all scenes</Kbd> at the bottom of the sidebar to see the full story at once</span></li>
+                  </ul>
+                  <Callout>Each chapter is its own canvas view — keeping things clean even for epic, multi-chapter stories.</Callout>
+                </StepCard>
+              </div>
+              <div className="flex-1 w-full max-w-lg">
+                <ChaptersMockup />
+              </div>
+            </div>
+
+            {/* Step 5: Connections */}
+            <div className="flex flex-col lg:flex-row-reverse gap-10 items-start">
+              <div className="flex-1">
+                <StepCard number={5} title="Connect scenes with choices" accent="amber">
                   Hover over any scene card to reveal connection handles on the edges. Drag from a handle on one scene to another to create a choice. A prompt will ask you to name the choice (e.g. "Go left" or "Open the door").
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Double-click a choice label to <strong className="text-white">rename</strong> it</span></li>
@@ -392,17 +415,17 @@ export default function HowToPage() {
               </div>
             </div>
 
-            {/* Step 5 + 6 */}
-            <div className="flex flex-col lg:flex-row-reverse gap-10 items-start">
+            {/* Step 6 + 7 */}
+            <div className="flex flex-col lg:flex-row gap-10 items-start">
               <div className="flex-1 flex flex-col gap-8">
-                <StepCard number={5} title="Generate AI scene images" accent="amber">
+                <StepCard number={6} title="Generate AI scene images" accent="amber">
                   Open a completed scene and click <Kbd><Sparkles size={11} className="inline" /> Generate Image with AI</Kbd>. StoryQuestor creates a cinematic illustration based on your scene title and content.
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>You can regenerate up to <strong className="text-white">two times</strong> per scene</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Images generate automatically when you mark a scene <strong className="text-white">Completed</strong></span></li>
                   </ul>
                 </StepCard>
-                <StepCard number={6} title="Publish and share" accent="amber">
+                <StepCard number={7} title="Publish and share" accent="amber">
                   On the home page, click <Kbd><Share2 size={11} className="inline" /> Share</Kbd> on your story card. This generates a public link and lists your story on the <Link href="/explore" className="text-amber-400 hover:underline">Explore</Link> page.
                   <Callout>Toggle sharing off at any time to make a story private again.</Callout>
                 </StepCard>
@@ -496,12 +519,12 @@ export default function HowToPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { icon: GitBranch, tip: 'Every story must have a Start scene — without one, readers can\'t begin.' },
+              { icon: BookMarked, tip: 'Every new story starts with Chapter 1 already created — just start adding scenes.' },
+              { icon: GitBranch, tip: 'Use a "Next Chapter" scene at the end of each chapter to chain them together.' },
               { icon: CheckCircle2, tip: 'Scenes marked Completed are highlighted on the canvas so you can track progress.' },
               { icon: MousePointerClick, tip: 'Drag scenes freely to rearrange the canvas — positions are saved automatically.' },
-              { icon: BookOpen, tip: 'The home page shows reachable ending count — a useful measure of story depth.' },
               { icon: Sparkles, tip: 'AI images respect your audience setting — Adults Only stories never depict minors.' },
-              { icon: GitBranch, tip: 'Deleting a scene also removes all choices connected to it — check your canvas after.' },
+              { icon: BookOpen, tip: 'The home page shows reachable ending count — a useful measure of story depth.' },
             ].map(({ icon: Icon, tip }) => (
               <div key={tip} className="flex items-start gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 hover:bg-white/8 transition-colors">
                 <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center shrink-0">
@@ -578,6 +601,81 @@ function Callout({ children }: { children: React.ReactNode }) {
     <div className="mt-4 flex items-start gap-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
       <Lightbulb size={14} className="text-amber-400 shrink-0 mt-0.5" />
       <p className="text-xs text-amber-300 leading-relaxed">{children}</p>
+    </div>
+  )
+}
+
+function ChaptersMockup() {
+  return (
+    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+      <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
+        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Chapter Navigation</p>
+      </div>
+      <div className="flex" style={{ minHeight: 220 }}>
+        {/* Sidebar */}
+        <div className="w-40 shrink-0 border-r border-white/5 flex flex-col" style={{ background: '#0d0c1a' }}>
+          <div className="px-3 py-2.5 border-b border-white/5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">Chapters</p>
+          </div>
+          <div className="flex flex-col p-2 gap-1 flex-1">
+            {[
+              { label: 'Chapter 1', active: false, done: true },
+              { label: 'Chapter 2', active: true, done: false },
+              { label: 'Chapter 3', active: false, done: false },
+            ].map(({ label, active, done }) => (
+              <div key={label} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${active ? 'bg-teal-500/15 border border-teal-500/25' : 'hover:bg-white/5'}`}>
+                <BookMarked size={10} className={active ? 'text-teal-400' : done ? 'text-white/25' : 'text-white/25'} />
+                <span className={`text-xs font-medium truncate ${active ? 'text-teal-300' : 'text-white/35'}`}>{label}</span>
+                {done && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-green-400/60 shrink-0" />}
+              </div>
+            ))}
+          </div>
+          <div className="p-2 border-t border-white/5">
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] text-teal-400 border border-teal-500/20 bg-teal-500/10">
+              <Plus size={9} /> Add Chapter
+            </div>
+          </div>
+        </div>
+        {/* Canvas preview */}
+        <div className="flex-1 relative p-4" style={{ background: 'radial-gradient(ellipse at 40% 50%, #1e1b3a 0%, #0f0e17 80%)' }}>
+          <div className="absolute top-2 left-4 right-4">
+            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold text-teal-300 bg-teal-500/15 border border-teal-500/25">
+              <BookMarked size={9} /> Chapter 2
+            </div>
+          </div>
+          {/* Mini nodes */}
+          <div className="absolute top-12 left-6 w-24 rounded-lg border border-green-500/40" style={{ background: '#1a1025' }}>
+            <div className="px-2 py-1 border-b border-green-500/20 bg-green-500/10 flex items-center gap-1">
+              <div className="w-1 h-1 rounded-full bg-green-400" />
+              <span className="text-[9px] font-semibold text-green-400">Start</span>
+            </div>
+            <div className="px-2 py-1.5"><p className="text-[9px] text-white/60">The village at dawn…</p></div>
+          </div>
+          <div className="absolute top-12 left-[142px] w-24 rounded-lg border border-amber-500/30" style={{ background: '#1a1025' }}>
+            <div className="px-2 py-1 border-b border-amber-500/20 bg-amber-500/10 flex items-center gap-1">
+              <div className="w-1 h-1 rounded-full bg-amber-400" />
+              <span className="text-[9px] font-semibold text-amber-400">Scene</span>
+            </div>
+            <div className="px-2 py-1.5"><p className="text-[9px] text-white/60">The market square…</p></div>
+          </div>
+          <div className="absolute top-[110px] left-[142px] w-24 rounded-lg border border-teal-400/40" style={{ background: '#1a1025' }}>
+            <div className="px-2 py-1 border-b border-teal-400/20 bg-teal-400/10 flex items-center gap-1">
+              <BookMarked size={8} className="text-teal-400" />
+              <span className="text-[9px] font-semibold text-teal-400">Next Ch.</span>
+            </div>
+            <div className="px-2 py-1.5"><p className="text-[9px] text-white/50">→ Chapter 3</p></div>
+          </div>
+          {/* Arrow */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 102 66 C 125 66 130 66 142 66" stroke="#f59e0b" strokeWidth="1" fill="none" opacity="0.5" markerEnd="url(#ch-arrow)" />
+            <defs>
+              <marker id="ch-arrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto">
+                <path d="M 0 0 L 5 2.5 L 0 5 Z" fill="#f59e0b" opacity="0.7" />
+              </marker>
+            </defs>
+          </svg>
+        </div>
+      </div>
     </div>
   )
 }

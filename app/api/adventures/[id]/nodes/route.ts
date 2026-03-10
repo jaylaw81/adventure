@@ -25,6 +25,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .insert(nodes)
       .values({
         adventureId: id,
+        chapterId: body.chapterId ?? null,
         title: body.title ?? 'New Scene',
         content: body.content ?? '',
         nodeType: body.nodeType ?? 'scene',

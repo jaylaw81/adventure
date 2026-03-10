@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { X, Trash2, Sparkles, RefreshCw, ImageOff, Save } from 'lucide-react'
-import type { Node } from '@/lib/schema'
+import type { Node, Chapter } from '@/lib/schema'
 import { analytics } from '@/lib/analytics'
 
 interface Props {
   node: Node | null
   adventureId: string
+  chapters: Chapter[]
   onClose: () => void
   onUpdate: (node: Node) => void
   onDelete: (nodeId: string) => void
@@ -15,14 +16,16 @@ interface Props {
   externalSaveRef: React.MutableRefObject<(() => Promise<void>) | null>
 }
 
-export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDelete, onDirtyChange, externalSaveRef }: Props) {
+export default function NodeEditor({ node, adventureId, chapters, onClose, onUpdate, onDelete, onDirtyChange, externalSaveRef }: Props) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [savedTitle, setSavedTitle] = useState('')
   const [savedContent, setSavedContent] = useState('')
-  const [nodeType, setNodeType] = useState<'start' | 'scene' | 'ending'>('scene')
+  const [nodeType, setNodeType] = useState<'start' | 'scene' | 'ending' | 'chapter_end'>('scene')
   const [status, setStatus] = useState<'in_progress' | 'completed'>('in_progress')
   const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [chapterId, setChapterId] = useState<string | null>(null)
+  const [nextChapterId, setNextChapterId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [generatingImage, setGeneratingImage] = useState(false)
   const [regenCount, setRegenCount] = useState(0)
@@ -40,9 +43,11 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
       setContent(node.content)
       setSavedTitle(node.title)
       setSavedContent(node.content)
-      setNodeType(node.nodeType as 'start' | 'scene' | 'ending')
+      setNodeType(node.nodeType as 'start' | 'scene' | 'ending' | 'chapter_end')
       setStatus((node.status ?? 'in_progress') as 'in_progress' | 'completed')
       setImageUrl(node.imageUrl ?? null)
+      setChapterId(node.chapterId ?? null)
+      setNextChapterId(node.nextChapterId ?? null)
       setRegenCount(0)
     }
   }, [node?.id])
@@ -231,7 +236,7 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
           <select
             value={nodeType}
             onChange={e => {
-              const val = e.target.value as 'start' | 'scene' | 'ending'
+              const val = e.target.value as 'start' | 'scene' | 'ending' | 'chapter_end'
               setNodeType(val)
               save({ nodeType: val })
               analytics.sceneTypeChanged(adventureId, node!.id, val)
@@ -241,8 +246,54 @@ export default function NodeEditor({ node, adventureId, onClose, onUpdate, onDel
             <option value="start">Start</option>
             <option value="scene">Scene</option>
             <option value="ending">Ending</option>
+            <option value="chapter_end">Chapter End → Next Chapter</option>
           </select>
         </div>
+
+        {/* Chapter assignment */}
+        {chapters.length > 0 && (
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Chapter</label>
+            <select
+              value={chapterId ?? ''}
+              onChange={e => {
+                const val = e.target.value || null
+                setChapterId(val)
+                save({ chapterId: val })
+              }}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+            >
+              <option value="">— Unassigned —</option>
+              {chapters.map(ch => (
+                <option key={ch.id} value={ch.id}>{ch.title}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Next chapter selector — only for chapter_end nodes */}
+        {nodeType === 'chapter_end' && chapters.length > 0 && (
+          <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl">
+            <label className="block text-xs font-semibold text-teal-700 mb-1.5">Continues to chapter:</label>
+            <select
+              value={nextChapterId ?? ''}
+              onChange={e => {
+                const val = e.target.value || null
+                setNextChapterId(val)
+                save({ nextChapterId: val })
+              }}
+              className="w-full border border-teal-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+            >
+              <option value="">— Select next chapter —</option>
+              {chapters
+                .filter(ch => ch.id !== chapterId)
+                .map(ch => (
+                  <option key={ch.id} value={ch.id}>{ch.title}</option>
+                ))}
+            </select>
+            <p className="text-xs text-teal-600 mt-1.5">Readers will be sent to this chapter&apos;s start scene.</p>
+          </div>
+        )}
 
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>

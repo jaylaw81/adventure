@@ -1,5 +1,8 @@
 import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
+// Forward-declare chapters so nodes can reference it below
+// (defined fully after adventures)
+
 export const users = pgTable('users', {
   email: text('email').primaryKey(),
   displayName: text('display_name').notNull().default(''),
@@ -24,18 +27,31 @@ export const adventures = pgTable('adventures', {
   index('adventures_is_public_idx').on(t.isPublic),
 ])
 
+export const chapters = pgTable('chapters', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  adventureId: uuid('adventure_id').notNull().references(() => adventures.id, { onDelete: 'cascade' }),
+  title: text('title').notNull().default('New Chapter'),
+  orderIndex: integer('order_index').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('chapters_adventure_id_idx').on(t.adventureId),
+])
+
 export const nodes = pgTable('nodes', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   adventureId: uuid('adventure_id').notNull().references(() => adventures.id, { onDelete: 'cascade' }),
+  chapterId: uuid('chapter_id').references(() => chapters.id, { onDelete: 'set null' }),
+  nextChapterId: uuid('next_chapter_id').references(() => chapters.id, { onDelete: 'set null' }),
   title: text('title').notNull().default(''),
   content: text('content').notNull().default(''),
-  nodeType: text('node_type').notNull().default('scene'), // 'start' | 'scene' | 'ending'
+  nodeType: text('node_type').notNull().default('scene'), // 'start' | 'scene' | 'ending' | 'chapter_end'
   status: text('status').notNull().default('in_progress'), // 'in_progress' | 'completed'
   imageUrl: text('image_url'),
   positionX: doublePrecision('position_x').notNull().default(0),
   positionY: doublePrecision('position_y').notNull().default(0),
 }, (t) => [
   index('nodes_adventure_id_idx').on(t.adventureId),
+  index('nodes_chapter_id_idx').on(t.chapterId),
 ])
 
 export const choices = pgTable('choices', {
@@ -105,8 +121,10 @@ export const storyReports = pgTable('story_reports', {
 
 export type User = typeof users.$inferSelect
 export type Adventure = typeof adventures.$inferSelect
+export type Chapter = typeof chapters.$inferSelect
 export type Node = typeof nodes.$inferSelect
 export type Choice = typeof choices.$inferSelect
 export type NewAdventure = typeof adventures.$inferInsert
+export type NewChapter = typeof chapters.$inferInsert
 export type NewNode = typeof nodes.$inferInsert
 export type NewChoice = typeof choices.$inferInsert

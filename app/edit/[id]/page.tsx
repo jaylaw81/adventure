@@ -18,6 +18,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
       adventure={adventure}
       initialNodes={adventure.nodes}
       initialChoices={adventure.choices}
+      initialChapters={adventure.chapters}
     />
   )
 }

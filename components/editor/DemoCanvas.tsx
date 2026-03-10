@@ -362,6 +362,8 @@ function DemoCanvasInner() {
       nodeType: 'scene',
       status: 'in_progress',
       imageUrl: null,
+      chapterId: null,
+      nextChapterId: null,
       positionX: position.x,
       positionY: position.y,
     })
