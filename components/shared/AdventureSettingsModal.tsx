@@ -55,7 +55,7 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col gap-5 p-6">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg flex flex-col gap-5 p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-900">Story Settings</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">

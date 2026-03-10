@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Pencil, Play, Trash2, GitBranch, Settings } from 'lucide-react'
+import { Pencil, Play, Trash2, GitBranch, Settings, AlertTriangle } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import ShareToggle from './ShareToggle'
 import AdventureSettingsModal from './AdventureSettingsModal'
@@ -13,9 +13,62 @@ interface Props {
   onDelete?: (id: string) => void
 }
 
+function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onConfirm: () => void; onCancel: () => void }) {
+  const cancelRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    cancelRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onCancel])
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-dialog-title"
+      aria-describedby="delete-dialog-desc"
+      onClick={e => { if (e.target === e.currentTarget) onCancel() }}
+    >
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-5">
+        <div className="flex flex-col items-center text-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+            <AlertTriangle size={22} className="text-red-500" />
+          </div>
+          <div>
+            <h2 id="delete-dialog-title" className="text-lg font-bold text-gray-900">Delete story?</h2>
+            <p id="delete-dialog-desc" className="text-sm text-gray-500 mt-1">
+              <span className="font-medium text-gray-700">&ldquo;{title}&rdquo;</span> will be permanently deleted along with all its scenes and choices. This cannot be undone.
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button
+            ref={cancelRef}
+            onClick={onCancel}
+            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-semibold transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AdventureCard({ adventure, onDelete }: Props) {
   const [current, setCurrent] = useState(adventure)
   const [showSettings, setShowSettings] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { outcomes, sceneCount } = current
 
   const tags: string[] = (() => {
@@ -97,8 +150,9 @@ export default function AdventureCard({ adventure, onDelete }: Props) {
           </Link>
           {onDelete && (
             <button
-              onClick={() => { analytics.adventureDeleted(current.id); onDelete(current.id) }}
+              onClick={() => setShowDeleteConfirm(true)}
               className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+              aria-label="Delete story"
             >
               <Trash2 size={14} />
             </button>
@@ -111,6 +165,18 @@ export default function AdventureCard({ adventure, onDelete }: Props) {
           adventure={current}
           onClose={() => setShowSettings(false)}
           onSave={updated => setCurrent(prev => ({ ...prev, ...updated }))}
+        />
+      )}
+
+      {showDeleteConfirm && onDelete && (
+        <DeleteConfirmModal
+          title={current.title}
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={() => {
+            analytics.adventureDeleted(current.id)
+            onDelete(current.id)
+            setShowDeleteConfirm(false)
+          }}
         />
       )}
     </>
