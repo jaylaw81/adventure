@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, initial-scale=1" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600;700&display=swap');
+
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    background: #0f0a1e;
+    position: relative;
+  }
+
+  /* Deep cosmic background */
+  .bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 900px 700px at 50% 20%, #2d1a4a 0%, transparent 70%),
+      radial-gradient(ellipse 600px 400px at 80% 70%, #1a0d2e 0%, transparent 60%),
+      radial-gradient(ellipse 500px 300px at 20% 80%, #0c1a3a 0%, transparent 60%),
+      #080514;
+  }
+
+  /* Stars */
+  .stars {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 120px 80px, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 340px 200px, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 560px 140px, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 780px 300px, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 900px 100px, rgba(255,255,255,0.9) 0%, transparent 100%),
+      radial-gradient(1px 1px at 200px 400px, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 460px 450px, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 700px 500px, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 960px 380px, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80px 600px, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 300px 700px, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 540px 650px, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 820px 620px, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 1000px 700px, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 150px 900px, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 420px 850px, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 660px 920px, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 880px 800px, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50px 1100px, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 250px 1050px, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 500px 1150px, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 750px 1080px, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 970px 1000px, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 130px 1300px, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 380px 1250px, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 620px 1350px, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 850px 1300px, rgba(255,255,255,0.7) 0%, transparent 100%);
+  }
+
+  /* Glowing orb — amber accent */
+  .orb {
+    position: absolute;
+    top: 280px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,158,11,0.18) 0%, rgba(239,68,68,0.08) 50%, transparent 75%);
+    filter: blur(20px);
+  }
+
+  /* Book / scroll illustration */
+  .scroll-icon {
+    position: absolute;
+    top: 320px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    height: 220px;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 0 60px rgba(245,158,11,0.5),
+      0 0 120px rgba(245,158,11,0.25),
+      0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .scroll-icon svg {
+    width: 110px;
+    height: 110px;
+    color: white;
+  }
+
+  /* Top badge */
+  .badge {
+    position: absolute;
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(245,158,11,0.15);
+    border: 1px solid rgba(245,158,11,0.4);
+    border-radius: 100px;
+    padding: 14px 40px;
+    white-space: nowrap;
+  }
+
+  .badge span {
+    font-family: 'Inter', sans-serif;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #f59e0b;
+  }
+
+  /* Main headline */
+  .headline {
+    position: absolute;
+    top: 600px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 0 80px;
+  }
+
+  .headline h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 110px;
+    font-weight: 900;
+    line-height: 1.0;
+    color: #fff;
+    text-shadow: 0 4px 40px rgba(0,0,0,0.5);
+  }
+
+  .headline h1 .amber {
+    color: #f59e0b;
+    font-style: italic;
+  }
+
+  /* Tagline */
+  .tagline {
+    position: absolute;
+    top: 870px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 0 100px;
+  }
+
+  .tagline p {
+    font-family: 'Inter', sans-serif;
+    font-size: 38px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* Features list */
+  .features {
+    position: absolute;
+    top: 1060px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    width: 820px;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 28px 36px;
+  }
+
+  .feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(245,158,11,0.3), rgba(239,68,68,0.2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 30px;
+  }
+
+  .feature-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.3;
+  }
+
+  /* Divider */
+  .divider {
+    position: absolute;
+    top: 1430px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(245,158,11,0.6), transparent);
+    border-radius: 2px;
+  }
+
+  /* CTA area */
+  .cta {
+    position: absolute;
+    bottom: 160px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .cta-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .cta-url {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    border-radius: 24px;
+    padding: 30px 80px;
+    box-shadow:
+      0 0 40px rgba(245,158,11,0.4),
+      0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .cta-url span {
+    font-family: 'Inter', sans-serif;
+    font-size: 52px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+
+  /* Bottom glow */
+  .bottom-glow {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 300px;
+    background: radial-gradient(ellipse at center bottom, rgba(245,158,11,0.12) 0%, transparent 70%);
+  }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="stars"></div>
+  <div class="orb"></div>
+  <div class="bottom-glow"></div>
+
+  <!-- Badge -->
+  <div class="badge">
+    <span>✦ Now Live ✦</span>
+  </div>
+
+  <!-- Scroll icon -->
+  <div class="scroll-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+  </div>
+
+  <!-- Headline -->
+  <div class="headline">
+    <h1>Story<span class="amber">Questor</span></h1>
+  </div>
+
+  <!-- Tagline -->
+  <div class="tagline">
+    <p>Build & play branching<br>adventures you actually<br>finish reading</p>
+  </div>
+
+  <!-- Features -->
+  <div class="features">
+    <div class="feature-item">
+      <div class="feature-icon">🗺️</div>
+      <div class="feature-text">Visual story map editor</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">⚔️</div>
+      <div class="feature-text">Infinite branching choices</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🌍</div>
+      <div class="feature-text">Share with anyone, instantly</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <div class="cta-label">Start your quest</div>
+    <div class="cta-url">
+      <span>storyquestor.com</span>
+    </div>
+  </div>
+</body>
+</html>
