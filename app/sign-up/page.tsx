@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Scroll, Eye, EyeOff } from 'lucide-react'
+import { analytics } from '@/lib/analytics'
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -47,6 +48,8 @@ export default function SignUpPage() {
       if (data.error?.includes('sign in with Google')) setSuggestGoogle(true)
       return
     }
+
+    analytics.userRegistered('credentials')
 
     // Auto sign-in after successful registration
     const signInRes = await signIn('credentials', {
@@ -192,7 +195,7 @@ export default function SignUpPage() {
 
         {/* Google */}
         <button
-          onClick={() => signIn('google', { callbackUrl: '/' })}
+          onClick={() => { analytics.userRegistered('google'); signIn('google', { callbackUrl: '/' }) }}
           className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 shadow-sm"
         >
           <svg width="18" height="18" viewBox="0 0 18 18">

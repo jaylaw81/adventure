@@ -82,4 +82,8 @@ export const analytics = {
 
   landingSignInClicked: (location: string) =>
     track('landing_sign_in_clicked', { location }),
+
+  // --- Auth ---
+  userRegistered: (method: 'credentials' | 'google') =>
+    track('user_registered', { method }),
 }
