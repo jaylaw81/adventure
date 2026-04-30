@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 }
 import { authOptions } from '@/lib/auth'
 import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter } from '@/lib/queries'
+import { canViewMemberStory } from '@/lib/orgAccess'
 import SceneView from '@/components/reader/SceneView'
 import ChoiceButton from '@/components/reader/ChoiceButton'
 import CopySceneButton from '@/components/reader/CopySceneButton'
@@ -30,8 +31,13 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
   const isOwner = !!session?.user?.email && session.user.email === adventure?.userEmail
   const isAdmin = !!session?.user?.isAdmin
 
-  // Block private stories from non-owners (admins can always access)
-  if (!adventure?.isPublic && !isOwner && !isAdmin) notFound()
+  // Block private stories from non-owners
+  if (!adventure?.isPublic && !isOwner && !isAdmin) {
+    const orgAccess = session?.user?.email && adventure?.userEmail
+      ? await canViewMemberStory(session.user.email, adventure.userEmail)
+      : false
+    if (!orgAccess) notFound()
+  }
 
   const isEnding = node.nodeType === 'ending'
   const isStart = node.nodeType === 'start'

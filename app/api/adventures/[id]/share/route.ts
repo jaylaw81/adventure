@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { adventures } from '@/lib/schema'
+import { adventures, organizationMembers, organizations } from '@/lib/schema'
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -17,6 +17,24 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const [adventure] = await db.select().from(adventures).where(eq(adventures.id, id))
     if (!adventure || adventure.userEmail !== session.user.email) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    // Block publishing if the user's org restricts it
+    const [membership] = await db
+      .select({ orgPrivacyLevel: organizations.privacyLevel })
+      .from(organizationMembers)
+      .innerJoin(organizations, eq(organizations.id, organizationMembers.organizationId))
+      .where(and(
+        eq(organizationMembers.userEmail, session.user.email),
+        eq(organizationMembers.status, 'active'),
+      ))
+      .limit(1)
+
+    if (membership && membership.orgPrivacyLevel !== 'public') {
+      return NextResponse.json(
+        { error: 'Your organization does not allow publishing stories publicly.' },
+        { status: 403 }
+      )
     }
 
     // Generate a token if one doesn't already exist, then make public

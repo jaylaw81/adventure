@@ -37,7 +37,7 @@ export default function ReviewsSection({ adventureId }: Props) {
   useEffect(() => {
     fetch(`/api/adventures/${adventureId}/reviews`)
       .then(r => r.json())
-      .then(setData)
+      .then(d => { if (Array.isArray(d?.reviews)) setData(d) })
   }, [adventureId])
 
   if (!data || data.totalCount === 0) return null

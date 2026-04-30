@@ -8,6 +8,7 @@ export const users = pgTable('users', {
   displayName: text('display_name').notNull().default(''),
   birthDate: text('birth_date'), // YYYY-MM-DD, nullable until user sets it
   passwordHash: text('password_hash'), // null for Google-only accounts
+  tier: text('tier').notNull().default('free'), // 'free' | 'organization'
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -119,6 +120,83 @@ export const storyReports = pgTable('story_reports', {
   index('story_reports_status_idx').on(t.status),
 ])
 
+export const organizations = pgTable('organizations', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull(),
+  adminEmail: text('admin_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  description: text('description'),
+  privacyLevel: text('privacy_level').notNull().default('org-only'), // 'public' | 'org-only' | 'private'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => [
+  index('organizations_admin_email_idx').on(t.adminEmail),
+])
+
+export const organizationGroups = pgTable('organization_groups', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: uuid('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  privacyLevel: text('privacy_level').notNull().default('inherit'), // 'inherit' | 'public' | 'org-only' | 'private'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => [
+  index('org_groups_org_id_idx').on(t.organizationId),
+])
+
+export const organizationMembers = pgTable('organization_members', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: uuid('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userEmail: text('user_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  groupId: uuid('group_id').references(() => organizationGroups.id, { onDelete: 'set null' }),
+  role: text('role').notNull().default('member'), // 'admin' | 'teacher' | 'reviewer' | 'member'
+  roleScope: text('role_scope').notNull().default('org'), // 'org' | 'groups'
+  status: text('status').notNull().default('active'), // 'active' | 'inactive'
+  joinedAt: timestamp('joined_at').defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('org_members_org_user_idx').on(t.organizationId, t.userEmail),
+  index('org_members_org_id_idx').on(t.organizationId),
+  index('org_members_group_id_idx').on(t.groupId),
+])
+
+export const memberGroups = pgTable('member_groups', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: uuid('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userEmail: text('user_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  groupId: uuid('group_id').notNull().references(() => organizationGroups.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('member_groups_unique').on(t.organizationId, t.userEmail, t.groupId),
+  index('member_groups_org_user_idx').on(t.organizationId, t.userEmail),
+])
+
+export const memberGroupPermissions = pgTable('member_group_permissions', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: uuid('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userEmail: text('user_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  groupId: uuid('group_id').notNull().references(() => organizationGroups.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('mgp_org_user_group_idx').on(t.organizationId, t.userEmail, t.groupId),
+  index('mgp_org_user_idx').on(t.organizationId, t.userEmail),
+])
+
+export const organizationInvites = pgTable('organization_invites', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: uuid('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  groupId: uuid('group_id').references(() => organizationGroups.id, { onDelete: 'set null' }),
+  email: text('email').notNull(),
+  token: text('token').notNull().unique(),
+  invitedBy: text('invited_by').references(() => users.email, { onDelete: 'set null' }),
+  role: text('role').notNull().default('member'), // 'member' | 'teacher' | 'reviewer'
+  status: text('status').notNull().default('pending'), // 'pending' | 'accepted' | 'expired'
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('org_invites_org_id_idx').on(t.organizationId),
+  index('org_invites_email_idx').on(t.email),
+])
+
 export const organizationWaitlist = pgTable('organization_waitlist', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   email: text('email').notNull(),
@@ -152,6 +230,11 @@ export const surveyDismissals = pgTable('survey_dismissals', {
 ])
 
 export type User = typeof users.$inferSelect
+export type Organization = typeof organizations.$inferSelect
+export type OrganizationGroup = typeof organizationGroups.$inferSelect
+export type MemberGroupPermission = typeof memberGroupPermissions.$inferSelect
+export type OrganizationMember = typeof organizationMembers.$inferSelect
+export type OrganizationInvite = typeof organizationInvites.$inferSelect
 export type Adventure = typeof adventures.$inferSelect
 export type Chapter = typeof chapters.$inferSelect
 export type Node = typeof nodes.$inferSelect

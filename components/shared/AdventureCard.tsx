@@ -11,6 +11,7 @@ import { analytics } from '@/lib/analytics'
 interface Props {
   adventure: AdventureWithCounts
   onDelete?: (id: string) => void
+  canMakePublic?: boolean
 }
 
 function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onConfirm: () => void; onCancel: () => void }) {
@@ -65,7 +66,7 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onC
   )
 }
 
-export default function AdventureCard({ adventure, onDelete }: Props) {
+export default function AdventureCard({ adventure, onDelete, canMakePublic = true }: Props) {
   const [current, setCurrent] = useState(adventure)
   const [showSettings, setShowSettings] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -130,6 +131,7 @@ export default function AdventureCard({ adventure, onDelete }: Props) {
             adventureId={current.id}
             initialIsPublic={current.isPublic}
             initialShareToken={current.shareToken ?? null}
+            canMakePublic={canMakePublic}
           />
         </div>
 

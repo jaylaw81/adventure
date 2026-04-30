@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getAdventure, getStartNode } from '@/lib/queries'
+import { canViewMemberStory } from '@/lib/orgAccess'
 import StartStoryButton from '@/components/reader/StartStoryButton'
 import ReportButton from '@/components/reader/ReportButton'
 import ReviewsSection from '@/components/reader/ReviewsSection'
@@ -63,10 +64,15 @@ export default async function StoryLandingPage({ params }: Props) {
   if (!adventure) notFound()
   if (!startNode) redirect('/')
 
-  // Block private stories from non-owners (admins can always access)
+  // Block private stories from non-owners
   const isOwner = !!session?.user?.email && session.user.email === adventure.userEmail
   const isAdmin = !!session?.user?.isAdmin
-  if (!adventure.isPublic && !isOwner && !isAdmin) notFound()
+  if (!adventure.isPublic && !isOwner && !isAdmin) {
+    const orgAccess = session?.user?.email && adventure.userEmail
+      ? await canViewMemberStory(session.user.email, adventure.userEmail)
+      : false
+    if (!orgAccess) notFound()
+  }
 
   // Block adults-only stories for non-adults and unauthenticated users
   if (adventure.audience === 'adults' && !session?.user?.isAdult) {

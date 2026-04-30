@@ -463,11 +463,19 @@ function LandingPage() {
 function Dashboard() {
   const [adventures, setAdventures] = useState<AdventureWithCounts[]>([])
   const [loading, setLoading] = useState(true)
+  const [canMakePublic, setCanMakePublic] = useState(true)
 
   useEffect(() => {
-    fetch('/api/adventures')
-      .then(r => r.json())
-      .then(data => { setAdventures(data); setLoading(false) })
+    Promise.all([
+      fetch('/api/adventures').then(r => r.json()),
+      fetch('/api/org/me').then(r => r.json()),
+    ]).then(([data, orgData]) => {
+      setAdventures(data)
+      if (orgData?.orgPrivacyLevel && orgData.orgPrivacyLevel !== 'public') {
+        setCanMakePublic(false)
+      }
+      setLoading(false)
+    })
     fetch('/api/generate-images', { method: 'POST' })
   }, [])
 
@@ -509,7 +517,7 @@ function Dashboard() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {adventures.map(adventure => (
-            <AdventureCard key={adventure.id} adventure={adventure} onDelete={handleDelete} />
+            <AdventureCard key={adventure.id} adventure={adventure} onDelete={handleDelete} canMakePublic={canMakePublic} />
           ))}
         </div>
       )}

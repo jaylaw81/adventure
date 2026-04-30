@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { storyReviews, users, adventures } from '@/lib/schema'
+import { canViewMemberStory } from '@/lib/orgAccess'
 
 export async function GET(
   _req: Request,
@@ -18,7 +19,12 @@ export async function GET(
   if (!adventure) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   const isOwner = !!session?.user?.email && session.user.email === adventure.userEmail
   const isAdmin = !!session?.user?.isAdmin
-  if (!adventure.isPublic && !isOwner && !isAdmin) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!adventure.isPublic && !isOwner && !isAdmin) {
+    const orgAccess = session?.user?.email && adventure.userEmail
+      ? await canViewMemberStory(session.user.email, adventure.userEmail)
+      : false
+    if (!orgAccess) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
 
   const visible = and(eq(storyReviews.adventureId, id), eq(storyReviews.hidden, false))
 

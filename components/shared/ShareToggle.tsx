@@ -1,16 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check } from 'lucide-react'
+import { Copy, Check, Lock } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 
 interface Props {
   adventureId: string
   initialIsPublic: boolean
   initialShareToken: string | null
+  canMakePublic?: boolean
 }
 
-export default function ShareToggle({ adventureId, initialIsPublic, initialShareToken }: Props) {
+export default function ShareToggle({ adventureId, initialIsPublic, initialShareToken, canMakePublic = true }: Props) {
   const [isPublic, setIsPublic] = useState(initialIsPublic)
   const [shareToken, setShareToken] = useState(initialShareToken)
   const [loading, setLoading] = useState(false)
@@ -45,6 +46,15 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
     analytics.shareLinkCopied(adventureId)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (!canMakePublic) {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+        <Lock size={11} className="shrink-0" />
+        <span>Publishing restricted by your organization</span>
+      </div>
+    )
   }
 
   return (

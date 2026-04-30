@@ -1,16 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Scroll, Eye, EyeOff } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 
-export default function SignUpPage() {
+function SignUpForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const prefillEmail = searchParams.get('email') ?? ''
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/profile?required=1'
+
   const [displayName, setDisplayName] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(prefillEmail)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -51,7 +55,6 @@ export default function SignUpPage() {
 
     analytics.userRegistered('credentials')
 
-    // Auto sign-in after successful registration
     const signInRes = await signIn('credentials', {
       email: email.trim().toLowerCase(),
       password,
@@ -64,7 +67,7 @@ export default function SignUpPage() {
       setError('Account created but sign-in failed. Please sign in manually.')
       router.push('/sign-in')
     } else {
-      router.push('/profile?required=1')
+      router.push(callbackUrl)
       router.refresh()
     }
   }
@@ -75,7 +78,6 @@ export default function SignUpPage() {
     >
       <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col gap-6 w-full max-w-sm">
 
-        {/* Logo */}
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
@@ -90,7 +92,6 @@ export default function SignUpPage() {
           </div>
         </div>
 
-        {/* Registration form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Display Name</label>
@@ -111,8 +112,12 @@ export default function SignUpPage() {
               onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              readOnly={!!prefillEmail}
+              className={`w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 ${prefillEmail ? 'bg-gray-50 text-gray-500' : ''}`}
             />
+            {prefillEmail && (
+              <p className="text-xs text-gray-400 mt-1">This email is tied to your invitation.</p>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
@@ -181,19 +186,20 @@ export default function SignUpPage() {
 
         <p className="text-center text-xs text-gray-500">
           Already have an account?{' '}
-          <Link href="/sign-in" className="text-amber-600 hover:underline font-medium">
+          <Link
+            href={`/sign-in${callbackUrl !== '/profile?required=1' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}${prefillEmail ? `&email=${encodeURIComponent(prefillEmail)}` : ''}` : ''}`}
+            className="text-amber-600 hover:underline font-medium"
+          >
             Sign in
           </Link>
         </p>
 
-        {/* Divider */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-gray-200" />
           <span className="text-xs text-gray-400">or</span>
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
-        {/* Google */}
         <button
           onClick={() => { analytics.userRegistered('google'); signIn('google', { callbackUrl: '/' }) }}
           className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 shadow-sm"
@@ -209,5 +215,13 @@ export default function SignUpPage() {
 
       </div>
     </div>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense>
+      <SignUpForm />
+    </Suspense>
   )
 }

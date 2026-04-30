@@ -76,13 +76,14 @@ export const authOptions: NextAuthOptions = {
         }
       }
       // On first JWT creation or when missing, fetch from DB
-      if ((!token.displayName || token.birthDate === undefined) && token.email) {
+      if ((!token.displayName || token.birthDate === undefined || token.tier === undefined) && token.email) {
         try {
           const [user] = await db.select().from(users).where(eq(users.email, token.email as string))
           if (user) {
             if (!token.displayName) token.displayName = user.displayName || token.name || ''
             token.birthDate = user.birthDate ?? undefined
             token.isAdult = isAdult(user.birthDate)
+            token.tier = user.tier
           }
         } catch {
           token.displayName = token.displayName || token.name || ''
@@ -98,6 +99,7 @@ export const authOptions: NextAuthOptions = {
         session.user.isAdult = token.isAdult ?? false
         session.user.profileComplete = !!token.birthDate
         session.user.isAdmin = token.isAdmin ?? false
+        session.user.tier = token.tier ?? 'free'
       }
       return session
     },

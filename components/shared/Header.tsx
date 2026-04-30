@@ -2,10 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LogOut, Scroll, ChevronDown, Menu, X } from 'lucide-react'
+import { LogOut, Scroll, ChevronDown, Menu, X, School } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
+
+interface OrgMembership {
+  orgName: string
+  groupName: string | null
+  role: string
+  status: string
+}
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   const pathname = usePathname()
@@ -29,8 +36,18 @@ export default function Header() {
   const { data: session, status } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [orgMembership, setOrgMembership] = useState<OrgMembership | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
+
+  // Fetch org membership for regular (non-admin) logged-in users
+  useEffect(() => {
+    if (!session?.user?.email || session.user.tier === 'organization') return
+    fetch('/api/org/me')
+      .then(r => r.json())
+      .then(data => { if (data?.orgName) setOrgMembership(data) })
+      .catch(() => {})
+  }, [session])
 
   // Close user dropdown on outside click
   useEffect(() => {
@@ -72,6 +89,7 @@ export default function Header() {
         {/* Nav links */}
         <nav className="hidden sm:flex items-center gap-5 ml-2">
           {session?.user.profileComplete && <NavLink href="/">My Stories</NavLink>}
+          {session?.user.tier === 'organization' && <NavLink href="/org">My Org</NavLink>}
           {(!session || session.user.profileComplete) && (
             <>
               <NavLink href="/explore">Explore</NavLink>
@@ -81,6 +99,17 @@ export default function Header() {
           {!session && <NavLink href="/demo">Try Demo</NavLink>}
           <NavLink href="/organizations">For Schools</NavLink>
         </nav>
+
+        {/* Org membership pill — for regular org members only */}
+        {orgMembership && (
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-medium ml-1 shrink-0 max-w-[220px]">
+            <School size={12} className="shrink-0" />
+            <span className="truncate">
+              {orgMembership.orgName}
+              {orgMembership.groupName && <span className="text-amber-400/70"> · {orgMembership.groupName}</span>}
+            </span>
+          </div>
+        )}
 
         {/* Hamburger — mobile only */}
         <button
@@ -145,11 +174,20 @@ export default function Header() {
                 </button>
 
                 {menuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-white/10 shadow-2xl overflow-hidden"
+                  <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-white/10 shadow-2xl overflow-hidden"
                     style={{ background: 'linear-gradient(160deg, #1e1b3a, #0f172a)' }}
                   >
                     <div className="px-4 py-3 border-b border-white/10">
                       <p className="text-xs text-gray-400 truncate">{session.user?.email}</p>
+                      {orgMembership && (
+                        <div className="flex items-center gap-1 mt-1.5">
+                          <School size={11} className="text-amber-400 shrink-0" />
+                          <p className="text-xs text-amber-300 truncate">
+                            {orgMembership.orgName}
+                            {orgMembership.groupName && ` · ${orgMembership.groupName}`}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <Link
                       href="/profile"
@@ -213,6 +251,12 @@ export default function Header() {
               My Stories
             </Link>
           )}
+          {session?.user.tier === 'organization' && (
+            <Link href="/org" onClick={() => setMobileOpen(false)}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname.startsWith('/org') ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+              My Org
+            </Link>
+          )}
           {(!session || session.user.profileComplete) && (
             <>
               <Link href="/explore" onClick={() => setMobileOpen(false)}
@@ -239,7 +283,18 @@ export default function Header() {
           <div className="border-t border-white/10 mt-2 pt-3 flex flex-col gap-2">
             {session ? (
               <>
-                <div className="px-3 py-1 text-xs text-gray-500">{session.user?.email}</div>
+                <div className="px-3 py-1">
+                  <p className="text-xs text-gray-500">{session.user?.email}</p>
+                  {orgMembership && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <School size={11} className="text-amber-400 shrink-0" />
+                      <p className="text-xs text-amber-300 truncate">
+                        {orgMembership.orgName}
+                        {orgMembership.groupName && ` · ${orgMembership.groupName}`}
+                      </p>
+                    </div>
+                  )}
+                </div>
                 {session.user.profileComplete ? (
                   <Link href="/create" onClick={() => setMobileOpen(false)}
                     className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-900 transition-all"
