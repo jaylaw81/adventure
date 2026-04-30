@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
 import { X, MessageSquareHeart, CheckCircle2 } from 'lucide-react'
 
 const SHOW_DELAY_MS = 45_000
@@ -10,6 +11,7 @@ type SurveyType = 'initial' | 'followup'
 
 export default function SurveyModal() {
   const { data: session, status } = useSession()
+  const pathname = usePathname()
   const [isVisible, setIsVisible] = useState(false)
   const [surveyType, setSurveyType] = useState<SurveyType>('initial')
   const [likes, setLikes] = useState('')
@@ -20,6 +22,7 @@ export default function SurveyModal() {
 
   useEffect(() => {
     if (status === 'loading') return
+    if (pathname.startsWith('/admin')) return
 
     let timer: ReturnType<typeof setTimeout>
 
