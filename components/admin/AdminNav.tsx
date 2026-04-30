@@ -4,28 +4,32 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { ShieldCheck, BookOpen, Flag, LogOut } from 'lucide-react'
+import { ShieldCheck, BookOpen, Flag, LogOut, School } from 'lucide-react'
 
 export default function AdminNav() {
   const pathname = usePathname()
   const [pendingReports, setPendingReports] = useState(0)
+  const [waitlistCount, setWaitlistCount] = useState(0)
 
   useEffect(() => {
     Promise.all([
       fetch('/api/admin/reports').then(r => r.json()).catch(() => []),
       fetch('/api/admin/review-reports').then(r => r.json()).catch(() => []),
-    ]).then(([stories, reviews]: [{ status: string }[], { status: string }[]]) => {
+      fetch('/api/admin/waitlist').then(r => r.json()).catch(() => []),
+    ]).then(([stories, reviews, waitlist]: [{ status: string }[], { status: string }[], unknown[]]) => {
       const pending =
         stories.filter(r => r.status === 'pending').length +
         reviews.filter(r => r.status === 'pending').length
       setPendingReports(pending)
+      setWaitlistCount(Array.isArray(waitlist) ? waitlist.length : 0)
     })
-  }, [pathname]) // refresh count whenever navigation changes
+  }, [pathname])
 
   const NAV_ITEMS = [
-    { href: '/admin', label: 'Stories', icon: BookOpen, badge: 0 },
-    { href: '/admin/reports', label: 'Reports', icon: Flag, badge: pendingReports },
-  ]
+    { href: '/admin', label: 'Stories', icon: BookOpen, badge: 0, badgeStyle: 'alert' },
+    { href: '/admin/reports', label: 'Reports', icon: Flag, badge: pendingReports, badgeStyle: 'alert' },
+    { href: '/admin/waitlist', label: 'Org Waitlist', icon: School, badge: waitlistCount, badgeStyle: 'count' },
+  ] as const
 
   return (
     <aside className="w-56 shrink-0 bg-slate-900 text-white flex flex-col min-h-screen">
@@ -42,7 +46,7 @@ export default function AdminNav() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
-        {NAV_ITEMS.map(({ href, label, icon: Icon, badge }) => {
+        {NAV_ITEMS.map(({ href, label, icon: Icon, badge, badgeStyle }) => {
           const active = pathname === href
           return (
             <Link
@@ -59,7 +63,11 @@ export default function AdminNav() {
                 {label}
               </span>
               {badge > 0 && (
-                <span className="px-1.5 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] text-center">
+                <span className={`px-1.5 py-0.5 text-xs font-bold rounded-full min-w-[20px] text-center ${
+                  badgeStyle === 'alert'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-amber-500 text-slate-900'
+                }`}>
                   {badge}
                 </span>
               )}

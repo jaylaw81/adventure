@@ -79,6 +79,7 @@ export default function Header() {
             </>
           )}
           {!session && <NavLink href="/demo">Try Demo</NavLink>}
+          <NavLink href="/organizations">For Schools</NavLink>
         </nav>
 
         {/* Hamburger — mobile only */}
@@ -230,6 +231,10 @@ export default function Header() {
               Try Demo
             </Link>
           )}
+          <Link href="/organizations" onClick={() => setMobileOpen(false)}
+            className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/organizations' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+            For Schools
+          </Link>
 
           <div className="border-t border-white/10 mt-2 pt-3 flex flex-col gap-2">
             {session ? (

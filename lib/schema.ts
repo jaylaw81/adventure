@@ -119,6 +119,38 @@ export const storyReports = pgTable('story_reports', {
   index('story_reports_status_idx').on(t.status),
 ])
 
+export const organizationWaitlist = pgTable('organization_waitlist', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  email: text('email').notNull(),
+  name: text('name'),
+  school: text('school'),
+  role: text('role'), // e.g. 'teacher', 'administrator', 'librarian'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('org_waitlist_email_idx').on(t.email),
+])
+
+export const surveyResponses = pgTable('survey_responses', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userEmail: text('user_email').references(() => users.email, { onDelete: 'set null' }),
+  likes: text('likes'),
+  dislikes: text('dislikes'),
+  featureRequests: text('feature_requests'),
+  surveyType: text('survey_type').notNull().default('initial'), // 'initial' | 'followup'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('survey_responses_user_email_idx').on(t.userEmail),
+])
+
+export const surveyDismissals = pgTable('survey_dismissals', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userEmail: text('user_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  dismissedAt: timestamp('dismissed_at').defaultNow().notNull(),
+  nextShowAt: timestamp('next_show_at').notNull(),
+}, (t) => [
+  index('survey_dismissals_user_email_idx').on(t.userEmail),
+])
+
 export type User = typeof users.$inferSelect
 export type Adventure = typeof adventures.$inferSelect
 export type Chapter = typeof chapters.$inferSelect
