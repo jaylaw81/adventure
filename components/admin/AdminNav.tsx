@@ -4,30 +4,34 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { ShieldCheck, BookOpen, Flag, LogOut, School } from 'lucide-react'
+import { ShieldCheck, BookOpen, Flag, LogOut, School, MessageSquareHeart } from 'lucide-react'
 
 export default function AdminNav() {
   const pathname = usePathname()
   const [pendingReports, setPendingReports] = useState(0)
   const [waitlistCount, setWaitlistCount] = useState(0)
+  const [surveyCount, setSurveyCount] = useState(0)
 
   useEffect(() => {
     Promise.all([
       fetch('/api/admin/reports').then(r => r.json()).catch(() => []),
       fetch('/api/admin/review-reports').then(r => r.json()).catch(() => []),
       fetch('/api/admin/waitlist').then(r => r.json()).catch(() => []),
-    ]).then(([stories, reviews, waitlist]: [{ status: string }[], { status: string }[], unknown[]]) => {
+      fetch('/api/admin/survey').then(r => r.json()).catch(() => []),
+    ]).then(([stories, reviews, waitlist, survey]: [{ status: string }[], { status: string }[], unknown[], unknown[]]) => {
       const pending =
         stories.filter(r => r.status === 'pending').length +
         reviews.filter(r => r.status === 'pending').length
       setPendingReports(pending)
       setWaitlistCount(Array.isArray(waitlist) ? waitlist.length : 0)
+      setSurveyCount(Array.isArray(survey) ? survey.length : 0)
     })
   }, [pathname])
 
   const NAV_ITEMS = [
     { href: '/admin', label: 'Stories', icon: BookOpen, badge: 0, badgeStyle: 'alert' },
     { href: '/admin/reports', label: 'Reports', icon: Flag, badge: pendingReports, badgeStyle: 'alert' },
+    { href: '/admin/survey', label: 'Survey', icon: MessageSquareHeart, badge: surveyCount, badgeStyle: 'count' },
     { href: '/admin/waitlist', label: 'Org Waitlist', icon: School, badge: waitlistCount, badgeStyle: 'count' },
   ] as const
 
