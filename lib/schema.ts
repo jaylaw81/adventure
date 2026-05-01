@@ -21,6 +21,7 @@ export const adventures = pgTable('adventures', {
   tags: text('tags').notNull().default('[]'), // JSON array of strings
   isPublic: boolean('is_public').notNull().default(false),
   shareToken: text('share_token').unique(),
+  status: text('status').notNull().default('active'), // 'active' | 'suspended'
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (t) => [

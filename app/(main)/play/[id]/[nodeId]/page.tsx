@@ -30,6 +30,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
 
   const isOwner = !!session?.user?.email && session.user.email === adventure?.userEmail
   const isAdmin = !!session?.user?.isAdmin
+  const isOrgAdmin = session?.user?.tier === 'organization'
 
   // Block private stories from non-owners
   if (!adventure?.isPublic && !isOwner && !isAdmin) {
@@ -38,6 +39,9 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
       : false
     if (!orgAccess) notFound()
   }
+
+  // Block suspended stories — org admins can still view
+  if (adventure?.status === 'suspended' && !isOrgAdmin && !isAdmin) notFound()
 
   const isEnding = node.nodeType === 'ending'
   const isStart = node.nodeType === 'start'

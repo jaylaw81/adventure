@@ -100,17 +100,6 @@ export default function Header() {
           <NavLink href="/organizations">For Schools</NavLink>
         </nav>
 
-        {/* Org membership pill — for regular org members only */}
-        {orgMembership && (
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-medium ml-1 shrink-0 max-w-[220px]">
-            <School size={12} className="shrink-0" />
-            <span className="truncate">
-              {orgMembership.orgName}
-              {orgMembership.groupName && <span className="text-amber-400/70"> · {orgMembership.groupName}</span>}
-            </span>
-          </div>
-        )}
-
         {/* Hamburger — mobile only */}
         <button
           onClick={() => setMobileOpen(v => !v)}
@@ -237,6 +226,23 @@ export default function Header() {
           )}
         </div>
       </div>
+
+      {/* Org sub-header — shown for org members below the main nav */}
+      {orgMembership && (
+        <div className="border-t border-amber-500/20" style={{ background: 'rgba(245,158,11,0.07)' }}>
+          <div className="max-w-6xl mx-auto px-5 h-8 flex items-center gap-2">
+            <School size={12} className="text-amber-400 shrink-0" />
+            <span className="text-xs font-semibold text-amber-300">{orgMembership.orgName}</span>
+            {orgMembership.groupName && (
+              <>
+                <span className="text-amber-500/40 text-xs">·</span>
+                <span className="text-xs text-amber-400/70">{orgMembership.groupName}</span>
+              </>
+            )}
+            <span className="ml-auto text-xs text-amber-500/50 capitalize">{orgMembership.role}</span>
+          </div>
+        </div>
+      )}
 
       {/* Mobile menu panel */}
       {mobileOpen && (

@@ -67,12 +67,16 @@ export default async function StoryLandingPage({ params }: Props) {
   // Block private stories from non-owners
   const isOwner = !!session?.user?.email && session.user.email === adventure.userEmail
   const isAdmin = !!session?.user?.isAdmin
+  const isOrgAdmin = session?.user?.tier === 'organization'
   if (!adventure.isPublic && !isOwner && !isAdmin) {
     const orgAccess = session?.user?.email && adventure.userEmail
       ? await canViewMemberStory(session.user.email, adventure.userEmail)
       : false
     if (!orgAccess) notFound()
   }
+
+  // Block suspended stories — org admins can still view
+  if (adventure.status === 'suspended' && !isOrgAdmin && !isAdmin) notFound()
 
   // Block adults-only stories for non-adults and unauthenticated users
   if (adventure.audience === 'adults' && !session?.user?.isAdult) {

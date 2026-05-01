@@ -1,7 +1,7 @@
 import { getOrgAdminContext, unauthorized } from '@/lib/orgAuth'
 import { db } from '@/lib/db'
-import { organizationGroups, organizationMembers } from '@/lib/schema'
-import { eq, sql } from 'drizzle-orm'
+import { organizationGroups } from '@/lib/schema'
+import { eq } from 'drizzle-orm'
 
 function sanitize(value: unknown, max = 200): string | null {
   if (typeof value !== 'string') return null
@@ -19,10 +19,7 @@ export async function GET() {
       name: organizationGroups.name,
       description: organizationGroups.description,
       createdAt: organizationGroups.createdAt,
-      memberCount: sql<number>`(
-        select count(*) from ${organizationMembers}
-        where ${organizationMembers.groupId} = ${organizationGroups.id}
-      )`.mapWith(Number),
+      privacyLevel: organizationGroups.privacyLevel,
     })
     .from(organizationGroups)
     .where(eq(organizationGroups.organizationId, ctx.org.id))

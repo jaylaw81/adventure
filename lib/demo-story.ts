@@ -11,6 +11,7 @@ export const DEMO_ADVENTURE: Adventure = {
   tags: '["Fantasy","Adventure"]',
   isPublic: false,
   shareToken: null,
+  status: 'active',
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
 }

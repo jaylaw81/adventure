@@ -10,7 +10,6 @@ interface Group {
   name: string
   description: string | null
   privacyLevel: PrivacyLevel
-  memberCount: number
   createdAt: string
 }
 
@@ -20,7 +19,7 @@ interface Member {
   displayName: string | null
   role: string
   status: string
-  groupId: string | null
+  groups: { id: string; name: string }[]
 }
 
 const PRIVACY_OPTIONS: { value: PrivacyLevel; label: string; icon: React.ReactNode; color: string }[] = [
@@ -180,7 +179,7 @@ function GroupRow({
             className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-amber-600 transition-colors"
           >
             <Users size={13} className="text-slate-400" />
-            {group.memberCount}
+            {members.length}
           </button>
         </td>
 
@@ -280,7 +279,7 @@ export default function GroupsPage() {
 
   useEffect(() => { load() }, [load])
 
-  const ungroupedMembers = members.filter(m => m.groupId === null && m.role !== 'admin')
+  const ungroupedMembers = members.filter(m => m.groups.length === 0 && m.role !== 'admin')
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -399,7 +398,7 @@ export default function GroupsPage() {
                 <GroupRow
                   key={group.id}
                   group={group}
-                  members={members.filter(m => m.groupId === group.id)}
+                  members={members.filter(m => m.groups.some(g => g.id === group.id))}
                   onSave={handleSave}
                   onDelete={handleDelete}
                 />

@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { Plus, Copy, Check, Trash2, X, Loader2, Clock, UserX, UserCheck, ChevronDown, Settings2 } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { Plus, Copy, Check, Trash2, X, Loader2, Clock, UserX, UserCheck, ChevronDown, Settings2, BookOpen, Eye, Pencil, Ban, RotateCcw, Globe, Lock, Search } from 'lucide-react'
+import Link from 'next/link'
 
 interface Group {
   id: string
@@ -68,11 +70,18 @@ function GroupsCell({
 }) {
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState<string | null>(null)
-  const ref = useRef<HTMLDivElement>(null)
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 })
+  const containerRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const addButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      const target = e.target as Node
+      if (
+        containerRef.current && !containerRef.current.contains(target) &&
+        dropdownRef.current && !dropdownRef.current.contains(target)
+      ) setOpen(false)
     }
     if (open) document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -103,12 +112,23 @@ function GroupsCell({
     setSaving(null)
   }
 
+  function handleOpenDropdown() {
+    if (addButtonRef.current) {
+      const rect = addButtonRef.current.getBoundingClientRect()
+      setDropdownPos({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+      })
+    }
+    setOpen(v => !v)
+  }
+
   if (allGroups.length === 0) {
     return <span className="text-slate-300 text-xs">No groups</span>
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={containerRef} className="relative">
       <div className="flex flex-wrap gap-1 items-center min-h-[22px]">
         {member.groups.map(g => (
           <span key={g.id} className="inline-flex items-center gap-0.5 pl-2 pr-1 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800">
@@ -125,7 +145,8 @@ function GroupsCell({
 
         {available.length > 0 && (
           <button
-            onClick={() => setOpen(v => !v)}
+            ref={addButtonRef}
+            onClick={handleOpenDropdown}
             className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-dashed border-slate-300 text-slate-400 hover:border-amber-400 hover:text-amber-600 hover:bg-amber-50 transition-colors text-xs font-bold leading-none"
             title="Add to group"
           >
@@ -138,8 +159,12 @@ function GroupsCell({
         )}
       </div>
 
-      {open && (
-        <div className="absolute z-20 top-full mt-1 left-0 bg-white rounded-xl shadow-xl border border-slate-100 py-1 min-w-40 max-h-52 overflow-y-auto">
+      {open && typeof document !== 'undefined' && createPortal(
+        <div
+          ref={dropdownRef}
+          style={{ position: 'absolute', top: dropdownPos.top, left: dropdownPos.left, zIndex: 9999 }}
+          className="bg-white rounded-xl shadow-xl border border-slate-100 py-1 min-w-40 max-h-52 overflow-y-auto"
+        >
           {available.map(g => (
             <button
               key={g.id}
@@ -153,7 +178,8 @@ function GroupsCell({
               {g.name}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
@@ -321,6 +347,231 @@ function PermissionsModal({
   )
 }
 
+interface Story {
+  id: string
+  title: string
+  description: string
+  isPublic: boolean
+  status: string
+  audience: string
+  createdAt: string
+  updatedAt: string
+}
+
+function MemberStoriesDrawer({ member, onClose }: { member: Member; onClose: () => void }) {
+  const [stories, setStories] = useState<Story[]>([])
+  const [loading, setLoading] = useState(true)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDesc, setEditDesc] = useState('')
+  const [actingId, setActingId] = useState<string | null>(null)
+
+  const loadStories = useCallback(async () => {
+    setLoading(true)
+    const res = await fetch(`/api/org/members/${encodeURIComponent(member.userEmail)}/stories`)
+    const data = await res.json()
+    setStories(Array.isArray(data) ? data : [])
+    setLoading(false)
+  }, [member.userEmail])
+
+  useEffect(() => { loadStories() }, [loadStories])
+
+  async function handleSuspend(story: Story) {
+    setActingId(story.id)
+    await fetch(`/api/org/members/${encodeURIComponent(member.userEmail)}/stories/${story.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: story.status === 'suspended' ? 'active' : 'suspended' }),
+    })
+    setActingId(null)
+    await loadStories()
+  }
+
+  async function handleDelete(story: Story) {
+    if (!confirm(`Permanently delete "${story.title}"? This cannot be undone.`)) return
+    setActingId(story.id)
+    await fetch(`/api/org/members/${encodeURIComponent(member.userEmail)}/stories/${story.id}`, { method: 'DELETE' })
+    setActingId(null)
+    await loadStories()
+  }
+
+  async function handleSaveEdit(story: Story) {
+    if (!editTitle.trim()) return
+    setActingId(story.id)
+    await fetch(`/api/org/members/${encodeURIComponent(member.userEmail)}/stories/${story.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: editTitle, description: editDesc }),
+    })
+    setActingId(null)
+    setEditingId(null)
+    await loadStories()
+  }
+
+  function startEdit(story: Story) {
+    setEditingId(story.id)
+    setEditTitle(story.title)
+    setEditDesc(story.description)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex">
+      <div className="flex-1 bg-black/30" onClick={onClose} />
+      <div className="w-full max-w-lg bg-white h-full flex flex-col shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+              style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
+            >
+              {(member.displayName || member.userEmail)[0].toUpperCase()}
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900">{member.displayName || member.userEmail}</p>
+              <p className="text-xs text-slate-400 font-mono">{member.userEmail}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Subheader */}
+        <div className="px-6 py-2.5 border-b border-slate-100 bg-slate-50 shrink-0">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
+            <BookOpen size={12} /> Stories
+          </p>
+        </div>
+
+        {/* Story list */}
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 size={20} className="animate-spin text-slate-300" />
+            </div>
+          ) : stories.length === 0 ? (
+            <div className="text-center py-16">
+              <BookOpen size={32} className="mx-auto text-slate-200 mb-3" />
+              <p className="text-sm text-slate-400">No stories yet.</p>
+            </div>
+          ) : (
+            <div className="px-6 py-4 flex flex-col gap-3">
+              {stories.map(story => {
+                const suspended = story.status === 'suspended'
+                const acting = actingId === story.id
+                return (
+                  <div
+                    key={story.id}
+                    className={`rounded-xl border p-4 transition-colors ${suspended ? 'border-red-200 bg-red-50/40' : 'border-slate-200 bg-white'}`}
+                  >
+                    {editingId === story.id ? (
+                      <div className="flex flex-col gap-2">
+                        <input
+                          value={editTitle}
+                          onChange={e => setEditTitle(e.target.value)}
+                          placeholder="Story title"
+                          maxLength={200}
+                          className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                        />
+                        <textarea
+                          value={editDesc}
+                          onChange={e => setEditDesc(e.target.value)}
+                          placeholder="Description (optional)"
+                          rows={2}
+                          maxLength={1000}
+                          className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+                        />
+                        <div className="flex gap-2 mt-1">
+                          <button
+                            onClick={() => handleSaveEdit(story)}
+                            disabled={acting || !editTitle.trim()}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                          >
+                            {acting ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="px-3 py-1.5 rounded-lg text-xs text-slate-500 border border-slate-200 hover:bg-slate-50 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-semibold truncate ${suspended ? 'text-red-800' : 'text-slate-900'}`}>{story.title}</p>
+                            {story.description && (
+                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{story.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
+                            {suspended && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">
+                                <Ban size={9} /> Suspended
+                              </span>
+                            )}
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${story.isPublic ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                              {story.isPublic ? <Globe size={9} /> : <Lock size={9} />}
+                              {story.isPublic ? 'Public' : 'Private'}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1.5">
+                          Updated {new Date(story.updatedAt).toLocaleDateString()}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-slate-100 flex-wrap">
+                          <Link
+                            href={`/play/${story.id}`}
+                            target="_blank"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                          >
+                            <Eye size={11} /> View
+                          </Link>
+                          <button
+                            onClick={() => startEdit(story)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                          >
+                            <Pencil size={11} /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleSuspend(story)}
+                            disabled={acting}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
+                              suspended
+                                ? 'text-green-700 bg-green-50 hover:bg-green-100'
+                                : 'text-amber-700 bg-amber-50 hover:bg-amber-100'
+                            }`}
+                          >
+                            {acting
+                              ? <Loader2 size={11} className="animate-spin" />
+                              : suspended ? <RotateCcw size={11} /> : <Ban size={11} />}
+                            {suspended ? 'Unsuspend' : 'Suspend'}
+                          </button>
+                          <button
+                            onClick={() => handleDelete(story)}
+                            disabled={acting}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50 ml-auto"
+                          >
+                            {acting ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
+                            Delete
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
@@ -334,6 +585,8 @@ export default function MembersPage() {
   const [newInviteUrl, setNewInviteUrl] = useState('')
   const [updating, setUpdating] = useState<string | null>(null)
   const [permsMember, setPermsMember] = useState<Member | null>(null)
+  const [storiesMember, setStoriesMember] = useState<Member | null>(null)
+  const [search, setSearch] = useState('')
 
   const load = useCallback(async () => {
     const [m, i, g] = await Promise.all([
@@ -404,6 +657,16 @@ export default function MembersPage() {
   const activeCount = useMemo(() => nonAdminMembers.filter(m => m.status === 'active').length, [nonAdminMembers])
   const inactiveCount = useMemo(() => nonAdminMembers.filter(m => m.status === 'inactive').length, [nonAdminMembers])
 
+  const filteredMembers = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return members
+    return members.filter(m =>
+      m.userEmail.toLowerCase().includes(q) ||
+      (m.displayName ?? '').toLowerCase().includes(q) ||
+      m.groups.some(g => g.name.toLowerCase().includes(q))
+    )
+  }, [members, search])
+
   return (
     <div className="p-8">
       {permsMember && (
@@ -413,6 +676,9 @@ export default function MembersPage() {
           onClose={() => setPermsMember(null)}
           onSaved={load}
         />
+      )}
+      {storiesMember && (
+        <MemberStoriesDrawer member={storiesMember} onClose={() => setStoriesMember(null)} />
       )}
 
       <div className="mb-8">
@@ -534,8 +800,18 @@ export default function MembersPage() {
 
       {/* Members table */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-semibold text-slate-700">All members</h2>
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+          <h2 className="text-sm font-semibold text-slate-700 shrink-0">All members</h2>
+          <div className="relative flex-1 max-w-xs ml-auto">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by name, email, or group…"
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+            />
+          </div>
         </div>
         {loading ? (
           <div className="p-12 text-center text-slate-400 text-sm">Loading…</div>
@@ -549,26 +825,44 @@ export default function MembersPage() {
                 <th className="text-left px-4 py-3 font-semibold">Groups</th>
                 <th className="text-left px-4 py-3 font-semibold">Role</th>
                 <th className="text-left px-4 py-3 font-semibold">Status</th>
-                <th className="text-left px-4 py-3 font-semibold">Stories</th>
                 <th className="text-left px-4 py-3 font-semibold">Joined</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {members.map(m => {
+              {filteredMembers.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-400">
+                    No members match &ldquo;{search}&rdquo;
+                  </td>
+                </tr>
+              )}
+              {filteredMembers.map(m => {
                 const isAdmin = m.role === 'admin'
                 const isUpdating = updating === m.userEmail
                 const hasPermissions = m.role === 'teacher' || m.role === 'reviewer'
                 return (
                   <tr key={m.id} className={`hover:bg-slate-50 transition-colors ${m.status === 'inactive' ? 'opacity-60' : ''}`}>
                     <td className="px-5 py-3.5">
-                      <p className="font-medium text-slate-900">{m.displayName || m.userEmail}</p>
-                      <p className="text-xs text-slate-400 font-mono">{m.userEmail}</p>
-                      {isAdmin && (
-                        <span className="mt-0.5 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
-                          Admin
-                        </span>
-                      )}
+                      <button
+                        onClick={() => !isAdmin && setStoriesMember(m)}
+                        className={`text-left group ${!isAdmin ? 'cursor-pointer' : ''}`}
+                      >
+                        <p className={`font-medium ${!isAdmin ? 'text-amber-700 group-hover:underline' : 'text-slate-900'}`}>
+                          {m.displayName || m.userEmail}
+                        </p>
+                        <p className="text-xs text-slate-400 font-mono">{m.userEmail}</p>
+                        {isAdmin && (
+                          <span className="mt-0.5 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
+                            Admin
+                          </span>
+                        )}
+                        {!isAdmin && (
+                          <span className="text-xs text-slate-300 group-hover:text-amber-500 transition-colors flex items-center gap-0.5 mt-0.5">
+                            <BookOpen size={10} /> {m.storyCount} {m.storyCount === 1 ? 'story' : 'stories'}
+                          </span>
+                        )}
+                      </button>
                     </td>
                     <td className="px-4 py-3.5">
                       {isAdmin ? (
@@ -617,7 +911,6 @@ export default function MembersPage() {
                         </button>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 text-slate-600 font-medium">{m.storyCount}</td>
                     <td className="px-4 py-3.5 text-xs text-slate-400 whitespace-nowrap">
                       {new Date(m.joinedAt).toLocaleDateString()}
                     </td>
