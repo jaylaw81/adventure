@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 }
 import { authOptions } from '@/lib/auth'
 import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter } from '@/lib/queries'
-import { canViewMemberStory } from '@/lib/orgAccess'
+import { canViewMemberStory, getAuthorOrgPrivacy } from '@/lib/orgAccess'
 import SceneView from '@/components/reader/SceneView'
 import ChoiceButton from '@/components/reader/ChoiceButton'
 import CopySceneButton from '@/components/reader/CopySceneButton'
@@ -43,6 +43,10 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
   // Block suspended stories — org admins can still view
   if (adventure?.status === 'suspended' && !isOrgAdmin && !isAdmin) notFound()
 
+  // Hide sharing controls when the story's org restricts public distribution
+  const authorOrgPrivacy = adventure?.userEmail ? await getAuthorOrgPrivacy(adventure.userEmail) : null
+  const canShare = !authorOrgPrivacy || authorOrgPrivacy === 'public'
+
   const isEnding = node.nodeType === 'ending'
   const isStart = node.nodeType === 'start'
   const isChapterEnd = node.nodeType === 'chapter_end'
@@ -71,7 +75,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
           </Link>
         </div>
         <div className="flex items-center gap-3">
-          <CopySceneButton content={node.content} choices={choices} adventureId={id} />
+          {canShare && <CopySceneButton content={node.content} choices={choices} adventureId={id} />}
           {isOwner && (
             <Link href={`/edit/${id}`} className="text-xs text-gray-400 hover:text-gray-600">
               Edit

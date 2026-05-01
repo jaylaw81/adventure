@@ -20,10 +20,11 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import Link from 'next/link'
-import { ArrowLeft, Plus, RotateCcw, Sparkles, X, Save, Trash2, Play } from 'lucide-react'
+import { ArrowLeft, Plus, RotateCcw, Sparkles, X, Save, Trash2, Play, GitBranch } from 'lucide-react'
 
 import StoryNode, { type StoryNodeData } from './StoryNode'
 import EditableEdge from './EditableEdge'
+import InputModal from './InputModal'
 import type { Node, Choice } from '@/lib/schema'
 import {
   demoLoad,
@@ -283,6 +284,8 @@ function DemoCanvasInner() {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [nodeEditorDirty, setNodeEditorDirty] = useState(false)
   const externalSaveRef = useRef<(() => Promise<void>) | null>(null)
+  const [pendingConnection, setPendingConnection] = useState<Connection | null>(null)
+  const [choiceLabelDraft, setChoiceLabelDraft] = useState('Continue')
 
   useEffect(() => {
     if (!nodeEditorDirty) return
@@ -317,16 +320,22 @@ function DemoCanvasInner() {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      const label = prompt('Choice text:', 'Continue') ?? 'Continue'
-      const choice = demoCreateChoice({
-        sourceNodeId: connection.source!,
-        targetNodeId: connection.target!,
-        label,
-      })
-      setRfEdges(eds => addEdge(toRFEdge(choice, handleLabelChange, handleEdgeDelete), eds))
+      setPendingConnection(connection)
+      setChoiceLabelDraft('Continue')
     },
-    [handleLabelChange, handleEdgeDelete]
+    []
   )
+
+  const handleChoiceConfirm = useCallback(() => {
+    if (!pendingConnection) return
+    const choice = demoCreateChoice({
+      sourceNodeId: pendingConnection.source!,
+      targetNodeId: pendingConnection.target!,
+      label: choiceLabelDraft.trim() || 'Continue',
+    })
+    setRfEdges(eds => addEdge(toRFEdge(choice, handleLabelChange, handleEdgeDelete), eds))
+    setPendingConnection(null)
+  }, [pendingConnection, choiceLabelDraft, handleLabelChange, handleEdgeDelete])
 
   const onEdgesDelete: OnEdgesDelete = useCallback((deletedEdges) => {
     for (const edge of deletedEdges) demoDeleteChoice(edge.id)
@@ -401,6 +410,20 @@ function DemoCanvasInner() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {pendingConnection && (
+        <InputModal
+          title="New Choice"
+          description="This text appears as the button players click to take this path."
+          inputLabel="Choice text"
+          placeholder="e.g. Go into the forest"
+          value={choiceLabelDraft}
+          onChange={setChoiceLabelDraft}
+          confirmLabel="Create choice"
+          onConfirm={handleChoiceConfirm}
+          onCancel={() => setPendingConnection(null)}
+          icon={<GitBranch size={16} />}
+        />
+      )}
 
       {/* Demo banner */}
       <div className="relative z-20 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 flex items-center justify-between gap-4 flex-wrap text-sm">

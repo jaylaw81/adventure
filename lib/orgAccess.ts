@@ -3,6 +3,20 @@ import { organizations, organizationMembers } from '@/lib/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 
 /**
+ * Returns the org privacy level for a story author, or null if they are not an org member.
+ * Used to decide whether sharing controls should be hidden on story pages.
+ */
+export async function getAuthorOrgPrivacy(authorEmail: string): Promise<string | null> {
+  const [row] = await db
+    .select({ privacyLevel: organizations.privacyLevel })
+    .from(organizationMembers)
+    .innerJoin(organizations, eq(organizations.id, organizationMembers.organizationId))
+    .where(eq(organizationMembers.userEmail, authorEmail))
+    .limit(1)
+  return row?.privacyLevel ?? null
+}
+
+/**
  * Returns true if `viewerEmail` is allowed to view a private story owned by `authorEmail`
  * by virtue of their org relationship (admin of the same org, or teacher/reviewer in the same org).
  */

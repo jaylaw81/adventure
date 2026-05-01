@@ -19,13 +19,14 @@ import {
   MarkerType,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { Plus, Pencil, Trash2, BookMarked, Check, X, ChevronRight } from 'lucide-react'
+import { Plus, Pencil, Trash2, BookMarked, Check, X, ChevronRight, GitBranch, BookOpen } from 'lucide-react'
 
 import StoryNode, { type StoryNodeData } from './StoryNode'
 import EditableEdge from './EditableEdge'
 import NodeEditor from './NodeEditor'
 import Toolbar from './Toolbar'
 import AdventureSettingsModal from '@/components/shared/AdventureSettingsModal'
+import InputModal from './InputModal'
 import type { Node, Choice, Adventure, Chapter } from '@/lib/schema'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { analytics } from '@/lib/analytics'
@@ -212,6 +213,11 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
   const [currentAdventure, setCurrentAdventure] = useState(adventure)
   const [nodeEditorDirty, setNodeEditorDirty] = useState(false)
   const externalSaveRef = useRef<(() => Promise<void>) | null>(null)
+  const [pendingConnection, setPendingConnection] = useState<Connection | null>(null)
+  const [choiceLabelDraft, setChoiceLabelDraft] = useState('Continue')
+  const [creatingChoice, setCreatingChoice] = useState(false)
+  const [showChapterModal, setShowChapterModal] = useState(false)
+  const [chapterNameDraft, setChapterNameDraft] = useState('')
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -261,23 +267,31 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
   const selectedDbNode = dbNodes.find(n => n.id === selectedNodeId) ?? null
 
   const onConnect = useCallback(
-    async (connection: Connection) => {
-      const label = prompt('Choice text:', 'Continue') ?? 'Continue'
-      const res = await fetch(`/api/adventures/${adventure.id}/choices`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sourceNodeId: connection.source,
-          targetNodeId: connection.target,
-          label,
-        }),
-      })
-      const choice: Choice = await res.json()
-      analytics.choiceCreated(adventure.id)
-      setRfEdges(eds => addEdge(toRFEdge(choice, handleLabelChange, handleEdgeDelete), eds))
+    (connection: Connection) => {
+      setPendingConnection(connection)
+      setChoiceLabelDraft('Continue')
     },
-    [adventure.id, handleLabelChange, handleEdgeDelete]
+    []
   )
+
+  const handleChoiceConfirm = async () => {
+    if (!pendingConnection) return
+    setCreatingChoice(true)
+    const res = await fetch(`/api/adventures/${adventure.id}/choices`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sourceNodeId: pendingConnection.source,
+        targetNodeId: pendingConnection.target,
+        label: choiceLabelDraft.trim() || 'Continue',
+      }),
+    })
+    const choice: Choice = await res.json()
+    analytics.choiceCreated(adventure.id)
+    setRfEdges(eds => addEdge(toRFEdge(choice, handleLabelChange, handleEdgeDelete), eds))
+    setCreatingChoice(false)
+    setPendingConnection(null)
+  }
 
   const onEdgesDelete: OnEdgesDelete = useCallback(
     async (deletedEdges) => {
@@ -342,9 +356,15 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
 
   // ── Chapter handlers ──────────────────────────────────────────────
 
-  const handleAddChapter = async () => {
-    const title = prompt('Chapter name:', `Chapter ${dbChapters.length + 1}`)
+  const handleAddChapter = () => {
+    setChapterNameDraft(`Chapter ${dbChapters.length + 1}`)
+    setShowChapterModal(true)
+  }
+
+  const handleChapterConfirm = async () => {
+    const title = chapterNameDraft.trim()
     if (!title) return
+    setShowChapterModal(false)
     const res = await fetch(`/api/adventures/${adventure.id}/chapters`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -418,6 +438,35 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
 
   return (
     <div className="flex flex-col h-screen">
+      {pendingConnection && (
+        <InputModal
+          title="New Choice"
+          description="This text appears as the button players click to take this path."
+          inputLabel="Choice text"
+          placeholder="e.g. Go into the forest"
+          value={choiceLabelDraft}
+          onChange={setChoiceLabelDraft}
+          confirmLabel="Create choice"
+          onConfirm={handleChoiceConfirm}
+          onCancel={() => setPendingConnection(null)}
+          loading={creatingChoice}
+          icon={<GitBranch size={16} />}
+        />
+      )}
+      {showChapterModal && (
+        <InputModal
+          title="New Chapter"
+          description="Chapters help you organise your story into sections."
+          inputLabel="Chapter name"
+          placeholder={`e.g. Chapter ${dbChapters.length + 1}`}
+          value={chapterNameDraft}
+          onChange={setChapterNameDraft}
+          confirmLabel="Create chapter"
+          onConfirm={handleChapterConfirm}
+          onCancel={() => setShowChapterModal(false)}
+          icon={<BookOpen size={16} />}
+        />
+      )}
       <Toolbar
         adventureTitle={currentAdventure.title}
         adventureId={currentAdventure.id}
