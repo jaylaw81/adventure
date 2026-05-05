@@ -1,8 +1,8 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { surveyResponses } from '@/lib/schema'
-import { desc } from 'drizzle-orm'
+import { surveyResponses, surveyDismissals } from '@/lib/schema'
+import { desc, count } from 'drizzle-orm'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -10,10 +10,10 @@ export async function GET() {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const responses = await db
-    .select()
-    .from(surveyResponses)
-    .orderBy(desc(surveyResponses.createdAt))
+  const [responses, [{ dismissalCount }]] = await Promise.all([
+    db.select().from(surveyResponses).orderBy(desc(surveyResponses.createdAt)),
+    db.select({ dismissalCount: count() }).from(surveyDismissals),
+  ])
 
-  return Response.json(responses)
+  return Response.json({ responses, dismissalCount })
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Search, X, MessageSquareHeart, Download, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, X, MessageSquareHeart, Download, ChevronDown, ChevronUp, XCircle } from 'lucide-react'
 
 interface SurveyResponse {
   id: string
@@ -36,6 +36,7 @@ function ExpandableCell({ text }: { text: string | null }) {
 
 export default function SurveyAdminPage() {
   const [responses, setResponses] = useState<SurveyResponse[]>([])
+  const [dismissalCount, setDismissalCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'all' | 'initial' | 'followup'>('all')
@@ -43,7 +44,11 @@ export default function SurveyAdminPage() {
   useEffect(() => {
     fetch('/api/admin/survey')
       .then(r => r.json())
-      .then(data => { setResponses(data); setLoading(false) })
+      .then(data => {
+        setResponses(data.responses)
+        setDismissalCount(data.dismissalCount)
+        setLoading(false)
+      })
   }, [])
 
   const filtered = useMemo(() => {
@@ -110,16 +115,17 @@ export default function SurveyAdminPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-5 gap-4 mb-8">
         {[
-          { label: 'Total Responses', value: stats.total, color: 'bg-amber-100 text-amber-600' },
-          { label: 'Initial Surveys', value: stats.initial, color: 'bg-blue-100 text-blue-600' },
-          { label: 'Follow-up Surveys', value: stats.followup, color: 'bg-purple-100 text-purple-600' },
-          { label: 'Feature Requests', value: stats.withFeatureRequests, color: 'bg-green-100 text-green-600' },
-        ].map(({ label, value, color }) => (
+          { label: 'Total Responses', value: stats.total, color: 'bg-amber-100 text-amber-600', icon: <MessageSquareHeart size={18} /> },
+          { label: 'Initial Surveys', value: stats.initial, color: 'bg-blue-100 text-blue-600', icon: <MessageSquareHeart size={18} /> },
+          { label: 'Follow-up Surveys', value: stats.followup, color: 'bg-purple-100 text-purple-600', icon: <MessageSquareHeart size={18} /> },
+          { label: 'Feature Requests', value: stats.withFeatureRequests, color: 'bg-green-100 text-green-600', icon: <MessageSquareHeart size={18} /> },
+          { label: 'Closed Without Filling', value: dismissalCount, color: 'bg-red-100 text-red-500', icon: <XCircle size={18} /> },
+        ].map(({ label, value, color, icon }) => (
           <div key={label} className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
             <div className={`p-2.5 rounded-lg ${color}`}>
-              <MessageSquareHeart size={18} />
+              {icon}
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900">{value}</p>
