@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
         />
       </head>
-      <body className={`${geist.className} antialiased bg-gray-50 min-h-screen`}>
+      <body className={`${geist.className} antialiased min-h-screen`} style={{ background: '#faf5ff' }}>
         <GoogleAnalytics />
         <JsonLd data={{
           '@context': 'https://schema.org',

@@ -22,9 +22,15 @@ export default async function OrgLayout({ children }: { children: React.ReactNod
   if (!org) redirect('/')
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)]">
-      <OrgSidebar orgName={org.name} />
-      <main className="flex-1 overflow-auto bg-slate-50">{children}</main>
-    </div>
+    <>
+      {/* Dark banner behind transparent header */}
+      <div className="-mt-16 h-16 w-full"
+        style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 60%, #0f172a 100%)' }}
+      />
+      <div className="flex min-h-[calc(100vh-4rem)]">
+        <OrgSidebar orgName={org.name} />
+        <main className="flex-1 overflow-auto bg-slate-50">{children}</main>
+      </div>
+    </>
   )
 }

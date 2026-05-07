@@ -6,6 +6,7 @@ import { Play, BookOpen, Search, X, Flame } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/lib/analytics'
 import ReviewsModal from '@/components/explore/ReviewsModal'
+import PageBanner from '@/components/shared/PageBanner'
 
 const AUDIENCE_OPTIONS = [
   { value: 'all', label: 'All Ages' },
@@ -93,47 +94,46 @@ export default function ExplorePage() {
   const activeFilterCount = (selectedAudience ? 1 : 0) + (selectedTag ? 1 : 0) + (search.trim() ? 1 : 0)
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Explore Stories</h1>
-        <p className="text-gray-500 mt-1">Play public stories shared by creators</p>
-      </div>
+    <>
+      <PageBanner title="Explore Stories" subtitle="Play public stories shared by creators" wide>
+        {/* Search bar embedded in banner */}
+        <div className="relative max-w-lg">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by title or tag…"
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 text-white placeholder-white/40"
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+            >
+              <X size={15} />
+            </button>
+          )}
+        </div>
+      </PageBanner>
 
+    <div className="max-w-6xl mx-auto px-6 py-8">
       {/* Registration nudge for guests */}
       {!isSignedIn && (
-        <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-sm text-amber-800">
+        <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3">
+          <p className="text-sm text-violet-800">
             <span className="font-semibold">Sign in for full access</span> — some stories and tags are only visible to registered members.
           </p>
           <Link
             href="/sign-in"
-            className="shrink-0 px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors"
+            className="shrink-0 px-4 py-1.5 text-white text-xs font-semibold rounded-lg transition-colors hover:brightness-110"
+            style={{ background: '#7c3aed' }}
           >
             Sign in
           </Link>
         </div>
       )}
-
-      {/* Search bar */}
-      <div className="relative mb-8">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search by title or tag…"
-          className="w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white shadow-sm"
-        />
-        {search && (
-          <button
-            onClick={() => setSearch('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            <X size={15} />
-          </button>
-        )}
-      </div>
 
       {/* Mobile filters (horizontal scroll) */}
       <div className="md:hidden mb-4 flex flex-col gap-3">
@@ -141,8 +141,9 @@ export default function ExplorePage() {
           <button
             onClick={() => setSelectedAudience(null)}
             className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-              !selectedAudience ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200'
+              !selectedAudience ? 'text-white border-violet-600' : 'bg-white text-gray-600 border-gray-200'
             }`}
+            style={!selectedAudience ? { background: '#7c3aed' } : undefined}
           >
             All Audiences
           </button>
@@ -151,8 +152,9 @@ export default function ExplorePage() {
               key={opt.value}
               onClick={() => setSelectedAudience(selectedAudience === opt.value ? null : opt.value)}
               className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                selectedAudience === opt.value ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200'
+                selectedAudience === opt.value ? 'text-white border-violet-600' : 'bg-white text-gray-600 border-gray-200'
               }`}
+              style={selectedAudience === opt.value ? { background: '#7c3aed' } : undefined}
             >
               {opt.label}
             </button>
@@ -165,8 +167,9 @@ export default function ExplorePage() {
                 key={tag}
                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                 className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  selectedTag === tag ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-200'
+                  selectedTag === tag ? 'text-white border-violet-600' : 'bg-white text-gray-600 border-gray-200'
                 }`}
+                style={selectedTag === tag ? { background: '#7c3aed' } : undefined}
               >
                 {popular && <Flame size={10} className={selectedTag === tag ? 'text-orange-200' : 'text-orange-400'} />}
                 {tag}
@@ -182,14 +185,14 @@ export default function ExplorePage() {
 
           {/* Audience */}
           <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">Audience</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#7c3aed' }}>Audience</h3>
             <div className="flex flex-col gap-1">
               <button
                 onClick={() => setSelectedAudience(null)}
                 className={`text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   !selectedAudience
-                    ? 'bg-amber-100 text-amber-800 font-semibold'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-violet-100 text-violet-800 font-semibold'
+                    : 'text-gray-600 hover:bg-violet-50'
                 }`}
               >
                 All
@@ -200,8 +203,8 @@ export default function ExplorePage() {
                   onClick={() => setSelectedAudience(selectedAudience === opt.value ? null : opt.value)}
                   className={`text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     selectedAudience === opt.value
-                      ? 'bg-amber-100 text-amber-800 font-semibold'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-violet-100 text-violet-800 font-semibold'
+                      : 'text-gray-600 hover:bg-violet-50'
                   }`}
                 >
                   {opt.label}
@@ -213,7 +216,7 @@ export default function ExplorePage() {
           {/* Tags */}
           {tagStats.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">Tags</h3>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#7c3aed' }}>Tags</h3>
               <div className="flex flex-col gap-1">
                 {tagStats.map(({ tag, count, popular }) => (
                   <button
@@ -221,15 +224,15 @@ export default function ExplorePage() {
                     onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                     className={`flex items-center justify-between gap-2 text-left px-3 py-1.5 rounded-lg text-sm transition-colors group ${
                       selectedTag === tag
-                        ? 'bg-amber-100 text-amber-800 font-semibold'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-violet-100 text-violet-800 font-semibold'
+                        : 'text-gray-600 hover:bg-violet-50'
                     }`}
                   >
                     <span className="flex items-center gap-1.5 truncate">
                       {popular && <Flame size={11} className="text-orange-400 shrink-0" />}
                       <span className="truncate">{tag}</span>
                     </span>
-                    <span className={`text-xs shrink-0 ${selectedTag === tag ? 'text-amber-600' : 'text-gray-400'}`}>
+                    <span className={`text-xs shrink-0 ${selectedTag === tag ? 'text-violet-600' : 'text-gray-400'}`}>
                       {count}
                     </span>
                   </button>
@@ -256,15 +259,15 @@ export default function ExplorePage() {
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div className="flex flex-wrap items-center gap-2">
               {selectedAudience && (
-                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1 bg-violet-100 text-violet-800 text-xs font-medium px-2.5 py-1 rounded-full">
                   {AUDIENCE_LABEL[selectedAudience]}
-                  <button onClick={() => setSelectedAudience(null)} className="hover:text-amber-600"><X size={11} /></button>
+                  <button onClick={() => setSelectedAudience(null)} className="hover:text-violet-600"><X size={11} /></button>
                 </span>
               )}
               {selectedTag && (
-                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                <span className="inline-flex items-center gap-1 bg-violet-100 text-violet-800 text-xs font-medium px-2.5 py-1 rounded-full">
                   #{selectedTag}
-                  <button onClick={() => setSelectedTag(null)} className="hover:text-amber-600"><X size={11} /></button>
+                  <button onClick={() => setSelectedTag(null)} className="hover:text-violet-600"><X size={11} /></button>
                 </span>
               )}
             </div>
@@ -276,21 +279,24 @@ export default function ExplorePage() {
           </div>
 
           {loading ? (
-            <div className="text-center py-20 text-gray-400">Loading…</div>
+            <div className="text-center py-20 text-violet-400">Loading…</div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
-              <BookOpen size={48} className="mx-auto text-gray-200 mb-4" />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ background: '#ede9fe' }}>
+                <BookOpen size={28} style={{ color: '#7c3aed' }} />
+              </div>
               {stories.length === 0 ? (
                 <>
-                  <p className="text-gray-400 text-lg">No public stories yet.</p>
-                  <p className="text-gray-400 text-sm mt-1">Be the first to share one!</p>
+                  <p className="text-lg font-semibold mb-1" style={{ color: '#1e0a3c' }}>No public stories yet.</p>
+                  <p className="text-sm text-gray-400">Be the first to share one!</p>
                 </>
               ) : (
                 <>
-                  <p className="text-gray-400 text-lg">No stories match your filters.</p>
+                  <p className="text-lg font-semibold mb-1" style={{ color: '#1e0a3c' }}>No stories match your filters.</p>
                   <button
                     onClick={() => { setSelectedAudience(null); setSelectedTag(null); setSearch('') }}
-                    className="mt-3 text-sm text-amber-500 hover:underline"
+                    className="mt-3 text-sm text-violet-500 hover:underline"
                   >
                     Clear filters
                   </button>
@@ -302,8 +308,8 @@ export default function ExplorePage() {
               {filtered.map(story => {
                 const tags = parseTags(story.tags)
                 return (
-                  <div key={story.id} className="bg-white rounded-xl shadow-md flex flex-col border border-gray-100 hover:shadow-lg transition-shadow overflow-hidden">
-                    {story.coverImageUrl && (
+                  <div key={story.id} className="bg-white rounded-2xl shadow-sm flex flex-col border border-violet-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 overflow-hidden">
+                    {story.coverImageUrl ? (
                       <div className="w-full h-36 overflow-hidden shrink-0">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -312,11 +318,15 @@ export default function ExplorePage() {
                           className="w-full h-full object-cover"
                         />
                       </div>
+                    ) : (
+                      <div className="h-1.5 w-full"
+                        style={{ background: 'linear-gradient(90deg, #7c3aed, #a78bfa)' }}
+                      />
                     )}
                     <div className="flex-1 p-5 flex flex-col gap-3">
                       <div className="flex items-start justify-between gap-2 mb-1">
-                        <h2 className="text-lg font-bold text-gray-900">{story.title}</h2>
-                        <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 whitespace-nowrap">
+                        <h2 className="text-lg font-bold" style={{ color: '#1e0a3c' }}>{story.title}</h2>
+                        <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 whitespace-nowrap">
                           {AUDIENCE_LABEL[story.audience] ?? story.audience}
                         </span>
                       </div>
@@ -328,7 +338,7 @@ export default function ExplorePage() {
                         >
                           <span className="text-amber-400 text-sm leading-none">{'★'.repeat(Math.round(story.avgRating))}{'☆'.repeat(5 - Math.round(story.avgRating))}</span>
                           <span className="text-xs text-gray-500">{story.avgRating.toFixed(1)}</span>
-                          <span className="text-xs text-amber-600 underline underline-offset-2">
+                          <span className="text-xs text-violet-600 underline underline-offset-2">
                             {story.reviewCount} {story.reviewCount === 1 ? 'review' : 'reviews'}
                           </span>
                         </button>
@@ -344,9 +354,10 @@ export default function ExplorePage() {
                               onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
                               className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
                                 tag === selectedTag
-                                  ? 'bg-amber-400 text-white'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-amber-100 hover:text-amber-700'
+                                  ? 'text-white'
+                                  : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                               }`}
+                              style={tag === selectedTag ? { background: '#7c3aed' } : undefined}
                             >
                               {tag}
                             </button>
@@ -356,10 +367,11 @@ export default function ExplorePage() {
                       <Link
                         href={`/play/${story.id}`}
                         onClick={() => analytics.exploreStoryClicked(story.id, story.title)}
-                        className="mt-auto flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
+                        className="mt-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:brightness-110"
+                        style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
                       >
                         <Play size={14} />
-                        Play
+                        Play Story
                       </Link>
                     </div>
                   </div>
@@ -377,5 +389,6 @@ export default function ExplorePage() {
         />
       )}
     </div>
+    </>
   )
 }

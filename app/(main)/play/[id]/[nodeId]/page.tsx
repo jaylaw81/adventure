@@ -61,6 +61,10 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
     : [null, null]
 
   return (
+    <>
+    <div className="-mt-16 h-16 w-full"
+      style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 60%, #0f172a 100%)' }}
+    />
     <SceneEntrance>
     <div className="max-w-2xl mx-auto px-6 py-10">
       <SceneTracker
@@ -145,5 +149,6 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
       </div>
     </div>
     </SceneEntrance>
+    </>
   )
 }

@@ -27,7 +27,7 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onC
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(13,12,26,0.75)' }}
+      style={{ backgroundColor: 'rgba(30,10,60,0.65)' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="delete-dialog-title"
@@ -78,87 +78,100 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-md p-5 flex flex-col gap-3 border border-gray-100 hover:shadow-lg transition-shadow">
-        <div className="flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">{current.title}</h2>
-            <button
-              onClick={() => setShowSettings(true)}
-              className="text-gray-400 hover:text-gray-600 transition-colors shrink-0 mt-0.5"
-              title="Story settings"
-            >
-              <Settings size={16} />
-            </button>
-          </div>
-          {current.description && (
-            <p className="text-gray-500 text-sm line-clamp-2">{current.description}</p>
-          )}
+      <div className="bg-white rounded-2xl shadow-sm flex flex-col overflow-hidden border border-violet-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150">
+        {/* Color accent strip at top */}
+        <div className="h-1.5 w-full"
+          style={{ background: sceneCount === 0
+            ? '#e5e7eb'
+            : outcomes > 0
+              ? 'linear-gradient(90deg, #7c3aed, #a78bfa)'
+              : 'linear-gradient(90deg, #f59e0b, #fbbf24)'
+          }}
+        />
 
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {tags.map(tag => (
-                <span key={tag} className="bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                  {tag}
-                </span>
-              ))}
+        <div className="p-5 flex flex-col gap-3 flex-1">
+          <div className="flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="text-xl font-bold mb-1" style={{ color: '#1e0a3c' }}>{current.title}</h2>
+              <button
+                onClick={() => setShowSettings(true)}
+                className="text-gray-400 hover:text-violet-500 transition-colors shrink-0 mt-0.5"
+                title="Story settings"
+              >
+                <Settings size={16} />
+              </button>
             </div>
-          )}
+            {current.description && (
+              <p className="text-gray-500 text-sm line-clamp-2">{current.description}</p>
+            )}
 
-          <div className="flex items-center gap-3 mt-3">
-            {sceneCount > 0 ? (
-              <>
-                <span className="text-xs text-gray-500">{sceneCount} scene{sceneCount !== 1 ? 's' : ''}</span>
-                <span className="text-gray-200">·</span>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600">
-                  <GitBranch size={12} />
-                  {outcomes === 0
-                    ? 'No endings reachable'
-                    : `${outcomes} ending${outcomes !== 1 ? 's' : ''} reachable`}
-                </span>
-              </>
-            ) : (
-              <span className="text-gray-400 text-xs italic">No scenes yet</span>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {tags.map(tag => (
+                  <span key={tag} className="bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 mt-3">
+              {sceneCount > 0 ? (
+                <>
+                  <span className="text-xs text-gray-500">{sceneCount} scene{sceneCount !== 1 ? 's' : ''}</span>
+                  <span className="text-gray-200">·</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-violet-600">
+                    <GitBranch size={12} />
+                    {outcomes === 0
+                      ? 'No endings reachable'
+                      : `${outcomes} ending${outcomes !== 1 ? 's' : ''} reachable`}
+                  </span>
+                </>
+              ) : (
+                <span className="text-gray-400 text-xs italic">No scenes yet</span>
+              )}
+            </div>
+
+            <p className="text-gray-400 text-xs mt-2">
+              Created {new Date(current.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-violet-50">
+            <ShareToggle
+              adventureId={current.id}
+              initialIsPublic={current.isPublic}
+              initialShareToken={current.shareToken ?? null}
+              canMakePublic={canMakePublic}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Link
+              href={`/play/${current.id}`}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:brightness-110"
+              style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
+            >
+              <Play size={13} />
+              Play
+            </Link>
+            <Link
+              href={`/edit/${current.id}`}
+              className="flex items-center gap-1.5 px-3 py-2 bg-violet-50 text-violet-700 rounded-xl text-sm font-medium hover:bg-violet-100 transition-colors"
+            >
+              <Pencil size={13} />
+              Edit
+            </Link>
+            {onDelete && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="ml-auto flex items-center gap-1 px-3 py-2 bg-red-50 text-red-500 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors"
+                aria-label="Delete story"
+              >
+                <Trash2 size={13} />
+              </button>
             )}
           </div>
-
-          <p className="text-gray-400 text-xs mt-2">
-            Created {new Date(current.createdAt).toLocaleDateString()}
-          </p>
-        </div>
-
-        <div className="pt-2 border-t border-gray-100">
-          <ShareToggle
-            adventureId={current.id}
-            initialIsPublic={current.isPublic}
-            initialShareToken={current.shareToken ?? null}
-            canMakePublic={canMakePublic}
-          />
-        </div>
-
-        <div className="flex gap-2">
-          <Link
-            href={`/play/${current.id}`}
-            className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
-          >
-            <Play size={14} />
-            Play
-          </Link>
-          <Link
-            href={`/edit/${current.id}`}
-            className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
-          >
-            <Pencil size={14} />
-            Edit
-          </Link>
-          {onDelete && (
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
-              aria-label="Delete story"
-            >
-              <Trash2 size={14} />
-            </button>
-          )}
         </div>
       </div>
 

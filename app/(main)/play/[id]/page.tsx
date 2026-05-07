@@ -127,14 +127,25 @@ export default async function StoryLandingPage({ params }: Props) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-16">
+    <>
+    <div className="-mt-16 pt-8 pb-4 px-6 relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 50%, #0f172a 100%)' }}>
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse at 20% 80%, rgba(124,58,237,0.2) 0%, transparent 65%)' }} />
+      <div className="relative max-w-2xl mx-auto pt-16">
+        <Link href="/" className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
+          ← Back to stories
+        </Link>
+      </div>
+    </div>
+    <div className="max-w-2xl mx-auto px-6 py-10">
       <JsonLd data={storySchema} />
-      {/* Back */}
-      <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 mb-10 inline-block">
-        ← Home
-      </Link>
 
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-violet-100 overflow-hidden">
+        {/* Color accent strip when no image */}
+        {!startNode.imageUrl && (
+          <div className="h-2" style={{ background: 'linear-gradient(90deg, #7c3aed, #a78bfa)' }} />
+        )}
         {/* Cover image from start node */}
         {startNode.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -147,21 +158,21 @@ export default async function StoryLandingPage({ params }: Props) {
 
         <div className="p-8">
           <div className="flex items-start justify-between gap-4 mb-3">
-            <h1 className="text-3xl font-extrabold text-gray-900">{adventure.title}</h1>
-            <span className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+            <h1 className="text-3xl font-extrabold" style={{ color: '#1e0a3c' }}>{adventure.title}</h1>
+            <span className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-violet-100 text-violet-700">
               <Users size={11} />
               {audienceLabel}
             </span>
           </div>
 
           {adventure.description && (
-            <p className="text-gray-600 text-base leading-relaxed mb-5">{adventure.description}</p>
+            <p className="text-base leading-relaxed mb-5" style={{ color: '#374151' }}>{adventure.description}</p>
           )}
 
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-6">
               {tags.map(tag => (
-                <span key={tag} className="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
+                <span key={tag} className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs px-2.5 py-1 rounded-full">
                   <Tag size={10} />
                   {tag}
                 </span>
@@ -181,12 +192,13 @@ export default async function StoryLandingPage({ params }: Props) {
       <div className="flex items-center justify-between mt-8">
         <p className="text-xs text-gray-400">
           Made with{' '}
-          <Link href="/" className="hover:text-amber-500 transition-colors">
+          <Link href="/" className="hover:text-violet-500 transition-colors">
             StoryQuestor
           </Link>
         </p>
         <ReportButton adventureId={id} />
       </div>
     </div>
+    </>
   )
 }

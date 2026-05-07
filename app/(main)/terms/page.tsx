@@ -20,6 +20,10 @@ export default function TermsPage() {
   const updated = 'March 5, 2026'
 
   return (
+    <>
+    <div className="-mt-16 h-16 w-full"
+      style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 60%, #0f172a 100%)' }}
+    />
     <div className="max-w-3xl mx-auto px-6 py-12">
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Terms of Service</h1>
@@ -118,5 +122,6 @@ export default function TermsPage() {
 
       </div>
     </div>
+    </>
   )
 }

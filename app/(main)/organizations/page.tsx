@@ -99,7 +99,7 @@ export default function OrganizationsPage() {
 
       {/* Hero */}
       <section
-        className="relative px-6 pt-24 pb-20 text-center overflow-hidden"
+        className="relative px-6 pt-24 pb-20 text-center overflow-hidden -mt-16"
         style={{ background: 'linear-gradient(160deg, #1a1025 0%, #0f172a 55%, #1a1025 100%)' }}
       >
         {/* Background glow */}

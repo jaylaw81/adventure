@@ -4,7 +4,9 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Save, Trash2, User, AlertTriangle, CalendarDays, ShieldCheck } from 'lucide-react'
+import { Save, Trash2, User, AlertTriangle, CalendarDays, ShieldCheck, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import PageBanner from '@/components/shared/PageBanner'
 import { calcAge } from '@/lib/age'
 
 interface ProfileData {
@@ -93,31 +95,43 @@ function ProfileContent() {
   }
 
   if (!profile) {
-    return <div className="text-center py-20 text-gray-400">Loading…</div>
+    return (
+      <>
+        <PageBanner title="Profile Settings" subtitle="Manage your account details" />
+        <div className="text-center py-20 text-violet-400">Loading…</div>
+      </>
+    )
   }
 
   return (
-    <div className="max-w-lg mx-auto px-6 py-12">
+    <>
+      <PageBanner
+        title={isRequired ? 'Complete Your Profile' : 'Profile Settings'}
+        subtitle={isRequired ? 'Finish setup to start creating stories' : 'Manage your account details'}
+        action={
+          !isRequired && (
+            <Link href="/" className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
+              <ArrowLeft size={15} />
+              Back
+            </Link>
+          )
+        }
+      />
 
-      {/* Required setup banner */}
+    <div className="max-w-lg mx-auto px-6 py-10">
+
+      {/* Required setup notice */}
       {isRequired && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-          <AlertTriangle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+        <div className="mb-6 p-4 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-3">
+          <AlertTriangle size={18} className="text-violet-500 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-amber-800">Complete your profile to continue</p>
-            <p className="text-xs text-amber-700 mt-0.5">
+            <p className="text-sm font-semibold text-violet-800">Complete your profile to continue</p>
+            <p className="text-xs text-violet-700 mt-0.5">
               Your date of birth is required so we can ensure age-appropriate content. You must be at least 13 years old to use StoryQuestor.
             </p>
           </div>
         </div>
       )}
-
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-2 bg-amber-100 rounded-xl">
-          <User size={20} className="text-amber-600" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-      </div>
 
       {/* Profile card */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col gap-6">
@@ -261,6 +275,7 @@ function ProfileContent() {
         </p>
       )}
     </div>
+    </>
   )
 }
 

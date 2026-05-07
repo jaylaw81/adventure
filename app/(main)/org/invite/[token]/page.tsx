@@ -42,6 +42,10 @@ export default function AcceptInvitePage() {
   }
 
   return (
+    <>
+    <div className="-mt-16 h-16 w-full"
+      style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 60%, #0f172a 100%)' }}
+    />
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md p-8 text-center">
 
@@ -125,5 +129,6 @@ export default function AcceptInvitePage() {
         )}
       </div>
     </div>
+    </>
   )
 }

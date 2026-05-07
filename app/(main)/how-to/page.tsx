@@ -285,10 +285,13 @@ export default function HowToPage() {
       <JsonLd data={howToSchema} />
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden px-6 py-20 text-center"
-        style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}>
+      <section className="relative overflow-hidden px-6 pt-36 pb-16 text-center -mt-16"
+        style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 50%, #0f172a 100%)' }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at 50% 70%, rgba(124,58,237,0.2) 0%, transparent 65%)' }} />
         <div className="relative max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-amber-400/10 text-amber-400 text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-amber-400/20">
+          <div className="inline-flex items-center gap-2 text-violet-300 text-sm font-medium px-4 py-1.5 rounded-full mb-6 border"
+            style={{ background: 'rgba(124,58,237,0.15)', borderColor: 'rgba(167,139,250,0.3)' }}>
             <BookOpen size={14} />
             User Guide
           </div>
@@ -296,7 +299,7 @@ export default function HowToPage() {
             How to Use<br />
             <span className="text-amber-400">StoryQuestor</span>
           </h1>
-          <p className="text-gray-400 text-lg max-w-xl mx-auto">
+          <p className="text-white/60 text-lg max-w-xl mx-auto">
             Everything you need to create branching stories and play through adventures made by others.
           </p>
         </div>

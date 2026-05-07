@@ -38,20 +38,20 @@ function SignInForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}
+    <div className="min-h-[calc(100vh+4rem)] -mt-16 flex items-center justify-center px-4"
+      style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 50%, #0f172a 100%)' }}
     >
       <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col gap-6 w-full max-w-sm">
 
         <div className="flex flex-col items-center gap-3">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #f59e0b)' }}
           >
             <Scroll size={22} className="text-white" strokeWidth={2.5} />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-extrabold text-gray-900">
-              Story<span className="text-amber-500">Questor</span>
+            <h1 className="text-2xl font-extrabold" style={{ color: '#1e0a3c' }}>
+              Story<span style={{ color: '#7c3aed' }}>Questor</span>
             </h1>
             <p className="text-sm text-gray-500 mt-0.5">Sign in to your account</p>
           </div>
@@ -66,13 +66,13 @@ function SignInForm() {
               onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full border border-violet-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
             />
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-medium text-gray-700">Password</label>
-              <Link href="/forgot-password" className="text-xs text-amber-600 hover:underline">
+              <Link href="/forgot-password" className="text-xs text-violet-600 hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -83,7 +83,7 @@ function SignInForm() {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="w-full border border-violet-200 rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
               />
               <button
                 type="button"
@@ -99,7 +99,8 @@ function SignInForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg text-sm transition-colors disabled:opacity-50"
+            className="w-full py-2.5 text-white font-semibold rounded-lg text-sm transition-all disabled:opacity-50 hover:brightness-110"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
@@ -109,7 +110,7 @@ function SignInForm() {
           Don&apos;t have an account?{' '}
           <Link
             href={`/sign-up${callbackUrl !== '/' ? `?callbackUrl=${encodeURIComponent(callbackUrl)}${prefillEmail ? `&email=${encodeURIComponent(prefillEmail)}` : ''}` : ''}`}
-            className="text-amber-600 hover:underline font-medium"
+            className="text-violet-600 hover:underline font-medium"
           >
             Create one
           </Link>

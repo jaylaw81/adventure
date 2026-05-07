@@ -54,7 +54,8 @@ export default function ChoiceButton({ href, label, index, adventureId }: Props)
     <button
       onClick={handleClick}
       disabled={loading}
-      className="group flex items-center gap-4 w-full px-5 py-4 bg-white border-2 border-slate-200 rounded-xl text-gray-800 font-medium cursor-pointer hover:border-amber-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-sm"
+      className="group flex items-center gap-4 w-full px-5 py-4 bg-white border-2 border-violet-100 rounded-xl font-medium cursor-pointer hover:border-violet-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-sm"
+      style={{ color: '#1e0a3c' }}
     >
       {/* Alpha badge */}
       <span
@@ -69,7 +70,7 @@ export default function ChoiceButton({ href, label, index, adventureId }: Props)
       {/* Arrow */}
       {!loading && (
         <svg
-          className="w-4 h-4 text-slate-300 group-hover:text-amber-400 group-hover:translate-x-1 transition-all duration-150 shrink-0"
+          className="w-4 h-4 text-violet-200 group-hover:text-violet-500 group-hover:translate-x-1 transition-all duration-150 shrink-0"
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

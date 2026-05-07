@@ -21,12 +21,12 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
     <Link
       href={href}
       className={`relative px-1 py-0.5 text-sm font-medium transition-colors ${
-        active ? 'text-amber-400' : 'text-gray-300 hover:text-white'
+        active ? 'text-violet-300' : 'text-white/70 hover:text-white'
       }`}
     >
       {children}
       {active && (
-        <span className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
+        <span className="absolute -bottom-[17px] left-0 right-0 h-0.5 bg-violet-400 rounded-full" />
       )}
     </Link>
   )
@@ -37,10 +37,17 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [orgMembership, setOrgMembership] = useState<OrgMembership | null>(null)
+  const [scrolled, setScrolled] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
 
-  // Fetch org membership for regular (non-admin) logged-in users
+  useEffect(() => {
+    const check = () => setScrolled(window.scrollY > 12)
+    check()
+    window.addEventListener('scroll', check, { passive: true })
+    return () => window.removeEventListener('scroll', check)
+  }, [])
+
   useEffect(() => {
     if (!session?.user?.email || session.user.tier === 'organization') return
     fetch('/api/org/me')
@@ -49,7 +56,6 @@ export default function Header() {
       .catch(() => {})
   }, [session])
 
-  // Close user dropdown on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -60,29 +66,38 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
   return (
-    <header className="relative z-30 border-b border-white/10"
-      style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}
+    <header
+      className={`sticky top-0 z-30 transition-all duration-200 ${
+        scrolled
+          ? 'border-b border-white/10 shadow-sm'
+          : 'border-b border-transparent'
+      }`}
+      style={scrolled
+        ? { background: 'rgba(29,7,80,0.92)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }
+        : { background: 'transparent' }
+      }
     >
-      {/* Subtle top shimmer line */}
-      <div className="absolute top-0 left-0 right-0 h-px"
-        style={{ background: 'linear-gradient(90deg, transparent, #f59e0b66, #a78bfa66, transparent)' }}
-      />
+      {/* Top shimmer line — only visible when not scrolled */}
+      {!scrolled && (
+        <div className="absolute top-0 left-0 right-0 h-px"
+          style={{ background: 'linear-gradient(90deg, transparent, #a78bfa88, #f59e0b55, #a78bfa88, transparent)' }}
+        />
+      )}
 
       <div className="max-w-6xl mx-auto px-5 h-16 flex items-center gap-6">
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center transition-all group-hover:brightness-110"
-            style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #f59e0b)' }}
           >
             <Scroll size={16} className="text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-white font-extrabold text-lg tracking-tight group-hover:text-amber-300 transition-colors">
-            Story<span className="text-amber-400">Questor</span>
+          <span className="text-white font-extrabold text-lg tracking-tight group-hover:text-violet-300 transition-colors">
+            Story<span className="text-violet-300">Questor</span>
           </span>
         </Link>
 
@@ -103,7 +118,7 @@ export default function Header() {
         {/* Hamburger — mobile only */}
         <button
           onClick={() => setMobileOpen(v => !v)}
-          className="sm:hidden ml-auto p-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+          className="sm:hidden ml-auto p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
           aria-label="Toggle menu"
         >
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -115,21 +130,19 @@ export default function Header() {
             <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
           ) : session ? (
             <>
-              {/* Create button — only when profile is complete */}
               {session.user.profileComplete && (
                 <Link
                   href="/create"
-                  className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 transition-all hover:scale-105"
-                  style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+                  className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:scale-105 hover:brightness-110"
+                  style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
                 >
                   + New Story
                 </Link>
               )}
-              {/* Onboarding nudge — profile not yet complete */}
               {!session.user.profileComplete && (
                 <Link
                   href="/profile?required=1"
-                  className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition-colors"
+                  className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-violet-500/20 text-violet-300 border border-violet-500/40 hover:bg-violet-500/30 transition-colors"
                 >
                   Complete your profile →
                 </Link>
@@ -147,31 +160,31 @@ export default function Header() {
                       alt={session.user.name ?? 'User'}
                       width={30}
                       height={30}
-                      className="rounded-full ring-2 ring-amber-400/50"
+                      className="rounded-full ring-2 ring-violet-400/50"
                     />
                   ) : (
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                      style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
+                      style={{ background: 'linear-gradient(135deg, #7c3aed, #f59e0b)' }}
                     >
                       {(session.user?.name ?? session.user?.email ?? '?')[0].toUpperCase()}
                     </div>
                   )}
-                  <span className="text-sm text-gray-200 hidden sm:block max-w-[120px] truncate">
+                  <span className="text-sm text-white/80 hidden sm:block max-w-[120px] truncate">
                     {session.user?.name ?? session.user?.email}
                   </span>
-                  <ChevronDown size={13} className={`text-gray-400 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={13} className={`text-white/50 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-white/10 shadow-2xl overflow-hidden"
-                    style={{ background: 'linear-gradient(160deg, #1e1b3a, #0f172a)' }}
+                    style={{ background: 'linear-gradient(160deg, #2d0b69, #1a1040)' }}
                   >
                     <div className="px-4 py-3 border-b border-white/10">
-                      <p className="text-xs text-gray-400 truncate">{session.user?.email}</p>
+                      <p className="text-xs text-white/50 truncate">{session.user?.email}</p>
                       {orgMembership && (
                         <div className="flex items-center gap-1 mt-1.5">
-                          <School size={11} className="text-amber-400 shrink-0" />
-                          <p className="text-xs text-amber-300 truncate">
+                          <School size={11} className="text-violet-300 shrink-0" />
+                          <p className="text-xs text-violet-200 truncate">
                             {orgMembership.orgName}
                             {orgMembership.groupName && ` · ${orgMembership.groupName}`}
                           </p>
@@ -181,7 +194,7 @@ export default function Header() {
                     <Link
                       href="/profile"
                       onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-white/80 hover:bg-white/5 hover:text-white transition-colors"
                     >
                       <span className="w-4 h-4 text-center text-xs">👤</span>
                       Profile Settings
@@ -189,7 +202,7 @@ export default function Header() {
                     <Link
                       href="/"
                       onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 hover:text-white transition-colors"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-white/80 hover:bg-white/5 hover:text-white transition-colors"
                     >
                       <span className="w-4 h-4 text-center text-xs">📚</span>
                       My Stories
@@ -211,14 +224,14 @@ export default function Header() {
             <div className="flex items-center gap-2">
               <Link
                 href="/sign-in"
-                className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-3 py-2"
+                className="text-sm font-medium text-white/70 hover:text-white transition-colors px-3 py-2"
               >
                 Sign in
               </Link>
               <Link
                 href="/sign-up"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-gray-900 transition-all hover:scale-105 hover:shadow-lg"
-                style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:scale-105 hover:brightness-110"
+                style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
               >
                 Sign up free
               </Link>
@@ -227,19 +240,19 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Org sub-header — shown for org members below the main nav */}
+      {/* Org sub-header */}
       {orgMembership && (
-        <div className="border-t border-amber-500/20" style={{ background: 'rgba(245,158,11,0.07)' }}>
+        <div className="border-t border-violet-500/20" style={{ background: 'rgba(124,58,237,0.1)' }}>
           <div className="max-w-6xl mx-auto px-5 h-8 flex items-center gap-2">
-            <School size={12} className="text-amber-400 shrink-0" />
-            <span className="text-xs font-semibold text-amber-300">{orgMembership.orgName}</span>
+            <School size={12} className="text-violet-300 shrink-0" />
+            <span className="text-xs font-semibold text-violet-200">{orgMembership.orgName}</span>
             {orgMembership.groupName && (
               <>
-                <span className="text-amber-500/40 text-xs">·</span>
-                <span className="text-xs text-amber-400/70">{orgMembership.groupName}</span>
+                <span className="text-violet-500/40 text-xs">·</span>
+                <span className="text-xs text-violet-300/70">{orgMembership.groupName}</span>
               </>
             )}
-            <span className="ml-auto text-xs text-amber-500/50 capitalize">{orgMembership.role}</span>
+            <span className="ml-auto text-xs text-violet-500/50 capitalize">{orgMembership.role}</span>
           </div>
         </div>
       )}
@@ -248,41 +261,40 @@ export default function Header() {
       {mobileOpen && (
         <div
           className="sm:hidden border-t border-white/10 px-5 py-4 flex flex-col gap-1"
-          style={{ background: 'linear-gradient(160deg, #1e1b3a, #0f172a)' }}
+          style={{ background: 'linear-gradient(160deg, #2d0b69, #1a1040)' }}
         >
-          {/* Nav links */}
           {session?.user.profileComplete && (
             <Link href="/" onClick={() => setMobileOpen(false)}
-              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
               My Stories
             </Link>
           )}
           {session?.user.tier === 'organization' && (
             <Link href="/org" onClick={() => setMobileOpen(false)}
-              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname.startsWith('/org') ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname.startsWith('/org') ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
               My Org
             </Link>
           )}
           {(!session || session.user.profileComplete) && (
             <>
               <Link href="/explore" onClick={() => setMobileOpen(false)}
-                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/explore' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/explore' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                 Explore
               </Link>
               <Link href="/how-to" onClick={() => setMobileOpen(false)}
-                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/how-to' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/how-to' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                 Guide
               </Link>
             </>
           )}
           {!session && (
             <Link href="/demo" onClick={() => setMobileOpen(false)}
-              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/demo' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/demo' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
               Try Demo
             </Link>
           )}
           <Link href="/organizations" onClick={() => setMobileOpen(false)}
-            className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/organizations' ? 'bg-white/10 text-amber-400' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+            className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/organizations' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
             For Schools
           </Link>
 
@@ -290,11 +302,11 @@ export default function Header() {
             {session ? (
               <>
                 <div className="px-3 py-1">
-                  <p className="text-xs text-gray-500">{session.user?.email}</p>
+                  <p className="text-xs text-white/40">{session.user?.email}</p>
                   {orgMembership && (
                     <div className="flex items-center gap-1 mt-1">
-                      <School size={11} className="text-amber-400 shrink-0" />
-                      <p className="text-xs text-amber-300 truncate">
+                      <School size={11} className="text-violet-300 shrink-0" />
+                      <p className="text-xs text-violet-200 truncate">
                         {orgMembership.orgName}
                         {orgMembership.groupName && ` · ${orgMembership.groupName}`}
                       </p>
@@ -303,18 +315,18 @@ export default function Header() {
                 </div>
                 {session.user.profileComplete ? (
                   <Link href="/create" onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-900 transition-all"
-                    style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
+                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition-all"
+                    style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}>
                     + New Story
                   </Link>
                 ) : (
                   <Link href="/profile?required=1" onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-violet-500/20 text-violet-300 border border-violet-500/40">
                     Complete your profile →
                   </Link>
                 )}
                 <Link href="/profile" onClick={() => setMobileOpen(false)}
-                  className="px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors">
+                  className="px-3 py-2.5 rounded-lg text-sm text-white/70 hover:bg-white/5 hover:text-white transition-colors">
                   Profile Settings
                 </Link>
                 <button onClick={() => { setMobileOpen(false); signOut() }}
@@ -326,12 +338,12 @@ export default function Header() {
             ) : (
               <>
                 <Link href="/sign-in" onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium text-gray-300 border border-white/15 hover:bg-white/5 hover:text-white transition-colors">
+                  className="flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium text-white/70 border border-white/15 hover:bg-white/5 hover:text-white transition-colors">
                   Sign in
                 </Link>
                 <Link href="/sign-up" onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-900"
-                  style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
+                  className="flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-semibold text-white"
+                  style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}>
                   Sign up free
                 </Link>
               </>
