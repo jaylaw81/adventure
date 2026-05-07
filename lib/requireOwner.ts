@@ -21,7 +21,13 @@ export async function requireOwner(adventureId: string): Promise<OwnedResult> {
   }
 
   const [adventure] = await db.select().from(adventures).where(eq(adventures.id, adventureId))
-  if (!adventure || adventure.userEmail !== session.user.email) {
+  if (!adventure) {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
+  }
+
+  const isOwner = adventure.userEmail === session.user.email
+  const isAdmin = !!session.user.isAdmin
+  if (!isOwner && !isAdmin) {
     return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) }
   }
 

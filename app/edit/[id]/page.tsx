@@ -11,7 +11,9 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
     getServerSession(authOptions),
   ])
   if (!adventure) notFound()
-  if (!session?.user?.email || session.user.email !== adventure.userEmail) redirect('/')
+  const isOwner = session?.user?.email === adventure.userEmail
+  const isAdmin = !!session?.user?.isAdmin
+  if (!session?.user?.email || (!isOwner && !isAdmin)) redirect('/')
 
   return (
     <Canvas

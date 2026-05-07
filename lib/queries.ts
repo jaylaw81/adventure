@@ -147,12 +147,16 @@ export async function getChapter(chapterId: string) {
 }
 
 export async function getStartNode(adventureId: string) {
+  // Join with chapters so that when multiple start nodes exist (one per chapter),
+  // we return the one belonging to the chapter with the lowest orderIndex.
   const [startNode] = await db
-    .select()
+    .select({ node: nodes })
     .from(nodes)
+    .leftJoin(chapters, eq(nodes.chapterId, chapters.id))
     .where(and(eq(nodes.adventureId, adventureId), eq(nodes.nodeType, 'start')))
+    .orderBy(sql`coalesce(${chapters.orderIndex}, 0)`)
     .limit(1)
-  if (startNode) return startNode
+  if (startNode) return startNode.node
   // Fallback: return the first node for adventures without an explicit start node
   const [first] = await db
     .select()
