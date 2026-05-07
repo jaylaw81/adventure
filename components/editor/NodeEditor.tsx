@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { X, Trash2, Sparkles, RefreshCw, ImageOff, Save } from 'lucide-react'
+import { X, Trash2, Sparkles, RefreshCw, ImageOff, Save, Check } from 'lucide-react'
 import type { Node, Chapter } from '@/lib/schema'
 import { analytics } from '@/lib/analytics'
 
@@ -13,7 +13,7 @@ interface Props {
   onUpdate: (node: Node) => void
   onDelete: (nodeId: string) => void
   onDirtyChange: (dirty: boolean) => void
-  externalSaveRef: React.MutableRefObject<(() => Promise<void>) | null>
+  externalSaveRef: React.MutableRefObject<(() => Promise<boolean>) | null>
 }
 
 export default function NodeEditor({ node, adventureId, chapters, onClose, onUpdate, onDelete, onDirtyChange, externalSaveRef }: Props) {
@@ -27,12 +27,13 @@ export default function NodeEditor({ node, adventureId, chapters, onClose, onUpd
   const [chapterId, setChapterId] = useState<string | null>(null)
   const [nextChapterId, setNextChapterId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [generatingImage, setGeneratingImage] = useState(false)
   const [regenCount, setRegenCount] = useState(0)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const isDirty = title !== savedTitle || content !== savedContent
 
-  // Notify Canvas whenever dirty state changes
   useEffect(() => {
     onDirtyChange(isDirty)
   }, [isDirty, onDirtyChange])
@@ -49,30 +50,44 @@ export default function NodeEditor({ node, adventureId, chapters, onClose, onUpd
       setChapterId(node.chapterId ?? null)
       setNextChapterId(node.nextChapterId ?? null)
       setRegenCount(0)
+      setSaveError(null)
+      setShowDeleteConfirm(false)
     }
   }, [node?.id])
 
-  const save = useCallback(async (updates: Partial<Node>) => {
-    if (!node) return
+  const save = useCallback(async (updates: Partial<Node>): Promise<boolean> => {
+    if (!node) return false
     setSaving(true)
+    setSaveError(null)
     try {
       const res = await fetch(`/api/adventures/${adventureId}/nodes/${node.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       })
+      if (!res.ok) throw new Error(`${res.status}`)
       const updated = await res.json()
       if ('title' in updates) setSavedTitle(updates.title as string)
       if ('content' in updates) setSavedContent(updates.content as string)
       onUpdate(updated)
+      return true
+    } catch {
+      setSaveError('Save failed — check your connection and try again')
+      return false
     } finally {
       setSaving(false)
     }
   }, [node, adventureId, onUpdate])
 
-  const handleSave = useCallback(async () => {
-    await save({ title, content })
+  const handleSave = useCallback(async (): Promise<boolean> => {
+    return save({ title, content })
   }, [save, title, content])
+
+  const handleDiscard = useCallback(() => {
+    setTitle(savedTitle)
+    setContent(savedContent)
+    setSaveError(null)
+  }, [savedTitle, savedContent])
 
   // Expose save to Canvas so Toolbar can trigger it
   useEffect(() => {
@@ -93,11 +108,14 @@ export default function NodeEditor({ node, adventureId, chapters, onClose, onUpd
       const res = await fetch(`/api/adventures/${adventureId}/nodes/${node.id}/image`, {
         method: 'POST',
       })
+      if (!res.ok) throw new Error(`${res.status}`)
       const updated: Node = await res.json()
       setImageUrl(updated.imageUrl ?? null)
       onUpdate(updated)
       if (isRegen) analytics.imageRegenerated(adventureId, node.id, nextCount)
       else analytics.imageGenerated(adventureId, node.id)
+    } catch {
+      // Generation failed silently — button re-enables via finally
     } finally {
       setGeneratingImage(false)
     }
@@ -111,47 +129,80 @@ export default function NodeEditor({ node, adventureId, chapters, onClose, onUpd
     onUpdate({ ...node, imageUrl: null })
   }
 
-  const handleDelete = async () => {
+  const handleDeleteConfirm = async () => {
     if (!node) return
-    if (!confirm('Delete this node? All connected choices will also be removed.')) return
     await fetch(`/api/adventures/${adventureId}/nodes/${node.id}`, { method: 'DELETE' })
     onDelete(node.id)
     onClose()
   }
 
-  const handleClose = () => {
-    if (isDirty && !confirm('You have unsaved changes. Discard them?')) return
+  const handleClose = useCallback(async () => {
+    if (isDirty) await handleSave()
     onDirtyChange(false)
     onClose()
-  }
+  }, [isDirty, handleSave, onDirtyChange, onClose])
 
   if (!node) return null
 
   return (
     <div className="w-80 h-full bg-white border-l border-gray-200 shadow-xl flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-        <h3 className="font-semibold text-gray-900">Edit Scene</h3>
-        <div className="flex items-center gap-2">
-          {isDirty && (
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
-            >
-              <Save size={12} />
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-          )}
-          {!isDirty && saving === false && (
-            <span className="text-xs text-gray-400">Saved</span>
-          )}
-          <button onClick={handleDelete} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-            <Trash2 size={16} />
-          </button>
-          <button onClick={handleClose} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
-            <X size={16} />
-          </button>
-        </div>
+
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 min-h-[52px]">
+        {showDeleteConfirm ? (
+          <>
+            <span className="text-xs font-semibold text-red-600">Delete this scene?</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleDeleteConfirm}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-colors"
+              >
+                <Check size={11} />
+                Delete
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium rounded-lg transition-colors"
+              >
+                <X size={11} />
+                Cancel
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3 className="font-semibold text-gray-900">Edit Scene</h3>
+            <div className="flex items-center gap-2">
+              {isDirty && (
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <Save size={12} />
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+              )}
+              {!isDirty && !saving && !saveError && (
+                <span className="text-xs text-gray-400">Saved</span>
+              )}
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="Delete scene"
+              >
+                <Trash2 size={16} />
+              </button>
+              <button
+                onClick={handleClose}
+                className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Close"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
@@ -172,14 +223,14 @@ export default function NodeEditor({ node, adventureId, chapters, onClose, onUpd
                   onClick={() => handleGenerateImage(true)}
                   disabled={generatingImage || regenCount >= 2}
                   title={regenCount >= 2 ? 'Regeneration limit reached (2/2)' : `Regenerate (${regenCount}/2 used)`}
-                  className="p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-1.5 bg-[#0d0c1a]/70 hover:bg-[#0d0c1a]/90 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw size={12} className={generatingImage ? 'animate-spin' : ''} />
                 </button>
                 <button
                   onClick={handleRemoveImage}
                   title="Remove image"
-                  className="p-1.5 bg-black/50 hover:bg-red-600/80 text-white rounded-lg transition-colors"
+                  className="p-1.5 bg-[#0d0c1a]/70 hover:bg-red-600/80 text-white rounded-lg transition-colors"
                 >
                   <ImageOff size={12} />
                 </button>
@@ -207,11 +258,11 @@ export default function NodeEditor({ node, adventureId, chapters, onClose, onUpd
               onClick={() => { setStatus('in_progress'); save({ status: 'in_progress' }); analytics.sceneStatusChanged(adventureId, node!.id, 'in_progress') }}
               className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-colors ${
                 status === 'in_progress'
-                  ? 'border-blue-400 bg-blue-50 text-blue-700'
+                  ? 'border-gray-400 bg-gray-100 text-gray-700'
                   : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
               }`}
             >
-              In Progress
+              Draft
             </button>
             <button
               onClick={() => {
@@ -222,11 +273,11 @@ export default function NodeEditor({ node, adventureId, chapters, onClose, onUpd
               }}
               className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-colors ${
                 status === 'completed'
-                  ? 'border-red-400 bg-red-50 text-red-700'
+                  ? 'border-amber-400 bg-amber-50 text-amber-700'
                   : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
               }`}
             >
-              Completed
+              Done
             </button>
           </div>
         </div>
@@ -319,20 +370,40 @@ export default function NodeEditor({ node, adventureId, chapters, onClose, onUpd
 
       </div>
 
-      {/* Sticky save footer — visible when dirty */}
-      {isDirty && (
-        <div className="px-4 py-3 border-t border-amber-100 bg-amber-50 flex items-center justify-between gap-3">
-          <span className="text-xs text-amber-700 font-medium">Unsaved changes</span>
+      {/* Sticky footer */}
+      {saveError ? (
+        <div className="px-4 py-3 border-t border-red-200 bg-red-50 flex items-center justify-between gap-3">
+          <span className="text-xs text-red-700 font-medium">{saveError}</span>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
           >
             <Save size={12} />
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? 'Retrying…' : 'Retry'}
           </button>
         </div>
-      )}
+      ) : isDirty ? (
+        <div className="px-4 py-3 border-t border-amber-100 bg-amber-50 flex items-center justify-between gap-3">
+          <span className="text-xs text-amber-700 font-medium">Unsaved changes</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDiscard}
+              className="text-xs text-amber-600 hover:text-amber-900 transition-colors"
+            >
+              Discard
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+            >
+              <Save size={12} />
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

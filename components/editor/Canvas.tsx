@@ -26,6 +26,7 @@ import EditableEdge from './EditableEdge'
 import NodeEditor from './NodeEditor'
 import Toolbar from './Toolbar'
 import AdventureSettingsModal from '@/components/shared/AdventureSettingsModal'
+import ConfirmModal from '@/components/shared/ConfirmModal'
 import InputModal from './InputModal'
 import type { Node, Choice, Adventure, Chapter } from '@/lib/schema'
 import type { AdventureWithCounts } from '@/lib/queries'
@@ -118,10 +119,22 @@ function ChapterSidebar({ chapters, activeChapterId, onSelect, onAdd, onRename, 
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2">
-        {/* "All scenes" entry — shown when no chapters yet or for overview */}
         {chapters.length === 0 && (
-          <div className="px-4 py-8 text-center">
-            <p className="text-xs text-slate-500 leading-relaxed">No chapters yet. Add a chapter to organise your story into sections.</p>
+          <div className="px-4 py-6 flex flex-col items-center gap-3 text-center">
+            <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+              <BookMarked size={16} className="text-teal-400" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-300 mb-1">No chapters yet</p>
+              <p className="text-[11px] text-slate-500 leading-relaxed">Break your story into chapters to manage longer narratives.</p>
+            </div>
+            <button
+              onClick={onAdd}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-colors"
+            >
+              <Plus size={11} />
+              Add first chapter
+            </button>
           </div>
         )}
 
@@ -212,12 +225,13 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
   const [showSettings, setShowSettings] = useState(false)
   const [currentAdventure, setCurrentAdventure] = useState(adventure)
   const [nodeEditorDirty, setNodeEditorDirty] = useState(false)
-  const externalSaveRef = useRef<(() => Promise<void>) | null>(null)
+  const externalSaveRef = useRef<(() => Promise<boolean>) | null>(null)
   const [pendingConnection, setPendingConnection] = useState<Connection | null>(null)
   const [choiceLabelDraft, setChoiceLabelDraft] = useState('Continue')
   const [creatingChoice, setCreatingChoice] = useState(false)
   const [showChapterModal, setShowChapterModal] = useState(false)
   const [chapterNameDraft, setChapterNameDraft] = useState('')
+  const [chapterDeleteTarget, setChapterDeleteTarget] = useState<{ id: string; title: string } | null>(null)
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -227,9 +241,15 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
     return () => window.removeEventListener('beforeunload', handler)
   }, [nodeEditorDirty])
 
-  const confirmDiscard = useCallback(() => {
-    if (!nodeEditorDirty) return true
-    return confirm('You have unsaved changes. Discard them?')
+
+  // Autosave dirty node content before navigating away from it.
+  // Returns true if clean or save succeeded, false if save failed.
+  const saveIfDirty = useCallback(async (): Promise<boolean> => {
+    if (!nodeEditorDirty || !externalSaveRef.current) return true
+    setSaving(true)
+    const ok = await externalSaveRef.current()
+    setSaving(false)
+    return ok
   }, [nodeEditorDirty])
 
   const handleLabelChange = useCallback(async (edgeId: string, label: string) => {
@@ -304,17 +324,19 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
 
   const onNodeClick: NodeMouseHandler = useCallback((_evt, rfNode) => {
     if (rfNode.id === selectedNodeId) return
-    if (!confirmDiscard()) return
-    setNodeEditorDirty(false)
-    setSelectedNodeId(rfNode.id)
-  }, [selectedNodeId, confirmDiscard])
+    saveIfDirty().then(ok => {
+      if (!ok) return
+      setSelectedNodeId(rfNode.id)
+    })
+  }, [selectedNodeId, saveIfDirty])
 
   const handlePaneClick = useCallback(() => {
     if (!selectedNodeId) return
-    if (!confirmDiscard()) return
-    setNodeEditorDirty(false)
-    setSelectedNodeId(null)
-  }, [selectedNodeId, confirmDiscard])
+    saveIfDirty().then(ok => {
+      if (!ok) return
+      setSelectedNodeId(null)
+    })
+  }, [selectedNodeId, saveIfDirty])
 
   const onNodeDragStop: NodeMouseHandler = useCallback(
     async (_evt, node) => {
@@ -327,13 +349,15 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
     [adventure.id]
   )
 
-  const handleAddNode = async () => {
-    if (!confirmDiscard()) return
-    setNodeEditorDirty(false)
+  const handleAddNode = async (atPosition?: { x: number; y: number }) => {
+    const ok = await saveIfDirty()
+    if (!ok) return
 
-    const canvasEl = document.querySelector('.react-flow__renderer') as HTMLElement | null
-    const rect = canvasEl?.getBoundingClientRect() ?? { left: 0, top: 0, width: 800, height: 600 }
-    const position = screenToFlowPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+    const position = atPosition ?? (() => {
+      const canvasEl = document.querySelector('.react-flow__renderer') as HTMLElement | null
+      const rect = canvasEl?.getBoundingClientRect() ?? { left: 0, top: 0, width: 800, height: 600 }
+      return screenToFlowPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+    })()
 
     const res = await fetch(`/api/adventures/${adventure.id}/nodes`, {
       method: 'POST',
@@ -387,12 +411,17 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
     setDbChapters(prev => prev.map(c => c.id === chapterId ? { ...c, title } : c))
   }
 
-  const handleDeleteChapter = async (chapterId: string) => {
+  const handleDeleteChapter = (chapterId: string) => {
     const chapter = dbChapters.find(c => c.id === chapterId)
-    if (!confirm(`Delete "${chapter?.title ?? 'this chapter'}"? The chapter's scenes will become unassigned.`)) return
+    setChapterDeleteTarget({ id: chapterId, title: chapter?.title ?? 'this chapter' })
+  }
+
+  const confirmDeleteChapter = async () => {
+    if (!chapterDeleteTarget) return
+    const { id: chapterId } = chapterDeleteTarget
+    setChapterDeleteTarget(null)
     await fetch(`/api/adventures/${adventure.id}/chapters/${chapterId}`, { method: 'DELETE' })
     setDbChapters(prev => prev.filter(c => c.id !== chapterId))
-    // Unassign chapterId from affected nodes locally
     setDbNodes(prev => prev.map(n => n.chapterId === chapterId ? { ...n, chapterId: null } : n))
     if (activeChapterId === chapterId) {
       const remaining = dbChapters.filter(c => c.id !== chapterId)
@@ -401,10 +430,11 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
   }
 
   const handleSelectChapter = (id: string | null) => {
-    if (!confirmDiscard()) return
-    setNodeEditorDirty(false)
-    setSelectedNodeId(null)
-    setActiveChapterId(id)
+    saveIfDirty().then(ok => {
+      if (!ok) return
+      setSelectedNodeId(null)
+      setActiveChapterId(id)
+    })
   }
 
   // ── Node update / delete ──────────────────────────────────────────
@@ -416,6 +446,18 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
       setSaving(false)
     }
   }, [])
+
+  // Cmd+S / Ctrl+S keyboard shortcut to save
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault()
+        handleToolbarSave()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [handleToolbarSave])
 
   const handleNodeUpdate = (updated: Node) => {
     setDbNodes(prev => prev.map(n => (n.id === updated.id ? updated : n)))
@@ -433,8 +475,6 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
     setRfNodes(prev => prev.filter(n => n.id !== nodeId))
     setRfEdges(prev => prev.filter(e => e.source !== nodeId && e.target !== nodeId))
   }
-
-  const hasChapters = dbChapters.length > 0
 
   return (
     <div className="flex flex-col h-screen">
@@ -467,6 +507,15 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
           icon={<BookOpen size={16} />}
         />
       )}
+      {chapterDeleteTarget && (
+        <ConfirmModal
+          title={`Delete "${chapterDeleteTarget.title}"?`}
+          description={<>The chapter will be deleted. Its scenes will remain but become <strong>unassigned</strong> from this chapter.</>}
+          confirmLabel="Delete chapter"
+          onConfirm={confirmDeleteChapter}
+          onCancel={() => setChapterDeleteTarget(null)}
+        />
+      )}
       <Toolbar
         adventureTitle={currentAdventure.title}
         adventureId={currentAdventure.id}
@@ -478,20 +527,25 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
       />
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Chapter sidebar */}
-        {hasChapters && (
-          <ChapterSidebar
-            chapters={dbChapters}
-            activeChapterId={activeChapterId}
-            onSelect={handleSelectChapter}
-            onAdd={handleAddChapter}
-            onRename={handleRenameChapter}
-            onDelete={handleDeleteChapter}
-          />
-        )}
+        {/* Chapter sidebar — always visible for discoverability */}
+        <ChapterSidebar
+          chapters={dbChapters}
+          activeChapterId={activeChapterId}
+          onSelect={handleSelectChapter}
+          onAdd={handleAddChapter}
+          onRename={handleRenameChapter}
+          onDelete={handleDeleteChapter}
+        />
 
         {/* Canvas */}
-        <div className="flex-1 relative">
+        <div
+          className="flex-1 relative"
+          onDoubleClick={e => {
+            if ((e.target as HTMLElement).classList.contains('react-flow__pane')) {
+              handleAddNode(screenToFlowPosition({ x: e.clientX, y: e.clientY }))
+            }
+          }}
+        >
           {/* Chapter header badge */}
           {activeChapterId && (
             <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-teal-600/90 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm pointer-events-none">
@@ -500,16 +554,26 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
             </div>
           )}
 
-          {/* Add first chapter prompt */}
-          {!hasChapters && (
-            <div className="absolute bottom-6 left-6 z-10">
-              <button
-                onClick={handleAddChapter}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-sm font-semibold shadow-lg transition-colors"
-              >
-                <BookMarked size={15} />
-                Add Chapter
-              </button>
+          {/* Empty canvas guidance */}
+          {visibleRfNodes.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+              <div className="pointer-events-auto flex flex-col items-center gap-4 bg-white/95 border border-gray-200 rounded-2xl px-8 py-7 shadow-sm text-center max-w-xs">
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 border-2 border-dashed border-amber-300 flex items-center justify-center">
+                  <GitBranch size={26} className="text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-800 mb-1.5">Canvas is empty</p>
+                  <p className="text-xs text-gray-400 leading-relaxed">Add your first scene to start building your story&apos;s branching structure.</p>
+                </div>
+                <button
+                  onClick={() => handleAddNode()}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold text-sm shadow transition-colors"
+                >
+                  <Plus size={14} />
+                  Add First Scene
+                </button>
+                <p className="text-xs text-gray-400 mt-1">or double-click anywhere on the canvas</p>
+              </div>
             </div>
           )}
 
@@ -523,6 +587,7 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
             onNodeClick={onNodeClick}
             onNodeDragStop={onNodeDragStop}
             onPaneClick={handlePaneClick}
+            zoomOnDoubleClick={false}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
@@ -535,7 +600,7 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
               const t = (n.data as StoryNodeData).nodeType
               if (t === 'chapter_end') return '#2dd4bf'
               const status = (n.data as StoryNodeData).status ?? 'in_progress'
-              return status === 'completed' ? '#fca5a5' : '#93c5fd'
+              return status === 'completed' ? '#fbbf24' : '#d1d5db'
             }} />
           </ReactFlow>
         </div>

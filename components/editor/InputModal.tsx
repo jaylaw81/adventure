@@ -55,7 +55,7 @@ export default function InputModal({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
+      <div className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: 'rgba(13,12,26,0.75)' }} onClick={onCancel} />
       <div
         className="relative w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden"
         style={{ background: 'linear-gradient(160deg, #1e1b3a 0%, #0f172a 100%)' }}
@@ -119,7 +119,7 @@ export default function InputModal({
               type="submit"
               disabled={loading || !value.trim()}
               className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-900 disabled:opacity-40 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+              style={{ background: '#f59e0b' }}
             >
               {loading ? '…' : confirmLabel}
             </button>

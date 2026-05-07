@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check, Lock } from 'lucide-react'
+import { Copy, Check, Lock, AlertTriangle, XCircle, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 import { analytics } from '@/lib/analytics'
+import type { ValidationIssue } from '@/app/api/adventures/[id]/validate/route'
 
 interface Props {
   adventureId: string
@@ -16,25 +18,61 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
   const [shareToken, setShareToken] = useState(initialShareToken)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([])
+  const [canPublishAnyway, setCanPublishAnyway] = useState(false)
+  const [showPanel, setShowPanel] = useState(false)
 
   const shareUrl = shareToken
     ? `${window.location.origin}/s/${shareToken}`
     : null
 
+  const doPublish = async () => {
+    const res = await fetch(`/api/adventures/${adventureId}/share`, { method: 'POST' })
+    const data = await res.json()
+    setIsPublic(true)
+    setShareToken(data.shareToken)
+    setShowPanel(false)
+    setValidationIssues([])
+    analytics.shareEnabled(adventureId)
+  }
+
   const handleToggle = async () => {
+    if (loading) return
     setLoading(true)
+
     try {
       if (isPublic) {
         await fetch(`/api/adventures/${adventureId}/share`, { method: 'DELETE' })
         setIsPublic(false)
+        setShowPanel(false)
+        setValidationIssues([])
         analytics.shareDisabled(adventureId)
-      } else {
-        const res = await fetch(`/api/adventures/${adventureId}/share`, { method: 'POST' })
-        const data = await res.json()
-        setIsPublic(true)
-        setShareToken(data.shareToken)
-        analytics.shareEnabled(adventureId)
+        return
       }
+
+      // Pre-publish validation
+      const res = await fetch(`/api/adventures/${adventureId}/validate`)
+      const { issues, canPublish } = await res.json()
+
+      if (issues.length === 0) {
+        // Clean — publish immediately with no friction
+        await doPublish()
+        return
+      }
+
+      // Show the issues panel; let the user decide
+      setValidationIssues(issues)
+      setCanPublishAnyway(canPublish)
+      setShowPanel(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePublishAnyway = async () => {
+    setLoading(true)
+    try {
+      await doPublish()
     } finally {
       setLoading(false)
     }
@@ -57,6 +95,8 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
     )
   }
 
+  const hasErrors = validationIssues.some(i => i.severity === 'error')
+
   return (
     <div className="flex flex-col gap-2.5">
       {/* Toggle row */}
@@ -78,6 +118,65 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
           />
         </button>
       </div>
+
+      {/* Pre-publish validation panel */}
+      {showPanel && validationIssues.length > 0 && (
+        <div className={`rounded-xl border p-3 flex flex-col gap-2.5 ${
+          hasErrors
+            ? 'bg-red-50 border-red-200'
+            : 'bg-amber-50 border-amber-200'
+        }`}>
+          <p className={`text-xs font-semibold ${hasErrors ? 'text-red-700' : 'text-amber-800'}`}>
+            {hasErrors ? 'Fix these issues before publishing:' : 'Your story has some issues:'}
+          </p>
+
+          <ul className="flex flex-col gap-1.5">
+            {validationIssues.map(issue => (
+              <li key={issue.code} className="flex items-start gap-2">
+                {issue.severity === 'error'
+                  ? <XCircle size={13} className="text-red-500 shrink-0 mt-0.5" />
+                  : <AlertTriangle size={13} className="text-amber-500 shrink-0 mt-0.5" />
+                }
+                <span className={`text-xs leading-snug ${issue.severity === 'error' ? 'text-red-700' : 'text-amber-700'}`}>
+                  {issue.message}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex items-center gap-2 pt-0.5">
+            <Link
+              href={`/edit/${adventureId}`}
+              className={`flex items-center gap-1 text-xs font-semibold transition-colors ${
+                hasErrors
+                  ? 'text-red-600 hover:text-red-800'
+                  : 'text-amber-700 hover:text-amber-900'
+              }`}
+            >
+              Edit story
+              <ArrowRight size={11} />
+            </Link>
+            {canPublishAnyway && (
+              <>
+                <span className="text-amber-300 text-xs">·</span>
+                <button
+                  onClick={handlePublishAnyway}
+                  disabled={loading}
+                  className="text-xs text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Publishing…' : 'Publish anyway'}
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => { setShowPanel(false); setValidationIssues([]) }}
+              className="ml-auto text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Share URL */}
       {isPublic && shareUrl && (

@@ -27,7 +27,7 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onC
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+      style={{ backgroundColor: 'rgba(13,12,26,0.75)' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="delete-dialog-title"

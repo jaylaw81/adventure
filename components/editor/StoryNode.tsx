@@ -12,18 +12,18 @@ export type StoryNodeData = {
 }
 
 const statusStyles = {
-  in_progress: 'border-blue-400 bg-blue-50',
-  completed: 'border-red-400 bg-red-50',
+  in_progress: 'border-gray-300 bg-white',
+  completed: 'border-amber-400 bg-amber-50',
 }
 
 const statusBadge = {
-  in_progress: 'bg-blue-100 text-blue-700',
-  completed: 'bg-red-100 text-red-700',
+  in_progress: 'bg-gray-100 text-gray-600',
+  completed: 'bg-amber-100 text-amber-700',
 }
 
 const statusLabel = {
-  in_progress: 'In Progress',
-  completed: 'Completed',
+  in_progress: 'Draft',
+  completed: 'Done',
 }
 
 function StoryNode({ data, selected }: NodeProps) {

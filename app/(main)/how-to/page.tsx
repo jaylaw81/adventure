@@ -287,10 +287,6 @@ export default function HowToPage() {
       {/* ── Hero ── */}
       <section className="relative overflow-hidden px-6 py-20 text-center"
         style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}>
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full opacity-20 blur-3xl"
-            style={{ background: 'radial-gradient(circle, #f59e0b, #a78bfa, transparent)' }} />
-        </div>
         <div className="relative max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-amber-400/10 text-amber-400 text-sm font-medium px-4 py-1.5 rounded-full mb-6 border border-amber-400/20">
             <BookOpen size={14} />
@@ -298,9 +294,7 @@ export default function HowToPage() {
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-5 leading-tight">
             How to Use<br />
-            <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
-              StoryQuestor
-            </span>
+            <span className="text-amber-400">StoryQuestor</span>
           </h1>
           <p className="text-gray-400 text-lg max-w-xl mx-auto">
             Everything you need to create branching stories and play through adventures made by others.
@@ -369,7 +363,7 @@ export default function HowToPage() {
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Set the <strong className="text-white">Scene Type</strong> — Start, Scene, Ending, or Next Chapter</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Write a <strong className="text-white">Title</strong> and <strong className="text-white">Content</strong></span></li>
-                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Mark the scene as <strong className="text-white">Completed</strong> when you&apos;re done</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Mark the scene as <strong className="text-white">Done</strong> when you&apos;re finished writing it</span></li>
                   </ul>
                   <Callout>Each chapter needs one <strong>Start</strong> scene. Use <strong>Ending</strong> to conclude a path, or <strong>Next Chapter</strong> to send readers onward.</Callout>
                 </StepCard>
@@ -475,7 +469,8 @@ export default function HowToPage() {
                 },
                 {
                   n: 5, title: 'Reach an ending',
-                  body: <>When you arrive at an Ending scene the story concludes with <em>— The End —</em>. Click <Kbd dark>Play Again</Kbd> to restart from the beginning and discover different outcomes.</>
+                  body: <>When you arrive at an Ending scene you&apos;ll see a short ceremony marking the close of that path. Click <Kbd dark>Play Again</Kbd> to restart and discover different outcomes.</>
+
                 },
                 {
                   n: 6, title: 'Rate and review',
@@ -521,7 +516,7 @@ export default function HowToPage() {
             {[
               { icon: BookMarked, tip: 'Every new story starts with Chapter 1 already created — just start adding scenes.' },
               { icon: GitBranch, tip: 'Use a "Next Chapter" scene at the end of each chapter to chain them together.' },
-              { icon: CheckCircle2, tip: 'Scenes marked Completed are highlighted on the canvas so you can track progress.' },
+              { icon: CheckCircle2, tip: 'Scenes marked Done are highlighted on the canvas so you can track writing progress at a glance.' },
               { icon: MousePointerClick, tip: 'Drag scenes freely to rearrange the canvas — positions are saved automatically.' },
               { icon: Sparkles, tip: 'AI images respect your audience setting — Adults Only stories never depict minors.' },
               { icon: BookOpen, tip: 'The home page shows reachable ending count — a useful measure of story depth.' },
@@ -546,8 +541,7 @@ export default function HowToPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/sign-up"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-900 shadow-lg transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-900 bg-amber-500 hover:bg-amber-600 shadow-lg transition-all hover:scale-105">
               <Plus size={16} />
               Create a free account
             </Link>
@@ -571,8 +565,7 @@ function StepCard({ number, title, accent, children }: { number: number; title: 
   return (
     <div className={`rounded-2xl border p-6 ${dark ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-gray-900 shrink-0"
-          style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
+        <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-sm font-bold text-gray-900 shrink-0">
           {number}
         </div>
         <h3 className={`text-base font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
