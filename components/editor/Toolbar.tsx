@@ -54,6 +54,11 @@ export default function Toolbar({ adventureTitle, adventureId, onAddNode, onSave
         >
           <Save size={16} />
           {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
+          {!saving && (
+            <kbd className="hidden lg:inline ml-1 px-1 py-0.5 text-[10px] font-mono rounded border border-current opacity-50 leading-none">
+              ⌘S
+            </kbd>
+          )}
         </button>
       </div>
     </div>

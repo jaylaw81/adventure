@@ -15,7 +15,11 @@ export default function SceneView({ node }: Props) {
             alt={node.title || 'Scene illustration'}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          <div className={`absolute inset-0 bg-gradient-to-t ${
+            node.nodeType === 'ending'
+              ? 'from-purple-900/60 to-transparent'
+              : 'from-black/40 to-transparent'
+          }`} />
           <div className="absolute bottom-4 left-4 flex items-center gap-2">
             {node.nodeType === 'start' && (
               <span className="px-2 py-0.5 bg-green-500/90 text-white text-xs rounded-full font-medium">Start</span>
@@ -27,13 +31,13 @@ export default function SceneView({ node }: Props) {
         </div>
       )}
 
-      {!node.imageUrl && (
-        <div className="mb-2 flex items-center gap-2">
+      {!node.imageUrl && (node.nodeType === 'start' || node.nodeType === 'ending') && (
+        <div className="mb-4 flex items-center gap-2">
           {node.nodeType === 'start' && (
-            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">Start</span>
+            <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs rounded-full font-semibold">Start</span>
           )}
           {node.nodeType === 'ending' && (
-            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">Ending</span>
+            <span className="px-2.5 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-semibold">Ending</span>
           )}
         </div>
       )}

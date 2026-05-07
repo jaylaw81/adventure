@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
+import { startSceneTransition } from '@/lib/scene-transition'
 
 const LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
@@ -33,8 +34,20 @@ export default function ChoiceButton({ href, label, index, adventureId }: Props)
   const handleClick = () => {
     if (loading) return
     analytics.choiceSelected(adventureId, label, index)
+    try {
+      const key = `sq_history_${adventureId}`
+      const prev: string[] = JSON.parse(sessionStorage.getItem(key) ?? '[]')
+      prev.push(label)
+      sessionStorage.setItem(key, JSON.stringify(prev))
+    } catch { /* ignore */ }
     setLoading(true)
-    router.push(href)
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) {
+      router.push(href)
+    } else {
+      startSceneTransition(() => router.push(href))
+    }
   }
 
   return (

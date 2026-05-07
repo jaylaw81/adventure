@@ -202,21 +202,21 @@ function DemoNodeEditor({ node, onClose, onUpdate, onDelete, onDirtyChange, exte
               onClick={() => handleStatusChange('in_progress')}
               className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-colors ${
                 status === 'in_progress'
-                  ? 'border-blue-400 bg-blue-50 text-blue-700'
+                  ? 'border-gray-400 bg-gray-100 text-gray-700'
                   : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
               }`}
             >
-              In Progress
+              Draft
             </button>
             <button
               onClick={() => handleStatusChange('completed')}
               className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-colors ${
                 status === 'completed'
-                  ? 'border-red-400 bg-red-50 text-red-700'
+                  ? 'border-amber-400 bg-amber-50 text-amber-700'
                   : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
               }`}
             >
-              Completed
+              Done
             </button>
           </div>
         </div>

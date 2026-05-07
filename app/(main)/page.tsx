@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  Plus, BookOpen, GitBranch, Share2, Sparkles, Star,
-  ArrowRight, Check, Play, ChevronRight, Zap, Users, Globe, BookMarked
+  Plus, BookOpen, GitBranch,
+  Sparkles, ArrowRight, Check, Play, ChevronRight, Globe, BookMarked
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/lib/analytics'
@@ -43,7 +43,7 @@ function CanvasMockup() {
       {/* Editor body: chapter sidebar + canvas */}
       <div className="flex" style={{ background: '#0f0e17' }}>
         {/* Chapter sidebar */}
-        <div className="w-36 shrink-0 border-r border-white/5 flex flex-col hidden sm:flex" style={{ background: '#0d0c1a' }}>
+        <div className="w-36 shrink-0 border-r border-white/5 flex-col hidden sm:flex" style={{ background: '#0d0c1a' }}>
           <div className="px-3 py-2.5 border-b border-white/5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">Chapters</p>
           </div>
@@ -200,13 +200,6 @@ function LandingPage() {
       {/* ── Hero ── */}
       <section className="relative overflow-hidden px-6 py-20 sm:py-28"
         style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}>
-        {/* Background glow */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/3 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
-            style={{ background: 'radial-gradient(circle, #f59e0b, transparent)' }} />
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full opacity-15 blur-3xl"
-            style={{ background: 'radial-gradient(circle, #a78bfa, transparent)' }} />
-        </div>
 
         <div className="relative max-w-6xl mx-auto">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
@@ -218,9 +211,7 @@ function LandingPage() {
               </div>
               <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-white mb-6 leading-tight">
                 Create Stories Where<br />
-                <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, #f59e0b, #f97316)' }}>
-                  Every Choice Matters
-                </span>
+                <span className="text-amber-400">Every Choice Matters</span>
               </h1>
               <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-xl">
                 Build branching adventures with a visual drag-and-drop canvas. Add AI-generated scene images. Share with readers who decide the outcome.
@@ -229,8 +220,7 @@ function LandingPage() {
                 <Link
                   href="/sign-up"
                   onClick={() => analytics.landingSignInClicked('hero')}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-900 shadow-lg transition-all hover:scale-105 hover:shadow-amber-500/25 hover:shadow-xl"
-                  style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-900 bg-amber-500 hover:bg-amber-600 shadow-lg transition-all hover:scale-105"
                 >
                   Start Creating — it&apos;s free
                   <ArrowRight size={16} />
@@ -242,15 +232,6 @@ function LandingPage() {
                   <Play size={15} />
                   Try the editor
                 </Link>
-              </div>
-              {/* Trust badges */}
-              <div className="mt-8 flex items-center justify-center lg:justify-start gap-6 text-sm text-gray-500">
-                {['Free to start', 'No credit card', 'Publish instantly'].map(item => (
-                  <span key={item} className="flex items-center gap-1.5">
-                    <Check size={13} className="text-green-400" />
-                    {item}
-                  </span>
-                ))}
               </div>
             </div>
 
@@ -318,40 +299,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ── Editor Showcase ── */}
-      <section className="px-6 py-20" style={{ background: 'linear-gradient(180deg, #0f0e17 0%, #1a1025 100%)' }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-            <div className="flex-1 text-center lg:text-left order-2 lg:order-1">
-              <p className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-3">The Editor</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-5">
-                A canvas built for<br />non-linear stories
-              </h2>
-              <p className="text-gray-400 text-base leading-relaxed mb-8">
-                See your entire story structure at a glance. Drag scenes, draw connections, and instantly understand how every choice flows into the next moment.
-              </p>
-              <ul className="flex flex-col gap-3 text-sm">
-                {[
-                  'Drag-and-drop scene nodes onto an infinite canvas',
-                  'Draw connections between scenes with choices',
-                  'Organize scenes into chapters for longer stories',
-                  'Mark scenes as Start, Scene, Ending, or Next Chapter',
-                  'Generate AI illustrations per scene',
-                ].map(item => (
-                  <li key={item} className="flex items-center gap-3 text-gray-300">
-                    <Check size={15} className="text-amber-400 shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="flex-1 w-full max-w-2xl order-1 lg:order-2">
-              <CanvasMockup />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── Reader Experience ── */}
       <section className="px-6 py-20 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -388,34 +335,28 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* ── Features Grid ── */}
-      <section className="bg-gray-50 border-t border-gray-100 px-6 py-20">
+      {/* ── Features ── */}
+      <section className="px-6 py-20 border-t border-gray-100" style={{ background: '#fafafa' }}>
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-amber-500 mb-3">Features</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Everything you need</h2>
+          <div className="mb-12">
+            <p className="text-xs font-semibold uppercase tracking-widest text-amber-500 mb-3">What you get</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900">Built for the story, not the software</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-col divide-y divide-gray-100">
             {[
-              { icon: GitBranch, title: 'Visual Canvas', desc: 'Map your full story structure with drag-and-drop nodes on an infinite canvas.', color: 'amber' },
-              { icon: BookMarked, title: 'Chapters', desc: 'Break long stories into chapters — each with its own scenes, branches, and a "Next Chapter" transition.', color: 'teal' },
-              { icon: Sparkles, title: 'AI Scene Images', desc: 'Auto-generate cinematic illustrations for every scene — no art skills required.', color: 'purple' },
-              { icon: Share2, title: 'One-click Publish', desc: 'Share your story instantly with a public link. Control who can see it.', color: 'blue' },
-              { icon: Users, title: 'Audience Controls', desc: 'Set age ratings (All Ages / Teens / Adults) and tag stories by genre.', color: 'green' },
-              { icon: Star, title: 'Ratings & Reviews', desc: 'Readers rate and review stories. Build credibility through community feedback.', color: 'amber' },
-            ].map(({ icon: Icon, title, desc, color }) => {
-              const bg: Record<string, string> = { amber: 'bg-amber-100', purple: 'bg-purple-100', blue: 'bg-blue-100', green: 'bg-green-100', orange: 'bg-orange-100', teal: 'bg-teal-100' }
-              const text: Record<string, string> = { amber: 'text-amber-600', purple: 'text-purple-600', blue: 'text-blue-600', green: 'text-green-600', orange: 'text-orange-600', teal: 'text-teal-600' }
-              return (
-                <div key={title} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${bg[color]}`}>
-                    <Icon size={20} className={text[color]} />
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900 mb-2">{title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
-                </div>
-              )
-            })}
+              { num: '01', title: 'Visual Canvas', desc: 'Map your full story structure with drag-and-drop scene nodes on an infinite canvas. See every branch at a glance.' },
+              { num: '02', title: 'Chapters', desc: 'Break long stories into chapters — each with its own scenes, branches, and a smooth "Next Chapter" transition.' },
+              { num: '03', title: 'AI Scene Images', desc: 'Auto-generate cinematic illustrations for every scene. No art skills required — just write the content and let the model paint the moment.' },
+              { num: '04', title: 'One-click Publish', desc: 'Share your story with a public link. Built-in validation catches dead ends before your readers do.' },
+              { num: '05', title: 'Audience Controls', desc: 'Set age ratings and genre tags. Reach the right readers with the right story.' },
+              { num: '06', title: 'Ratings & Reviews', desc: 'Readers rate and review. Build credibility through community feedback across every ending they discover.' },
+            ].map(({ num, title, desc }) => (
+              <div key={num} className="flex items-start gap-6 sm:gap-10 py-6 group">
+                <span className="text-xs font-mono text-gray-300 pt-1.5 w-6 shrink-0">{num}</span>
+                <h3 className="text-base font-bold text-gray-900 w-40 shrink-0 group-hover:text-amber-600 transition-colors">{title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed flex-1 hidden sm:block">{desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -423,23 +364,18 @@ function LandingPage() {
       {/* ── CTA ── */}
       <section className="relative overflow-hidden px-6 py-24 text-center"
         style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 60%, #1a1025 100%)' }}>
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full opacity-20 blur-3xl"
-            style={{ background: 'radial-gradient(circle, #f59e0b, #a78bfa, transparent)' }} />
-        </div>
         <div className="relative max-w-2xl mx-auto">
           <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-5 leading-tight">
             Ready to tell your story?
           </h2>
           <p className="text-gray-400 text-lg mb-10 max-w-lg mx-auto">
-            Join creators who are building branching adventures their readers love. It&apos;s free to start.
+            Join creators building branching adventures their readers love. It&apos;s free to start.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/sign-up"
               onClick={() => analytics.landingSignInClicked('cta_bottom')}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-lg font-semibold text-gray-900 shadow-xl transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-lg font-semibold text-gray-900 bg-amber-500 hover:bg-amber-600 shadow-xl transition-all hover:scale-105"
             >
               Create a free account
               <ArrowRight size={18} />
@@ -464,6 +400,8 @@ function Dashboard() {
   const [adventures, setAdventures] = useState<AdventureWithCounts[]>([])
   const [loading, setLoading] = useState(true)
   const [canMakePublic, setCanMakePublic] = useState(true)
+  const [imagesGenerating, setImagesGenerating] = useState(false)
+  const [imagesGenerated, setImagesGenerated] = useState(0)
 
   useEffect(() => {
     Promise.all([
@@ -476,7 +414,13 @@ function Dashboard() {
       }
       setLoading(false)
     })
+
+    setImagesGenerating(true)
     fetch('/api/generate-images', { method: 'POST' })
+      .then(r => r.json())
+      .then(data => { if (data?.processed > 0) setImagesGenerated(data.processed) })
+      .catch(() => {})
+      .finally(() => setImagesGenerating(false))
   }, [])
 
   const handleDelete = async (id: string) => {
@@ -487,6 +431,19 @@ function Dashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
+      {imagesGenerated > 0 && (
+        <div className="mb-5 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">
+          <Sparkles size={14} className="text-amber-500 shrink-0" />
+          AI images generated for {imagesGenerated} scene{imagesGenerated !== 1 ? 's' : ''}. Open a story to see them.
+          <button onClick={() => setImagesGenerated(0)} className="ml-auto text-amber-500 hover:text-amber-700 text-xs">✕</button>
+        </div>
+      )}
+      {imagesGenerating && !imagesGenerated && (
+        <div className="mb-5 flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 text-xs text-gray-400">
+          <Sparkles size={13} className="text-gray-300 shrink-0 animate-pulse" />
+          Checking for scenes to illustrate…
+        </div>
+      )}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Your Stories</h1>

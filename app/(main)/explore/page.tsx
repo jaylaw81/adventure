@@ -29,6 +29,7 @@ interface PublicStory {
   createdAt: string
   avgRating: number | null
   reviewCount: number
+  coverImageUrl: string | null
 }
 
 function parseTags(raw: string): string[] {
@@ -301,8 +302,18 @@ export default function ExplorePage() {
               {filtered.map(story => {
                 const tags = parseTags(story.tags)
                 return (
-                  <div key={story.id} className="bg-white rounded-xl shadow-md p-5 flex flex-col gap-3 border border-gray-100 hover:shadow-lg transition-shadow">
-                    <div className="flex-1">
+                  <div key={story.id} className="bg-white rounded-xl shadow-md flex flex-col border border-gray-100 hover:shadow-lg transition-shadow overflow-hidden">
+                    {story.coverImageUrl && (
+                      <div className="w-full h-36 overflow-hidden shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={story.coverImageUrl}
+                          alt={story.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1 p-5 flex flex-col gap-3">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <h2 className="text-lg font-bold text-gray-900">{story.title}</h2>
                         <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 whitespace-nowrap">
@@ -342,15 +353,15 @@ export default function ExplorePage() {
                           ))}
                         </div>
                       )}
+                      <Link
+                        href={`/play/${story.id}`}
+                        onClick={() => analytics.exploreStoryClicked(story.id, story.title)}
+                        className="mt-auto flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
+                      >
+                        <Play size={14} />
+                        Play
+                      </Link>
                     </div>
-                    <Link
-                      href={`/play/${story.id}`}
-                      onClick={() => analytics.exploreStoryClicked(story.id, story.title)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
-                    >
-                      <Play size={14} />
-                      Play
-                    </Link>
                   </div>
                 )
               })}

@@ -22,3 +22,32 @@ body {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes slamIn {
+  0%   { transform: translateY(140%) rotate(calc(var(--card-rot) + 14deg)); opacity: 0; }
+  55%  { opacity: 1; }
+  100% { transform: translateY(0) rotate(var(--card-rot)); opacity: 1; }
+}
+
+@keyframes explodeCard {
+  0%   { transform: translateY(0) rotate(var(--card-rot)) scale(1); opacity: 1; }
+  100% { transform: translate(var(--card-dx), var(--card-dy)) rotate(calc(var(--card-rot) * 3)) scale(0.35); opacity: 0; }
+}
+
+@keyframes fadeInEnding {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Scene entrance: hidden until WAAPI animation fires after hydration.
+   The opacity:0 here prevents FOUC on SSR. */
+.scene-entrance {
+  opacity: 0;
+}
+
+/* Reduced-motion: show immediately, skip the animation entirely */
+@media (prefers-reduced-motion: reduce) {
+  .scene-entrance {
+    opacity: 1 !important;
+  }
+}

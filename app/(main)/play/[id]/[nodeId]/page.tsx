@@ -16,7 +16,8 @@ import BackButton from '@/components/reader/BackButton'
 import SceneTracker from '@/components/reader/SceneTracker'
 import RestartButton from '@/components/reader/RestartButton'
 import ReportButton from '@/components/reader/ReportButton'
-import ReviewForm from '@/components/reader/ReviewForm'
+import EndingView from '@/components/reader/EndingView'
+import SceneEntrance from '@/components/reader/SceneEntrance'
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string; nodeId: string }> }) {
   const { id, nodeId } = await params
@@ -60,6 +61,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
     : [null, null]
 
   return (
+    <SceneEntrance>
     <div className="max-w-2xl mx-auto px-6 py-10">
       <SceneTracker
         adventureId={id}
@@ -114,14 +116,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
             )}
           </div>
         ) : isEnding ? (
-          <div>
-            <div className="text-center py-8">
-              <p className="text-2xl font-bold text-gray-800 mb-2">— The End —</p>
-              <p className="text-gray-500 mb-6">Thank you for playing!</p>
-              <RestartButton href={`/play/${id}`} adventureId={id} />
-            </div>
-            <ReviewForm adventureId={id} />
-          </div>
+          <EndingView adventureId={id} restartHref={`/play/${id}`} />
         ) : choices.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-400">No choices available. This story ends here.</p>
@@ -149,5 +144,6 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         <ReportButton adventureId={id} />
       </div>
     </div>
+    </SceneEntrance>
   )
 }
