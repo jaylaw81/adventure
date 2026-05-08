@@ -14,6 +14,55 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#x27;')
 }
 
+export async function sendSurveyReply(opts: {
+  to: string
+  subject: string
+  message: string
+  originalFeedback: { likes: string | null; dislikes: string | null; featureRequests: string | null }
+}) {
+  const { to, subject, message, originalFeedback } = opts
+
+  const quoteRow = (label: string, value: string | null) =>
+    value
+      ? `<tr>
+          <td style="padding:6px 10px;font-weight:600;color:#6d28d9;vertical-align:top;white-space:nowrap;width:130px;">${escapeHtml(label)}</td>
+          <td style="padding:6px 10px;color:#374151;">${escapeHtml(value)}</td>
+        </tr>`
+      : ''
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+          <div style="font-size:15px;line-height:1.7;color:#1e0a3c;white-space:pre-wrap;">${escapeHtml(message)}</div>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 16px;" />
+
+          <p style="font-size:12px;color:#9ca3af;margin-bottom:8px;">Your original feedback:</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;background:#f9fafb;border-radius:8px;overflow:hidden;">
+            ${quoteRow('What you liked', originalFeedback.likes)}
+            ${quoteRow('What could improve', originalFeedback.dislikes)}
+            ${quoteRow('Feature requests', originalFeedback.featureRequests)}
+          </table>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0 12px;" />
+          <p style="font-size:12px;color:#9ca3af;">&copy; ${new Date().getFullYear()} StoryQuestor &mdash; <a href="https://www.storyquestor.com" style="color:#9ca3af;">storyquestor.com</a></p>
+        </body>
+      </html>
+    `,
+  })
+}
+
 export async function sendSurveyNotification(opts: {
   userEmail: string | null
   surveyType: string

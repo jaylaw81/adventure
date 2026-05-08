@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { Search, X, MessageSquareHeart, Download, ChevronDown, ChevronUp, XCircle } from 'lucide-react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
+import { Search, X, MessageSquareHeart, Download, ChevronDown, ChevronUp, XCircle, Reply, Send, Loader2 } from 'lucide-react'
 
 interface SurveyResponse {
   id: string
@@ -11,6 +11,96 @@ interface SurveyResponse {
   featureRequests: string | null
   surveyType: string
   createdAt: string
+}
+
+function ReplyModal({ response, onClose }: { response: SurveyResponse; onClose: () => void }) {
+  const [subject, setSubject] = useState('Re: Your StoryQuestor feedback')
+  const [message, setMessage] = useState('')
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+
+  const handleSend = useCallback(async () => {
+    if (!message.trim() || !subject.trim()) return
+    setStatus('sending')
+    try {
+      const res = await fetch('/api/admin/survey/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ responseId: response.id, subject, message }),
+      })
+      if (!res.ok) throw new Error()
+      setStatus('sent')
+      setTimeout(onClose, 1500)
+    } catch {
+      setStatus('error')
+    }
+  }, [response.id, subject, message, onClose])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <Reply size={16} className="text-slate-500" />
+            <span className="font-semibold text-slate-900 text-sm">Reply to {response.userEmail}</span>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="p-6 flex flex-col gap-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">Subject</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">Message</label>
+            <textarea
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              rows={7}
+              placeholder="Write your reply…"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none"
+              autoFocus
+            />
+          </div>
+
+          {/* Original feedback summary */}
+          <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-500 space-y-1.5 border border-slate-100">
+            <p className="font-semibold text-slate-600 mb-1">Original feedback</p>
+            {response.likes && <p><span className="font-medium text-slate-700">Likes:</span> {response.likes}</p>}
+            {response.dislikes && <p><span className="font-medium text-slate-700">Dislikes:</span> {response.dislikes}</p>}
+            {response.featureRequests && <p><span className="font-medium text-slate-700">Features:</span> {response.featureRequests}</p>}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between px-6 pb-5 gap-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={handleSend}
+            disabled={!message.trim() || !subject.trim() || status === 'sending' || status === 'sent'}
+            className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white rounded-lg disabled:opacity-50 transition-colors"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
+          >
+            {status === 'sending' ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+            {status === 'sent' ? 'Sent!' : status === 'sending' ? 'Sending…' : 'Send Reply'}
+          </button>
+        </div>
+
+        {status === 'error' && (
+          <p className="px-6 pb-4 text-xs text-red-500">Failed to send — check your Resend config and try again.</p>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function ExpandableCell({ text }: { text: string | null }) {
@@ -40,6 +130,7 @@ export default function SurveyAdminPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'all' | 'initial' | 'followup'>('all')
+  const [replyTarget, setReplyTarget] = useState<SurveyResponse | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/survey')
@@ -185,6 +276,7 @@ export default function SurveyAdminPage() {
                 <th className="text-left px-4 py-3 font-semibold w-1/4">Dislikes</th>
                 <th className="text-left px-4 py-3 font-semibold w-1/4">Feature Requests</th>
                 <th className="text-left px-4 py-3 font-semibold">Date</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -216,6 +308,17 @@ export default function SurveyAdminPage() {
                       year: 'numeric', month: 'short', day: 'numeric',
                     })}
                   </td>
+                  <td className="px-4 py-4">
+                    {r.userEmail && (
+                      <button
+                        onClick={() => setReplyTarget(r)}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-violet-700 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+                      >
+                        <Reply size={12} />
+                        Reply
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -227,6 +330,10 @@ export default function SurveyAdminPage() {
         <p className="text-xs text-slate-400 mt-3 text-right">
           {filtered.length} of {responses.length} responses
         </p>
+      )}
+
+      {replyTarget && (
+        <ReplyModal response={replyTarget} onClose={() => setReplyTarget(null)} />
       )}
     </div>
   )
