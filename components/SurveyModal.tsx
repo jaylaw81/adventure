@@ -5,7 +5,8 @@ import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { X, MessageSquareHeart, CheckCircle2 } from 'lucide-react'
 
-const SHOW_DELAY_MS = 45_000
+const MIN_USAGE_MS = 10 * 60 * 1000  // 10 minutes from first ever visit
+const SHOW_DELAY_MS = 30_000          // additional buffer after the gate passes
 
 type SurveyType = 'initial' | 'followup'
 
@@ -23,26 +24,38 @@ export default function SurveyModal() {
   useEffect(() => {
     if (status === 'loading') return
     if (pathname.startsWith('/admin')) return
+    if (!session?.user?.email) return
 
-    let timer: ReturnType<typeof setTimeout>
+    // Record the first time this user ever lands on the site
+    const FIRST_VISIT_KEY = 'sq_first_visit'
+    const stored = localStorage.getItem(FIRST_VISIT_KEY)
+    const firstVisit = stored ? parseInt(stored, 10) : Date.now()
+    if (!stored) localStorage.setItem(FIRST_VISIT_KEY, String(firstVisit))
+
+    const timeUntilGate = Math.max(0, firstVisit + MIN_USAGE_MS - Date.now())
+
+    let gateTimer: ReturnType<typeof setTimeout>
+    let showTimer: ReturnType<typeof setTimeout>
 
     async function checkAndSchedule() {
-      if (!session?.user?.email) return
       try {
         const res = await fetch('/api/survey')
         if (!res.ok) return
         const data = await res.json()
         if (data.shouldShow) {
           setSurveyType(data.surveyType ?? 'initial')
-          timer = setTimeout(() => setIsVisible(true), SHOW_DELAY_MS)
+          showTimer = setTimeout(() => setIsVisible(true), SHOW_DELAY_MS)
         }
       } catch {
         // silently skip if check fails
       }
     }
 
-    checkAndSchedule()
-    return () => clearTimeout(timer)
+    gateTimer = setTimeout(checkAndSchedule, timeUntilGate)
+    return () => {
+      clearTimeout(gateTimer)
+      clearTimeout(showTimer)
+    }
   }, [status, session])
 
   const handleClose = useCallback(async () => {
