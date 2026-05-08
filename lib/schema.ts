@@ -204,6 +204,10 @@ export const organizationWaitlist = pgTable('organization_waitlist', {
   name: text('name'),
   school: text('school'),
   role: text('role'), // e.g. 'teacher', 'administrator', 'librarian'
+  status: text('status').notNull().default('pending'), // 'pending' | 'accepted' | 'denied'
+  inviteToken: text('invite_token').unique(),
+  inviteExpiresAt: timestamp('invite_expires_at'),
+  inviteSentAt: timestamp('invite_sent_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (t) => [
   index('org_waitlist_email_idx').on(t.email),

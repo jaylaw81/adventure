@@ -14,6 +14,108 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#x27;')
 }
 
+export async function sendWaitlistAccepted(opts: {
+  to: string
+  name: string | null
+  inviteToken: string
+  expiresAt: Date
+}) {
+  const { to, name, inviteToken, expiresAt } = opts
+  const setupUrl = `${SITE_URL}/org/setup?token=${encodeURIComponent(inviteToken)}`
+  const greeting = name ? escapeHtml(name) : 'there'
+  const expiryDate = expiresAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: "You're invited to join the StoryQuestor Organization beta",
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">Hi ${greeting},</p>
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            Great news — you&apos;ve been accepted into the <strong>StoryQuestor Organization beta</strong>!
+            You can now create your school or organization account and start managing stories, members, and groups.
+          </p>
+
+          <div style="margin:28px 0;padding:20px 24px;background:#faf5ff;border-radius:12px;border:1px solid #e9d5ff;">
+            <p style="font-size:13px;font-weight:700;color:#6d28d9;margin:0 0 8px;">Your personal invite link</p>
+            <a href="${setupUrl}"
+              style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;
+                     font-weight:700;font-size:15px;border-radius:10px;text-decoration:none;margin-bottom:12px;">
+              Set Up My Organization
+            </a>
+            <p style="font-size:12px;color:#7c3aed;margin:8px 0 0;">
+              This link is valid until <strong>${expiryDate}</strong> and can only be used with this email address
+              (<strong>${escapeHtml(to)}</strong>). Do not share it with others.
+            </p>
+          </div>
+
+          <p style="font-size:14px;font-weight:700;color:#1e0a3c;margin-bottom:8px;">How it works:</p>
+          <ol style="font-size:14px;line-height:1.8;color:#374151;padding-left:20px;margin:0 0 20px;">
+            <li>Click the button above to go to the setup page.</li>
+            <li>Sign in or create a StoryQuestor account using <strong>${escapeHtml(to)}</strong>.</li>
+            <li>Enter your organization name and complete setup.</li>
+            <li>You&apos;ll immediately have access to the full Organization dashboard.</li>
+          </ol>
+
+          <p style="font-size:13px;color:#6b7280;line-height:1.6;">
+            The invite link is tied specifically to <strong>${escapeHtml(to)}</strong> and cannot be used with a
+            different email address. If you have any trouble, reply to this email and we&apos;ll help you out.
+          </p>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0 12px;" />
+          <p style="font-size:12px;color:#9ca3af;">&copy; ${new Date().getFullYear()} StoryQuestor &mdash; <a href="${SITE_URL}" style="color:#9ca3af;">${SITE_URL.replace('https://', '')}</a></p>
+        </body>
+      </html>
+    `,
+  })
+}
+
+export async function sendWaitlistDenied(opts: { to: string; name: string | null }) {
+  const { to, name } = opts
+  const greeting = name ? escapeHtml(name) : 'there'
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: 'Update on your StoryQuestor Organization application',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">Hi ${greeting},</p>
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            Thank you for your interest in the StoryQuestor Organization beta. After reviewing your application,
+            we&apos;re not able to offer access at this time. We have limited capacity during the beta period and
+            are being selective about who we onboard.
+          </p>
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            You&apos;re welcome to continue using StoryQuestor as an individual creator, and we may reach out again
+            as the Organization tier opens up more broadly. If you have questions, just reply to this email.
+          </p>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0 12px;" />
+          <p style="font-size:12px;color:#9ca3af;">&copy; ${new Date().getFullYear()} StoryQuestor &mdash; <a href="${SITE_URL}" style="color:#9ca3af;">${SITE_URL.replace('https://', '')}</a></p>
+        </body>
+      </html>
+    `,
+  })
+}
+
 export async function sendSurveyReply(opts: {
   to: string
   subject: string
