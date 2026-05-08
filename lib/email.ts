@@ -14,6 +14,57 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#x27;')
 }
 
+export async function sendSurveyNotification(opts: {
+  userEmail: string | null
+  surveyType: string
+  likes: string | null
+  dislikes: string | null
+  featureRequests: string | null
+}) {
+  const { userEmail, surveyType, likes, dislikes, featureRequests } = opts
+
+  const row = (label: string, value: string | null) =>
+    value
+      ? `<tr>
+          <td style="padding:10px 12px;font-weight:600;color:#6d28d9;white-space:nowrap;vertical-align:top;width:140px;">${escapeHtml(label)}</td>
+          <td style="padding:10px 12px;color:#1e0a3c;line-height:1.6;">${escapeHtml(value)}</td>
+        </tr>`
+      : ''
+
+  await resend.emails.send({
+    from: FROM,
+    to: 'contact@storyquestor.com',
+    subject: `New survey response (${surveyType}) — StoryQuestor`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <p style="color:#6b7280;font-size:14px;margin-top:0;">New Survey Response</p>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr>
+              <td style="padding:10px 12px;font-weight:600;color:#6d28d9;white-space:nowrap;vertical-align:top;width:140px;">From</td>
+              <td style="padding:10px 12px;color:#1e0a3c;">${userEmail ? escapeHtml(userEmail) : '<em style="color:#9ca3af;">anonymous</em>'}</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 12px;font-weight:600;color:#6d28d9;white-space:nowrap;vertical-align:top;width:140px;">Type</td>
+              <td style="padding:10px 12px;color:#1e0a3c;">${escapeHtml(surveyType)}</td>
+            </tr>
+            ${row('What they like', likes)}
+            ${row('What they dislike', dislikes)}
+            ${row('Feature requests', featureRequests)}
+          </table>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+          <p style="font-size:12px;color:#9ca3af;">&copy; ${new Date().getFullYear()} StoryQuestor</p>
+        </body>
+      </html>
+    `,
+  })
+}
+
 export async function sendPasswordResetEmail(email: string, token: string) {
   // token is hex (a-f0-9 only) — safe to embed directly in a URL
   const resetUrl = `${SITE_URL}/reset-password?token=${token}`

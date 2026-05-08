@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { surveyResponses } from '@/lib/schema'
+import { sendSurveyNotification } from '@/lib/email'
 
 const MAX_FIELD_LENGTH = 2000
 
@@ -39,13 +40,24 @@ export async function POST(req: Request) {
     return Response.json({ error: 'At least one field is required' }, { status: 400 })
   }
 
+  const resolvedType = surveyType === 'followup' ? 'followup' : 'initial'
+
   await db.insert(surveyResponses).values({
     userEmail: session?.user?.email ?? null,
     likes: sanitizedLikes,
     dislikes: sanitizedDislikes,
     featureRequests: sanitizedFeatureRequests,
-    surveyType: surveyType === 'followup' ? 'followup' : 'initial',
+    surveyType: resolvedType,
   })
+
+  // Fire-and-forget — don't block the response on email delivery
+  sendSurveyNotification({
+    userEmail: session?.user?.email ?? null,
+    surveyType: resolvedType,
+    likes: sanitizedLikes,
+    dislikes: sanitizedDislikes,
+    featureRequests: sanitizedFeatureRequests,
+  }).catch(() => {})
 
   return Response.json({ ok: true })
 }
