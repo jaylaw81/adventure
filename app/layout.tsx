@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     description: 'Create free choose-your-own-adventure stories. Build non-linear, branching tales where every reader choice leads somewhere different.',
   },
   other: {
-    'google-adsense-account': 'ca-pub-906841362735818',
+    'google-adsense-account': 'ca-pub-9068413627358148',
   },
 }
 
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-906841362735818"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9068413627358148"
           crossOrigin="anonymous"
         />
       </head>
