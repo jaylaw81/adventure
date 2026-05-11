@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     description: 'Create free choose-your-own-adventure stories. Build non-linear, branching tales where every reader choice leads somewhere different.',
   },
   other: {
-    'google-adsense-account': 'ca-pub-7262668732897727',
+    'google-adsense-account': 'ca-pub-906841362735818',
   },
 }
 
