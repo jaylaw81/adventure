@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7262668732897727"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-906841362735818"
           crossOrigin="anonymous"
         />
       </head>
