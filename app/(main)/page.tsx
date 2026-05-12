@@ -458,6 +458,15 @@ function Dashboard() {
   const [canMakePublic, setCanMakePublic] = useState(true)
   const [imagesGenerating, setImagesGenerating] = useState(false)
   const [imagesGenerated, setImagesGenerated] = useState(0)
+  const [showPrivateNudge, setShowPrivateNudge] = useState(false)
+
+  const dismissPrivateNudge = () => {
+    const n = adventures.filter(a => !a.isPublic).length
+    try {
+      localStorage.setItem('private_nudge_v1', JSON.stringify({ dismissedAt: Date.now(), dismissedCount: n }))
+    } catch {}
+    setShowPrivateNudge(false)
+  }
 
   useEffect(() => {
     Promise.all([
@@ -465,10 +474,25 @@ function Dashboard() {
       fetch('/api/org/me').then(r => r.json()),
     ]).then(([data, orgData]) => {
       setAdventures(data)
-      if (orgData?.orgPrivacyLevel && orgData.orgPrivacyLevel !== 'public') {
-        setCanMakePublic(false)
-      }
+      const canPublish = !(orgData?.orgPrivacyLevel && orgData.orgPrivacyLevel !== 'public')
+      if (!canPublish) setCanMakePublic(false)
       setLoading(false)
+
+      if (canPublish && Array.isArray(data)) {
+        const privateCount = (data as AdventureWithCounts[]).filter(a => !a.isPublic).length
+        if (privateCount > 0) {
+          let shouldShow = true
+          try {
+            const raw = localStorage.getItem('private_nudge_v1')
+            if (raw) {
+              const { dismissedAt, dismissedCount } = JSON.parse(raw)
+              const daysSince = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24)
+              if (daysSince < 7 && privateCount <= dismissedCount) shouldShow = false
+            }
+          } catch {}
+          if (shouldShow) setShowPrivateNudge(true)
+        }
+      }
     })
 
     setImagesGenerating(true)
@@ -505,6 +529,18 @@ function Dashboard() {
       />
 
       <div className="max-w-5xl mx-auto px-6 py-8">
+        {showPrivateNudge && (() => {
+          const n = adventures.filter(a => !a.isPublic).length
+          return n > 0 ? (
+            <div className="mb-5 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <Globe size={14} className="text-amber-500 shrink-0" />
+              <span>
+                You have {n} private {n === 1 ? 'story' : 'stories'} — toggle &ldquo;Make public&rdquo; on any card to share {n === 1 ? 'it' : 'them'} with the world.
+              </span>
+              <button onClick={dismissPrivateNudge} className="ml-auto text-amber-400 hover:text-amber-600 text-xs shrink-0">✕</button>
+            </div>
+          ) : null
+        })()}
         {imagesGenerated > 0 && (
           <div className="mb-5 flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm text-violet-800">
             <Sparkles size={14} className="text-violet-500 shrink-0" />
