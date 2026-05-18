@@ -1,4 +1,4 @@
-import { eq, sql, and, inArray } from 'drizzle-orm'
+import { eq, sql, and, inArray, desc } from 'drizzle-orm'
 import { db } from './db'
 import { adventures, nodes, choices, chapters } from './schema'
 
@@ -94,8 +94,8 @@ export async function getPublicAdventures() {
       updatedAt: adventures.updatedAt,
     })
     .from(adventures)
-    .where(eq(adventures.isPublic, true))
-    .orderBy(adventures.updatedAt)
+    .where(and(eq(adventures.isPublic, true), eq(adventures.status, 'active')))
+    .orderBy(desc(adventures.updatedAt))
 }
 
 export async function getAdventure(id: string) {

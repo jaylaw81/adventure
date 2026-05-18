@@ -4,7 +4,7 @@ import { getPublicAdventures } from '@/lib/queries'
 import { db } from '@/lib/db'
 import { storyReviews, nodes } from '@/lib/schema'
 
-export const revalidate = 60
+export const revalidate = 30
 
 export async function GET() {
   try {
@@ -50,7 +50,7 @@ export async function GET() {
     }))
 
     return NextResponse.json(result, {
-      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' },
+      headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=30' },
     })
   } catch {
     return NextResponse.json({ error: 'Failed to fetch stories' }, { status: 500 })
