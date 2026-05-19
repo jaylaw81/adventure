@@ -4,7 +4,7 @@ import { getPublicAdventures } from '@/lib/queries'
 import { db } from '@/lib/db'
 import { storyReviews, nodes } from '@/lib/schema'
 
-export const revalidate = 30
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
