@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { nodes } from '@/lib/schema'
 import { requireOwner } from '@/lib/requireOwner'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string; nodeId: string }> }) {
   try {
@@ -20,7 +20,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (body.status !== undefined) updateData.status = body.status
     if (body.chapterId !== undefined) updateData.chapterId = body.chapterId
     if (body.nextChapterId !== undefined) updateData.nextChapterId = body.nextChapterId
-    const [updated] = await db.update(nodes).set(updateData).where(eq(nodes.id, nodeId)).returning()
+    const [updated] = await db.update(nodes).set(updateData).where(and(eq(nodes.id, nodeId), eq(nodes.adventureId, id))).returning()
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json(updated)
   } catch (e) {
@@ -34,7 +34,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const owned = await requireOwner(id)
     if (owned.error) return owned.error
 
-    await db.delete(nodes).where(eq(nodes.id, nodeId))
+    await db.delete(nodes).where(and(eq(nodes.id, nodeId), eq(nodes.adventureId, id)))
     return NextResponse.json({ success: true })
   } catch (e) {
     return NextResponse.json({ error: 'Failed to delete node' }, { status: 500 })

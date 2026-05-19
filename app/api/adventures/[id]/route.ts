@@ -8,6 +8,8 @@ import { eq } from 'drizzle-orm'
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
+    const owned = await requireOwner(id)
+    if (owned.error) return owned.error
     const adventure = await getAdventureWithData(id)
     if (!adventure) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json(adventure)

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { chapters, nodes } from '@/lib/schema'
 import { requireOwner } from '@/lib/requireOwner'
@@ -20,7 +20,7 @@ export async function PATCH(
   const [updated] = await db
     .update(chapters)
     .set(updateData)
-    .where(eq(chapters.id, chapterId))
+    .where(and(eq(chapters.id, chapterId), eq(chapters.adventureId, id)))
     .returning()
 
   if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -42,6 +42,6 @@ export async function DELETE(
     .set({ nextChapterId: null })
     .where(eq(nodes.nextChapterId, chapterId))
 
-  await db.delete(chapters).where(eq(chapters.id, chapterId))
+  await db.delete(chapters).where(and(eq(chapters.id, chapterId), eq(chapters.adventureId, id)))
   return NextResponse.json({ ok: true })
 }

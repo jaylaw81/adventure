@@ -70,9 +70,16 @@ export const authOptions: NextAuthOptions = {
       // Handle update() calls from client (e.g. after saving profile)
       if (trigger === 'update') {
         if (session?.displayName !== undefined) token.displayName = session.displayName
-        if (session?.birthDate !== undefined) {
-          token.birthDate = session.birthDate
-          token.isAdult = isAdult(session.birthDate)
+        // Re-fetch age/tier from DB — never trust client-supplied birthDate
+        if (token.email) {
+          try {
+            const [user] = await db.select().from(users).where(eq(users.email, token.email as string))
+            if (user) {
+              token.birthDate = user.birthDate ?? undefined
+              token.isAdult = isAdult(user.birthDate)
+              token.tier = user.tier
+            }
+          } catch {}
         }
       }
       // On first JWT creation or when missing, fetch from DB

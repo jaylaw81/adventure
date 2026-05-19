@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { nodes } from '@/lib/schema'
 import { requireOwner } from '@/lib/requireOwner'
@@ -13,7 +13,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const owned = await requireOwner(id)
     if (owned.error) return owned.error
 
-    const [node] = await db.select().from(nodes).where(eq(nodes.id, nodeId))
+    const [node] = await db.select().from(nodes).where(and(eq(nodes.id, nodeId), eq(nodes.adventureId, id)))
     if (!node) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     const imageUrl = await generateSceneImage(node.title, node.content, owned.adventure.audience ?? 'all')
@@ -21,7 +21,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const [updated] = await db
       .update(nodes)
       .set({ imageUrl })
-      .where(eq(nodes.id, nodeId))
+      .where(and(eq(nodes.id, nodeId), eq(nodes.adventureId, id)))
       .returning()
 
     return NextResponse.json(updated)
@@ -39,7 +39,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const [updated] = await db
       .update(nodes)
       .set({ imageUrl: null })
-      .where(eq(nodes.id, nodeId))
+      .where(and(eq(nodes.id, nodeId), eq(nodes.adventureId, id)))
       .returning()
 
     return NextResponse.json(updated)
