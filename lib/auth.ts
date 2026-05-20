@@ -53,6 +53,8 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user }) {
       if (!user.email) return false
       try {
+        const [existing] = await db.select({ status: users.status }).from(users).where(eq(users.email, user.email))
+        if (existing?.status === 'suspended') return false
         await db
           .insert(users)
           .values({ email: user.email, displayName: user.name ?? '' })

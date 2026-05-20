@@ -1,14 +1,17 @@
 import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 // Forward-declare chapters so nodes can reference it below
 // (defined fully after adventures)
 
 export const users = pgTable('users', {
+  id: uuid('id').notNull().unique().default(sql`gen_random_uuid()`).$defaultFn(() => crypto.randomUUID()),
   email: text('email').primaryKey(),
   displayName: text('display_name').notNull().default(''),
   birthDate: text('birth_date'), // YYYY-MM-DD, nullable until user sets it
   passwordHash: text('password_hash'), // null for Google-only accounts
   tier: text('tier').notNull().default('free'), // 'free' | 'organization'
+  status: text('status').notNull().default('active'), // 'active' | 'suspended'
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

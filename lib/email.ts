@@ -216,6 +216,44 @@ export async function sendSurveyNotification(opts: {
   })
 }
 
+export async function sendAdminMessage(opts: {
+  to: string
+  displayName: string | null
+  subject: string
+  message: string
+}) {
+  const { to, displayName, subject, message } = opts
+  const greeting = displayName ? escapeHtml(displayName) : 'there'
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">Hi ${greeting},</p>
+          <div style="font-size:15px;line-height:1.7;color:#1e0a3c;white-space:pre-wrap;">${escapeHtml(message)}</div>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 12px;" />
+          <p style="font-size:12px;color:#9ca3af;">
+            You received this message from the StoryQuestor team. Reply directly to this email to respond.
+            &copy; ${new Date().getFullYear()} StoryQuestor &mdash;
+            <a href="${SITE_URL}" style="color:#9ca3af;">${SITE_URL.replace('https://', '')}</a>
+          </p>
+        </body>
+      </html>
+    `,
+  })
+}
+
 export async function sendPasswordResetEmail(email: string, token: string) {
   // token is hex (a-f0-9 only) — safe to embed directly in a URL
   const resetUrl = `${SITE_URL}/reset-password?token=${token}`

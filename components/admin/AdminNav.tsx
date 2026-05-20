@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { ShieldCheck, BookOpen, Flag, LogOut, School, MessageSquareHeart } from 'lucide-react'
+import { ShieldCheck, BookOpen, Flag, LogOut, School, MessageSquareHeart, Users } from 'lucide-react'
 
 export default function AdminNav() {
   const pathname = usePathname()
@@ -30,6 +30,7 @@ export default function AdminNav() {
 
   const NAV_ITEMS = [
     { href: '/admin', label: 'Stories', icon: BookOpen, badge: 0, badgeStyle: 'alert' },
+    { href: '/admin/users', label: 'Users', icon: Users, badge: 0, badgeStyle: 'alert' },
     { href: '/admin/reports', label: 'Reports', icon: Flag, badge: pendingReports, badgeStyle: 'alert' },
     { href: '/admin/survey', label: 'Survey', icon: MessageSquareHeart, badge: surveyCount, badgeStyle: 'count' },
     { href: '/admin/waitlist', label: 'Org Waitlist', icon: School, badge: waitlistCount, badgeStyle: 'count' },
@@ -51,7 +52,7 @@ export default function AdminNav() {
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 flex flex-col gap-1">
         {NAV_ITEMS.map(({ href, label, icon: Icon, badge, badgeStyle }) => {
-          const active = pathname === href
+          const active = href === '/admin' ? pathname === href : pathname.startsWith(href)
           return (
             <Link
               key={href}
