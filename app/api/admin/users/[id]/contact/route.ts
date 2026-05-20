@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { users } from '@/lib/schema'
+import { users, adminMessages } from '@/lib/schema'
 import { sendAdminMessage } from '@/lib/email'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -33,5 +33,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     message: message.trim(),
   })
 
-  return NextResponse.json({ success: true })
+  const [saved] = await db
+    .insert(adminMessages)
+    .values({
+      userId: id,
+      sentByEmail: session.user.email!,
+      subject: subject.trim(),
+      message: message.trim(),
+    })
+    .returning()
+
+  return NextResponse.json(saved)
 }

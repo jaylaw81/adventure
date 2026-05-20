@@ -237,6 +237,18 @@ export const surveyDismissals = pgTable('survey_dismissals', {
   index('survey_dismissals_user_email_idx').on(t.userEmail),
 ])
 
+export const adminMessages = pgTable('admin_messages', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  sentByEmail: text('sent_by_email').notNull(),
+  subject: text('subject').notNull(),
+  message: text('message').notNull(),
+  sentAt: timestamp('sent_at').defaultNow().notNull(),
+}, (t) => [
+  index('admin_messages_user_id_idx').on(t.userId),
+])
+
+export type AdminMessage = typeof adminMessages.$inferSelect
 export type User = typeof users.$inferSelect
 export type Organization = typeof organizations.$inferSelect
 export type OrganizationGroup = typeof organizationGroups.$inferSelect

@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, Play, ExternalLink, Globe, Lock, ShieldOff,
-  Trash2, UserCheck, UserX, BookOpen, PauseCircle, CheckCircle2, Mail, X, Send
+  Trash2, UserCheck, UserX, BookOpen, PauseCircle, CheckCircle2,
+  Mail, X, Send, MessageSquare, ChevronDown, ChevronUp,
 } from 'lucide-react'
 
 const AUDIENCE_LABEL: Record<string, string> = {
@@ -41,12 +42,23 @@ interface AdminStory {
   createdAt: string
 }
 
+interface AdminMessage {
+  id: string
+  userId: string
+  sentByEmail: string
+  subject: string
+  message: string
+  sentAt: string
+}
+
 function ContactModal({
   user,
   onClose,
+  onSent,
 }: {
   user: AdminUser
   onClose: () => void
+  onSent: (msg: AdminMessage) => void
 }) {
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
@@ -67,6 +79,8 @@ function ContactModal({
       body: JSON.stringify({ subject, message }),
     })
     if (res.ok) {
+      const saved: AdminMessage = await res.json()
+      onSent(saved)
       setSent(true)
     } else {
       const data = await res.json().catch(() => ({}))
@@ -148,6 +162,46 @@ function ContactModal({
   )
 }
 
+function MessageRow({ msg }: { msg: AdminMessage }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="border border-slate-200 rounded-xl overflow-hidden">
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-slate-50 transition-colors text-left gap-4"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <Mail size={14} className="text-violet-500 shrink-0" />
+          <span className="font-medium text-slate-900 text-sm truncate">{msg.subject}</span>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-xs text-slate-400 font-mono hidden sm:block">{msg.sentByEmail}</span>
+          <span className="text-xs text-slate-400 whitespace-nowrap">
+            {new Date(msg.sentAt).toLocaleString(undefined, {
+              month: 'short', day: 'numeric', year: 'numeric',
+              hour: '2-digit', minute: '2-digit',
+            })}
+          </span>
+          {expanded ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+        </div>
+      </button>
+      {expanded && (
+        <div className="px-4 pb-4 pt-1 bg-slate-50 border-t border-slate-200">
+          <p className="text-xs text-slate-500 mb-2 font-mono">
+            Sent by <span className="font-semibold text-slate-700">{msg.sentByEmail}</span> on{' '}
+            {new Date(msg.sentAt).toLocaleString(undefined, {
+              weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+              hour: '2-digit', minute: '2-digit',
+            })}
+          </p>
+          <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function AdminUserDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -155,6 +209,7 @@ export default function AdminUserDetailPage() {
 
   const [user, setUser] = useState<AdminUser | null>(null)
   const [stories, setStories] = useState<AdminStory[]>([])
+  const [messages, setMessages] = useState<AdminMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [actingUser, setActingUser] = useState(false)
   const [actingStory, setActingStory] = useState<string | null>(null)
@@ -164,12 +219,18 @@ export default function AdminUserDetailPage() {
     Promise.all([
       fetch('/api/admin/users').then(r => r.json()),
       fetch(`/api/admin/users/${id}/stories`).then(r => r.json()),
-    ]).then(([allUsers, userStories]) => {
+      fetch(`/api/admin/users/${id}/messages`).then(r => r.json()),
+    ]).then(([allUsers, userStories, userMessages]) => {
       setUser((allUsers as AdminUser[]).find((u: AdminUser) => u.id === id) ?? null)
       setStories(userStories)
+      setMessages(userMessages)
       setLoading(false)
     })
   }, [id])
+
+  function handleMessageSent(msg: AdminMessage) {
+    setMessages(prev => [msg, ...prev])
+  }
 
   async function toggleSuspendUser() {
     if (!user) return
@@ -231,7 +292,13 @@ export default function AdminUserDetailPage() {
 
   return (
     <div className="p-8">
-      {showContact && <ContactModal user={user} onClose={() => setShowContact(false)} />}
+      {showContact && (
+        <ContactModal
+          user={user}
+          onClose={() => setShowContact(false)}
+          onSent={handleMessageSent}
+        />
+      )}
 
       <Link href="/admin/users" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-6 transition-colors">
         <ArrowLeft size={14} /> Back to Users
@@ -300,7 +367,7 @@ export default function AdminUserDetailPage() {
         <h2 className="text-lg font-semibold text-slate-900">Stories ({stories.length})</h2>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm mb-10">
         {stories.length === 0 ? (
           <div className="p-12 text-center text-slate-400 text-sm">No stories.</div>
         ) : (
@@ -402,6 +469,35 @@ export default function AdminUserDetailPage() {
           </table>
         )}
       </div>
+
+      {/* Message history */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <MessageSquare size={16} className="text-slate-500" />
+          <h2 className="text-lg font-semibold text-slate-900">Message History ({messages.length})</h2>
+        </div>
+        <button
+          onClick={() => setShowContact(true)}
+          className="inline-flex items-center gap-2 px-3 py-1.5 bg-violet-100 hover:bg-violet-200 text-violet-700 rounded-lg text-xs font-medium transition-colors"
+        >
+          <Send size={12} /> New Message
+        </button>
+      </div>
+
+      {messages.length === 0 ? (
+        <div className="bg-white rounded-xl border border-slate-200 p-10 text-center shadow-sm">
+          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <MessageSquare size={18} className="text-slate-400" />
+          </div>
+          <p className="text-sm text-slate-400">No messages sent to this user yet.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {messages.map(msg => (
+            <MessageRow key={msg.id} msg={msg} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
