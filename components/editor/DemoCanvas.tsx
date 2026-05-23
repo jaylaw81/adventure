@@ -373,6 +373,7 @@ function DemoCanvasInner() {
       imageUrl: null,
       chapterId: null,
       nextChapterId: null,
+      chapterEntryNodeId: null,
       positionX: position.x,
       positionY: position.y,
     })

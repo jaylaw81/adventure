@@ -54,6 +54,8 @@ export const nodes = pgTable('nodes', {
   imageUrl: text('image_url'),
   positionX: doublePrecision('position_x').notNull().default(0),
   positionY: doublePrecision('position_y').notNull().default(0),
+  // For chapter_end nodes: specific entry scene in the next chapter (overrides getChapterStartNode)
+  chapterEntryNodeId: uuid('chapter_entry_node_id'),
 }, (t) => [
   index('nodes_adventure_id_idx').on(t.adventureId),
   index('nodes_chapter_id_idx').on(t.chapterId),
@@ -227,6 +229,18 @@ export const surveyResponses = pgTable('survey_responses', {
 }, (t) => [
   index('survey_responses_user_email_idx').on(t.userEmail),
 ])
+
+export const surveyReplies = pgTable('survey_replies', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  surveyResponseId: uuid('survey_response_id').notNull().references(() => surveyResponses.id, { onDelete: 'cascade' }),
+  sentByEmail: text('sent_by_email').notNull(),
+  subject: text('subject').notNull(),
+  message: text('message').notNull(),
+  sentAt: timestamp('sent_at').defaultNow().notNull(),
+}, (t) => [
+  index('survey_replies_response_id_idx').on(t.surveyResponseId),
+])
+export type SurveyReply = typeof surveyReplies.$inferSelect
 
 export const surveyDismissals = pgTable('survey_dismissals', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),

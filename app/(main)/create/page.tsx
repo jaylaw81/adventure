@@ -233,20 +233,40 @@ export default function CreatePage() {
                   <label className="block text-sm font-medium mb-3" style={{ color: '#1e0a3c' }}>
                     How many chapters?
                   </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="range"
-                      min={2}
-                      max={templateSize === 'small' ? 3 : templateSize === 'medium' ? 5 : 8}
-                      value={chapterCount}
-                      onChange={e => setChapterCount(Number(e.target.value))}
-                      className="flex-1 accent-violet-600"
-                    />
-                    <span className="w-8 text-center font-bold text-violet-700">{chapterCount}</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>2</span>
-                    <span>{templateSize === 'small' ? 3 : templateSize === 'medium' ? 5 : 8}</span>
+                  <div className="grid grid-cols-4 gap-2">
+                    {Array.from(
+                      { length: (templateSize === 'small' ? 3 : templateSize === 'medium' ? 5 : 8) - 1 },
+                      (_, i) => i + 2
+                    ).map(n => {
+                      const selected = chapterCount === n
+                      return (
+                        <button
+                          key={n}
+                          onClick={() => setChapterCount(n)}
+                          className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border-2 transition-all ${
+                            selected
+                              ? 'border-violet-500 bg-violet-50 shadow-sm'
+                              : 'border-gray-200 bg-white hover:border-violet-300 hover:bg-violet-50/50'
+                          }`}
+                        >
+                          <span className={`text-2xl font-bold leading-none ${selected ? 'text-violet-700' : 'text-gray-600'}`}>
+                            {n}
+                          </span>
+                          <div className="flex flex-col gap-0.5">
+                            {Array.from({ length: Math.min(n, 4) }).map((_, i) => (
+                              <div
+                                key={i}
+                                className={`h-0.5 rounded-full transition-colors ${selected ? 'bg-violet-400' : 'bg-gray-300'}`}
+                                style={{ width: `${18 - i * 2}px` }}
+                              />
+                            ))}
+                          </div>
+                          <span className={`text-[10px] font-medium ${selected ? 'text-violet-500' : 'text-gray-400'}`}>
+                            {n === 1 ? 'chapter' : 'chapters'}
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
                   <p className="text-xs text-gray-500 mt-3">
                     Scenes will be pre-assigned across {chapterCount} chapters. You can reorganize them in the editor.

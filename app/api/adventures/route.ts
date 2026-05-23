@@ -207,13 +207,16 @@ export async function POST(req: Request) {
       chapterRecords.push(...inserted.map(c => ({ id: c.id, orderIndex: c.orderIndex })))
     }
 
-    // Insert nodes and build key→id map
+    // Insert nodes and build key→id / key→chapterIdx / key→position maps
     const keyToId = new Map<string, string>()
+    const keyToChapterIdx = new Map<string, number>()
+    const keyToPos = new Map<string, { x: number; y: number }>()
     for (const nodeDef of tpl.nodes) {
       let chapterId: string | null = null
+      let chapterIdx = -1
       if (chapterRecords.length > 0) {
-        const idx = phaseToChapterIndex(nodeDef.phase, tpl.maxPhase, chapterRecords.length)
-        chapterId = chapterRecords[idx]?.id ?? null
+        chapterIdx = phaseToChapterIndex(nodeDef.phase, tpl.maxPhase, chapterRecords.length)
+        chapterId = chapterRecords[chapterIdx]?.id ?? null
       }
       const [inserted] = await db
         .insert(nodes)
@@ -228,21 +231,116 @@ export async function POST(req: Request) {
         })
         .returning()
       keyToId.set(nodeDef.key, inserted.id)
+      keyToChapterIdx.set(nodeDef.key, chapterIdx)
+      keyToPos.set(nodeDef.key, { x: nodeDef.positionX, y: nodeDef.positionY })
     }
 
-    // Insert choices
-    const choiceValues = tpl.choices
-      .filter(c => keyToId.has(c.from) && keyToId.has(c.to))
-      .map(c => ({
-        adventureId: adventure.id,
-        sourceNodeId: keyToId.get(c.from)!,
-        targetNodeId: keyToId.get(c.to)!,
-        label: c.label,
-        orderIndex: c.order,
-      }))
+    // When chapters exist, replace cross-chapter choices with chapter_end nodes.
+    // Group cross-chapter choices by (sourceKey, targetChapterIdx) so each
+    // source→targetChapter boundary gets exactly one chapter_end node.
+    const choiceInserts: {
+      adventureId: string
+      sourceNodeId: string
+      targetNodeId: string
+      label: string
+      orderIndex: number
+    }[] = []
 
-    if (choiceValues.length > 0) {
-      await db.insert(choices).values(choiceValues)
+    if (chapterRecords.length > 0) {
+      // Separate same-chapter vs cross-chapter choices
+      const sameChapter: ChoiceDef[] = []
+      // key: `${fromKey}|${targetChapterIdx}`
+      const crossGroups = new Map<string, { fromKey: string; targetChapterIdx: number; defs: ChoiceDef[] }>()
+
+      for (const c of tpl.choices) {
+        if (!keyToId.has(c.from) || !keyToId.has(c.to)) continue
+        const srcIdx = keyToChapterIdx.get(c.from) ?? -1
+        const tgtIdx = keyToChapterIdx.get(c.to) ?? -1
+        if (srcIdx !== tgtIdx && srcIdx >= 0 && tgtIdx >= 0) {
+          const gk = `${c.from}|${tgtIdx}`
+          if (!crossGroups.has(gk)) crossGroups.set(gk, { fromKey: c.from, targetChapterIdx: tgtIdx, defs: [] })
+          crossGroups.get(gk)!.defs.push(c)
+        } else {
+          sameChapter.push(c)
+        }
+      }
+
+      // Same-chapter choices insert as normal
+      for (const c of sameChapter) {
+        choiceInserts.push({
+          adventureId: adventure.id,
+          sourceNodeId: keyToId.get(c.from)!,
+          targetNodeId: keyToId.get(c.to)!,
+          label: c.label,
+          orderIndex: c.order,
+        })
+      }
+
+      // For each cross-chapter group: create a chapter_end node, then wire choices
+      for (const group of crossGroups.values()) {
+        const srcPos = keyToPos.get(group.fromKey) ?? { x: 350, y: 80 }
+        const targetChapterId = chapterRecords[group.targetChapterIdx]?.id ?? null
+        const srcChapterIdx = keyToChapterIdx.get(group.fromKey) ?? 0
+        const srcChapterId = chapterRecords[srcChapterIdx]?.id ?? null
+
+        // Determine specific entry node (used when there's only one target)
+        const targetKeys = group.defs.map(d => d.to)
+        const isSingleTarget = targetKeys.length === 1
+        const chapterEntryNodeId = isSingleTarget ? (keyToId.get(targetKeys[0]) ?? null) : null
+
+        const [chEnd] = await db
+          .insert(nodes)
+          .values({
+            adventureId: adventure.id,
+            chapterId: srcChapterId,
+            nextChapterId: targetChapterId,
+            chapterEntryNodeId,
+            title: 'End of Chapter',
+            content: 'This chapter draws to a close.',
+            nodeType: 'chapter_end',
+            positionX: srcPos.x,
+            positionY: srcPos.y + 200,
+          })
+          .returning()
+
+        // source → chapter_end (one choice, first original label)
+        choiceInserts.push({
+          adventureId: adventure.id,
+          sourceNodeId: keyToId.get(group.fromKey)!,
+          targetNodeId: chEnd.id,
+          label: group.defs[0].label,
+          orderIndex: 0,
+        })
+
+        // When multiple targets: chapter_end → each target (branching chapter end)
+        if (!isSingleTarget) {
+          group.defs.forEach((d, i) => {
+            choiceInserts.push({
+              adventureId: adventure.id,
+              sourceNodeId: chEnd.id,
+              targetNodeId: keyToId.get(d.to)!,
+              label: d.label,
+              orderIndex: i,
+            })
+          })
+        }
+      }
+    } else {
+      // No chapters: insert all choices directly
+      for (const c of tpl.choices) {
+        if (!keyToId.has(c.from) || !keyToId.has(c.to)) continue
+        choiceInserts.push({
+          adventureId: adventure.id,
+          sourceNodeId: keyToId.get(c.from)!,
+          targetNodeId: keyToId.get(c.to)!,
+          label: c.label,
+          orderIndex: c.order,
+        })
+      }
+    }
+
+    if (choiceInserts.length > 0) {
+      await db.insert(choices).values(choiceInserts)
     }
 
     return NextResponse.json(adventure, { status: 201 })

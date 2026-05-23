@@ -52,13 +52,27 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
   const isStart = node.nodeType === 'start'
   const isChapterEnd = node.nodeType === 'chapter_end'
 
-  // For chapter_end nodes, find the start node of the next chapter
-  const [nextChapterStartNode, nextChapter] = isChapterEnd && node.nextChapterId
-    ? await Promise.all([
-        getChapterStartNode(id, node.nextChapterId),
-        getChapter(node.nextChapterId),
-      ])
-    : [null, null]
+  // For chapter_end nodes: resolve the next chapter and the specific entry node.
+  // Priority: chapterEntryNodeId field → chapter_end's own choices → getChapterStartNode fallback.
+  const nextChapter = isChapterEnd && node.nextChapterId ? await getChapter(node.nextChapterId) : null
+
+  let nextEntryNodeId: string | null = null
+  let nextEntryNodeTitle: string | null = null
+  if (isChapterEnd) {
+    if (node.chapterEntryNodeId) {
+      // Explicit single entry scene stored on the node
+      nextEntryNodeId = node.chapterEntryNodeId
+    } else if (choices.length === 1) {
+      // Single choice on this chapter_end → treat as the entry
+      nextEntryNodeId = choices[0].targetNodeId
+    } else if (choices.length === 0 && node.nextChapterId) {
+      // Fallback: find the chapter's start-type node
+      const fallback = await getChapterStartNode(id, node.nextChapterId)
+      nextEntryNodeId = fallback?.id ?? null
+      nextEntryNodeTitle = fallback?.title ?? null
+    }
+    // choices.length > 1: reader will render them as selection buttons below
+  }
 
   return (
     <>
@@ -100,13 +114,38 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
               <p className="text-teal-800 font-semibold text-lg">End of Chapter</p>
               <span className="text-teal-600 text-lg">✦</span>
             </div>
-            {nextChapterStartNode ? (
+
+            {/* Multiple choices: branching chapter end — reader picks which path enters next chapter */}
+            {choices.length > 1 && !node.chapterEntryNodeId ? (
               <div>
                 <p className="text-gray-500 mb-6">
                   Continue to: <span className="font-medium text-gray-700">{nextChapter?.title ?? 'Next Chapter'}</span>
                 </p>
+                <div className="flex flex-col gap-3 max-w-sm mx-auto">
+                  {choices.map((choice, index) => (
+                    <Link
+                      key={choice.id}
+                      href={`/play/${id}/${choice.targetNodeId}`}
+                      className="flex items-center gap-3 px-6 py-3 bg-white border-2 border-teal-200 hover:border-teal-500 hover:bg-teal-50 text-teal-800 font-semibold rounded-xl transition-all shadow-sm"
+                    >
+                      <span className="w-6 h-6 rounded-full bg-teal-100 text-teal-700 text-xs font-bold flex items-center justify-center shrink-0">
+                        {index + 1}
+                      </span>
+                      {choice.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : nextEntryNodeId ? (
+              <div>
+                <p className="text-gray-500 mb-6">
+                  Continue to: <span className="font-medium text-gray-700">{nextChapter?.title ?? 'Next Chapter'}</span>
+                  {nextEntryNodeTitle && (
+                    <span className="text-gray-400"> — {nextEntryNodeTitle}</span>
+                  )}
+                </p>
                 <Link
-                  href={`/play/${id}/${nextChapterStartNode.id}`}
+                  href={`/play/${id}/${nextEntryNodeId}`}
                   className="inline-flex items-center gap-2 px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors shadow-md"
                 >
                   Continue →

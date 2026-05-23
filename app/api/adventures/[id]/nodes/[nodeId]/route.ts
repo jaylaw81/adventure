@@ -20,6 +20,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (body.status !== undefined) updateData.status = body.status
     if (body.chapterId !== undefined) updateData.chapterId = body.chapterId
     if (body.nextChapterId !== undefined) updateData.nextChapterId = body.nextChapterId
+    if (body.chapterEntryNodeId !== undefined) updateData.chapterEntryNodeId = body.chapterEntryNodeId || null
     const [updated] = await db.update(nodes).set(updateData).where(and(eq(nodes.id, nodeId), eq(nodes.adventureId, id))).returning()
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json(updated)

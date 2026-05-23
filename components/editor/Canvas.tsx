@@ -610,6 +610,7 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
             node={selectedDbNode}
             adventureId={adventure.id}
             chapters={dbChapters}
+            nodes={dbNodes}
             onClose={() => setSelectedNodeId(null)}
             onUpdate={handleNodeUpdate}
             onDelete={handleNodeDelete}

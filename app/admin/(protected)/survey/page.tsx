@@ -1,7 +1,16 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { Search, X, MessageSquareHeart, Download, ChevronDown, ChevronUp, XCircle, Reply, Send, Loader2 } from 'lucide-react'
+import { Search, X, MessageSquareHeart, Download, ChevronDown, ChevronUp, XCircle, Reply, Send, Loader2, MessagesSquare, Clock } from 'lucide-react'
+
+interface SurveyReply {
+  id: string
+  surveyResponseId: string
+  sentByEmail: string
+  subject: string
+  message: string
+  sentAt: string
+}
 
 interface SurveyResponse {
   id: string
@@ -11,9 +20,18 @@ interface SurveyResponse {
   featureRequests: string | null
   surveyType: string
   createdAt: string
+  replies: SurveyReply[]
 }
 
-function ReplyModal({ response, onClose }: { response: SurveyResponse; onClose: () => void }) {
+function ReplyModal({
+  response,
+  onClose,
+  onSent,
+}: {
+  response: SurveyResponse
+  onClose: () => void
+  onSent: (reply: SurveyReply) => void
+}) {
   const [subject, setSubject] = useState('Re: Your StoryQuestor feedback')
   const [message, setMessage] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
@@ -28,18 +46,20 @@ function ReplyModal({ response, onClose }: { response: SurveyResponse; onClose: 
         body: JSON.stringify({ responseId: response.id, subject, message }),
       })
       if (!res.ok) throw new Error()
+      const data = await res.json()
       setStatus('sent')
-      setTimeout(onClose, 1500)
+      onSent(data.reply)
+      setTimeout(onClose, 1200)
     } catch {
       setStatus('error')
     }
-  }, [response.id, subject, message, onClose])
+  }, [response.id, subject, message, onClose, onSent])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden max-h-[90vh]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-2.5">
             <Reply size={16} className="text-slate-500" />
             <span className="font-semibold text-slate-900 text-sm">Reply to {response.userEmail}</span>
@@ -49,7 +69,33 @@ function ReplyModal({ response, onClose }: { response: SurveyResponse; onClose: 
           </button>
         </div>
 
-        <div className="p-6 flex flex-col gap-4">
+        <div className="overflow-y-auto flex-1 p-6 flex flex-col gap-4">
+          {/* Prior replies in this thread */}
+          {response.replies.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Conversation history ({response.replies.length})
+              </p>
+              <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                {response.replies.map(r => (
+                  <div key={r.id} className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3 text-xs">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className="font-semibold text-violet-700">{r.sentByEmail}</span>
+                      <span className="text-slate-400 shrink-0">
+                        {new Date(r.sentAt).toLocaleString(undefined, {
+                          month: 'short', day: 'numeric', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    <p className="font-medium text-slate-600 mb-0.5">{r.subject}</p>
+                    <p className="text-slate-500 whitespace-pre-wrap leading-relaxed">{r.message}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">Subject</label>
             <input
@@ -64,7 +110,7 @@ function ReplyModal({ response, onClose }: { response: SurveyResponse; onClose: 
             <textarea
               value={message}
               onChange={e => setMessage(e.target.value)}
-              rows={7}
+              rows={6}
               placeholder="Write your reply…"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none"
               autoFocus
@@ -80,7 +126,7 @@ function ReplyModal({ response, onClose }: { response: SurveyResponse; onClose: 
           </div>
         </div>
 
-        <div className="flex items-center justify-between px-6 pb-5 gap-3">
+        <div className="flex items-center justify-between px-6 pb-5 pt-3 gap-3 border-t border-slate-100 shrink-0">
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
             Cancel
           </button>
@@ -99,6 +145,44 @@ function ReplyModal({ response, onClose }: { response: SurveyResponse; onClose: 
           <p className="px-6 pb-4 text-xs text-red-500">Failed to send — check your Resend config and try again.</p>
         )}
       </div>
+    </div>
+  )
+}
+
+function ReplyThread({ replies }: { replies: SurveyReply[] }) {
+  const [open, setOpen] = useState(false)
+  if (replies.length === 0) return null
+  return (
+    <div className="mt-2">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-800 font-medium transition-colors"
+      >
+        <MessagesSquare size={12} />
+        {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+        {open ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+      </button>
+      {open && (
+        <div className="mt-2 flex flex-col gap-2">
+          {replies.map(r => (
+            <div key={r.id} className="bg-violet-50 border border-violet-100 rounded-lg px-3 py-2.5 text-xs">
+              <div className="flex items-center gap-1.5 mb-1 text-slate-400">
+                <Clock size={10} />
+                <span>
+                  {new Date(r.sentAt).toLocaleString(undefined, {
+                    month: 'short', day: 'numeric', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit',
+                  })}
+                </span>
+                <span className="text-slate-300">·</span>
+                <span className="text-violet-600 font-medium">{r.sentByEmail}</span>
+              </div>
+              <p className="font-semibold text-slate-700 mb-0.5">{r.subject}</p>
+              <p className="text-slate-500 whitespace-pre-wrap leading-relaxed">{r.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -142,6 +226,14 @@ export default function SurveyAdminPage() {
       })
   }, [])
 
+  const handleReplySent = useCallback((responseId: string, reply: SurveyReply) => {
+    setResponses(prev => prev.map(r =>
+      r.id === responseId ? { ...r, replies: [...r.replies, reply] } : r
+    ))
+    // Keep the modal open with the updated response so the user sees the new reply in context
+    setReplyTarget(prev => prev?.id === responseId ? { ...prev, replies: [...prev.replies, reply] } : prev)
+  }, [])
+
   const filtered = useMemo(() => {
     let list = responses
     if (typeFilter !== 'all') list = list.filter(r => r.surveyType === typeFilter)
@@ -165,7 +257,7 @@ export default function SurveyAdminPage() {
   }), [responses])
 
   function exportCsv() {
-    const header = 'Email,Type,Likes,Dislikes,Feature Requests,Submitted'
+    const header = 'Email,Type,Likes,Dislikes,Feature Requests,Submitted,Replies'
     const rows = responses.map(r =>
       [
         r.userEmail ?? '',
@@ -174,6 +266,7 @@ export default function SurveyAdminPage() {
         r.dislikes ?? '',
         r.featureRequests ?? '',
         new Date(r.createdAt).toLocaleDateString(),
+        r.replies.length,
       ]
         .map(v => `"${String(v).replace(/"/g, '""')}"`)
         .join(',')
@@ -272,23 +365,26 @@ export default function SurveyAdminPage() {
               <tr className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
                 <th className="text-left px-5 py-3 font-semibold">User</th>
                 <th className="text-left px-4 py-3 font-semibold">Type</th>
-                <th className="text-left px-4 py-3 font-semibold w-1/4">Likes</th>
-                <th className="text-left px-4 py-3 font-semibold w-1/4">Dislikes</th>
-                <th className="text-left px-4 py-3 font-semibold w-1/4">Feature Requests</th>
+                <th className="text-left px-4 py-3 font-semibold w-1/5">Likes</th>
+                <th className="text-left px-4 py-3 font-semibold w-1/5">Dislikes</th>
+                <th className="text-left px-4 py-3 font-semibold w-1/5">Feature Requests</th>
                 <th className="text-left px-4 py-3 font-semibold">Date</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.map(r => (
-                <tr key={r.id} className="hover:bg-slate-50 transition-colors align-top">
-                  <td className="px-5 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">
+                <tr key={r.id} className="hover:bg-slate-50/70 transition-colors align-top">
+                  <td className="px-5 py-4 text-xs text-slate-500">
                     {r.userEmail ? (
-                      <a href={`mailto:${r.userEmail}`} className="hover:text-amber-600 transition-colors">
-                        {r.userEmail}
-                      </a>
+                      <div>
+                        <a href={`mailto:${r.userEmail}`} className="font-mono hover:text-amber-600 transition-colors">
+                          {r.userEmail}
+                        </a>
+                        <ReplyThread replies={r.replies} />
+                      </div>
                     ) : (
-                      <span className="text-slate-300">anonymous</span>
+                      <span className="text-slate-300 font-mono">anonymous</span>
                     )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
@@ -312,10 +408,14 @@ export default function SurveyAdminPage() {
                     {r.userEmail && (
                       <button
                         onClick={() => setReplyTarget(r)}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-violet-700 bg-violet-50 hover:bg-violet-100 rounded-lg transition-colors"
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
+                          r.replies.length > 0
+                            ? 'text-violet-800 bg-violet-100 hover:bg-violet-200'
+                            : 'text-violet-700 bg-violet-50 hover:bg-violet-100'
+                        }`}
                       >
                         <Reply size={12} />
-                        Reply
+                        {r.replies.length > 0 ? `Reply (${r.replies.length})` : 'Reply'}
                       </button>
                     )}
                   </td>
@@ -333,7 +433,11 @@ export default function SurveyAdminPage() {
       )}
 
       {replyTarget && (
-        <ReplyModal response={replyTarget} onClose={() => setReplyTarget(null)} />
+        <ReplyModal
+          response={replyTarget}
+          onClose={() => setReplyTarget(null)}
+          onSent={reply => handleReplySent(replyTarget.id, reply)}
+        />
       )}
     </div>
   )

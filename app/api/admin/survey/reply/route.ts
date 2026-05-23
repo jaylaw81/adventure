@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { surveyResponses } from '@/lib/schema'
+import { surveyResponses, surveyReplies } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 import { sendSurveyReply } from '@/lib/email'
 
@@ -43,5 +43,15 @@ export async function POST(req: Request) {
     },
   })
 
-  return Response.json({ ok: true })
+  const [saved] = await db
+    .insert(surveyReplies)
+    .values({
+      surveyResponseId: responseId,
+      sentByEmail: session.user.email!,
+      subject: subject.trim(),
+      message: message.trim(),
+    })
+    .returning()
+
+  return Response.json({ ok: true, reply: saved })
 }

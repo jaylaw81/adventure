@@ -504,7 +504,6 @@ function Dashboard() {
   }, [])
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this story?')) return
     await fetch(`/api/adventures/${id}`, { method: 'DELETE' })
     setAdventures(prev => prev.filter(a => a.id !== id))
   }
