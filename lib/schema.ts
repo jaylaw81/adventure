@@ -297,6 +297,22 @@ export const emailBlasts = pgTable('email_blasts', {
   sentAt: timestamp('sent_at').defaultNow().notNull(),
 })
 
+export const emailBlastRecipients = pgTable('email_blast_recipients', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  blastId: uuid('blast_id').notNull().references(() => emailBlasts.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  resendId: text('resend_id'),
+  // 'sent' = accepted by Resend, awaiting webhook; 'failed' = our API call failed;
+  // 'delivered' | 'bounced' | 'complained' set by webhook
+  status: text('status').notNull().default('sent'),
+  error: text('error'),
+  sentAt: timestamp('sent_at').defaultNow().notNull(),
+  deliveredAt: timestamp('delivered_at'),
+}, (t) => [
+  index('ebr_blast_id_idx').on(t.blastId),
+  index('ebr_resend_id_idx').on(t.resendId),
+])
+
 export const adminMessages = pgTable('admin_messages', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -309,6 +325,7 @@ export const adminMessages = pgTable('admin_messages', {
 ])
 
 export type EmailBlast = typeof emailBlasts.$inferSelect
+export type EmailBlastRecipient = typeof emailBlastRecipients.$inferSelect
 export type SurveyConfig = typeof surveyConfigs.$inferSelect
 export type SurveyImpressionV2 = typeof surveyImpressionsV2.$inferSelect
 export type SurveyAnswerV2 = typeof surveyAnswersV2.$inferSelect

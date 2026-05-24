@@ -260,12 +260,12 @@ export async function sendEmailBlast(opts: {
   subject: string
   bodyHtml: string
   unsubscribeToken: string
-}) {
+}): Promise<string> {
   const { to, displayName, subject, bodyHtml, unsubscribeToken } = opts
   const greeting = displayName ? escapeHtml(displayName) : 'there'
   const unsubscribeUrl = `${SITE_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
 
-  await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: FROM,
     to,
     replyTo: 'contact@storyquestor.com',
@@ -299,6 +299,8 @@ export async function sendEmailBlast(opts: {
       </html>
     `,
   })
+  if (error || !data?.id) throw new Error(error?.message ?? 'Resend returned no email ID')
+  return data.id
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {

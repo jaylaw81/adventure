@@ -9,10 +9,21 @@ import TextAlign from '@tiptap/extension-text-align'
 import Placeholder from '@tiptap/extension-placeholder'
 import {
   Bold, Italic, UnderlineIcon, Link2, AlignLeft, AlignCenter,
-  List, ListOrdered, Send, History, Users, ChevronRight, Loader2,
+  List, ListOrdered, Send, History, Users, UserX, ChevronRight, Loader2,
   CheckCircle2, AlertCircle,
 } from 'lucide-react'
-import { CHANGELOG } from '@/lib/changelog'
+
+interface ChangelogEntry {
+  date: string
+  items: string[]
+}
+
+interface BlastDelivery {
+  delivered: number
+  failed: number
+  bounced: number
+  pending: number
+}
 
 interface Blast {
   id: string
@@ -20,6 +31,7 @@ interface Blast {
   sentByEmail: string
   recipientCount: number
   sentAt: string
+  delivery: BlastDelivery
 }
 
 function ToolbarButton({
@@ -53,8 +65,12 @@ export default function MessagesPage() {
   const [subject, setSubject] = useState('')
   const [blasts, setBlasts] = useState<Blast[]>([])
   const [loadingBlasts, setLoadingBlasts] = useState(true)
+  const [stats, setStats] = useState<{ subscribed: number; unsubscribed: number; org: number; inactive: number } | null>(null)
+  const [changelog, setChangelog] = useState<ChangelogEntry[]>([])
+  const [audience, setAudience] = useState<'all' | 'organization' | 'inactive'>('all')
   const [sending, setSending] = useState(false)
   const [sendResult, setSendResult] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
+  const [resendingBlast, setResendingBlast] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'compose' | 'history'>('compose')
   const [changelogOpen, setChangelogOpen] = useState(true)
 
@@ -73,11 +89,18 @@ export default function MessagesPage() {
     },
   })
 
-  useEffect(() => {
+  const loadMessages = useCallback(() =>
     fetch('/api/admin/messages')
       .then(r => r.json())
-      .then(data => { setBlasts(data); setLoadingBlasts(false) })
-  }, [])
+      .then(data => { setBlasts(data.blasts ?? []); setStats(data.stats ?? null); setLoadingBlasts(false) })
+  , [])
+
+  useEffect(() => {
+    loadMessages()
+    fetch('/api/admin/changelog')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setChangelog(data) })
+  }, [loadMessages])
 
   const insertChangelog = useCallback((text: string) => {
     if (!editor) return
@@ -96,7 +119,7 @@ export default function MessagesPage() {
       const res = await fetch('/api/admin/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, bodyHtml }),
+        body: JSON.stringify({ subject, bodyHtml, audience }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -107,19 +130,48 @@ export default function MessagesPage() {
       setSendResult({ type: 'success', msg: `Sent to ${recipientCount} of ${total} subscribed users.` })
       setSubject('')
       editor?.commands.clearContent()
-      const updated = await fetch('/api/admin/messages').then(r => r.json())
-      setBlasts(updated)
+      await loadMessages()
       setActiveTab('history')
     } finally {
       setSending(false)
     }
-  }, [editor, subject])
+  }, [editor, subject, audience, loadMessages])
+
+  const handleResendFailed = useCallback(async (blastId: string) => {
+    setResendingBlast(blastId)
+    try {
+      const res = await fetch(`/api/admin/messages/${blastId}/resend`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error ?? 'Resend failed')
+        return
+      }
+      await loadMessages()
+    } finally {
+      setResendingBlast(null)
+    }
+  }, [loadMessages])
 
   return (
     <div className="p-4 md:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Email Blast</h1>
-        <p className="text-slate-500 text-sm mt-1">Send product updates to all subscribed users</p>
+        <div className="flex items-center gap-4 mt-1.5 flex-wrap">
+          <p className="text-slate-500 text-sm">Send product updates to all subscribed users</p>
+          {stats !== null && (
+            <>
+              <div className="w-px h-3.5 bg-slate-200 shrink-0" />
+              <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                <Users size={13} className="text-green-600" />
+                <span className="font-semibold text-green-600">{stats.subscribed.toLocaleString()}</span> subscribed
+              </span>
+              <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                <UserX size={13} className="text-slate-400" />
+                <span className="font-semibold text-slate-500">{stats.unsubscribed.toLocaleString()}</span> unsubscribed
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col xl:flex-row gap-6">
@@ -136,7 +188,7 @@ export default function MessagesPage() {
             </button>
             {changelogOpen && (
               <div className="divide-y divide-slate-100 max-h-[520px] overflow-y-auto">
-                {CHANGELOG.map(entry => {
+                {changelog.map(entry => {
                   const label = new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', {
                     month: 'short', day: 'numeric', year: 'numeric',
                   })
@@ -200,6 +252,39 @@ export default function MessagesPage() {
                 />
               </div>
 
+              {/* Audience */}
+              <div className="px-4 py-3 border-b border-slate-200">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Audience</p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {([
+                    { value: 'all',          label: 'All subscribers',      count: stats?.subscribed,  desc: 'Every user who has not unsubscribed' },
+                    { value: 'organization', label: 'Organization users',   count: stats?.org,         desc: 'Subscribed users on the org tier' },
+                    { value: 'inactive',     label: 'Inactive (30+ days)',  count: stats?.inactive,    desc: 'Subscribed users with no story activity in 30 days' },
+                  ] as const).map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setAudience(opt.value)}
+                      className={`flex-1 text-left px-3 py-2.5 rounded-lg border transition-colors ${
+                        audience === opt.value
+                          ? 'border-slate-900 bg-slate-900 text-white'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold">{opt.label}</span>
+                        {opt.count !== undefined && (
+                          <span className={`text-xs font-bold tabular-nums ${audience === opt.value ? 'text-slate-300' : 'text-slate-400'}`}>
+                            {opt.count.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-xs mt-0.5 ${audience === opt.value ? 'text-slate-400' : 'text-slate-400'}`}>{opt.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Toolbar */}
               {editor && (
                 <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-slate-200 bg-slate-50">
@@ -248,7 +333,10 @@ export default function MessagesPage() {
               <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <Users size={14} />
-                  Sends to all subscribed users
+                  {stats !== null ? (() => {
+                    const count = audience === 'organization' ? stats.org : audience === 'inactive' ? stats.inactive : stats.subscribed
+                    return <>Will send to <span className="font-semibold text-slate-700">{count.toLocaleString()}</span> user{count !== 1 ? 's' : ''}</>
+                  })() : 'Calculating recipients…'}
                 </div>
                 <div className="flex items-center gap-3">
                   {sendResult && (
@@ -278,23 +366,71 @@ export default function MessagesPage() {
                 <div className="p-10 text-center text-slate-400 text-sm">No email blasts sent yet.</div>
               ) : (
                 <div className="divide-y divide-slate-100">
-                  {blasts.map(blast => (
-                    <div key={blast.id} className="px-5 py-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 truncate">{blast.subject}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            Sent {new Date(blast.sentAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            {' '}by {blast.sentByEmail}
-                          </p>
+                  {blasts.map(blast => {
+                    const d = blast.delivery
+                    const hasDeliveryData = d.delivered + d.failed + d.bounced + d.pending > 0
+                    const undeliverable = d.failed + d.bounced
+                    return (
+                      <div key={blast.id} className="px-5 py-4">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-slate-900 truncate">{blast.subject}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              {new Date(blast.sentAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              {' · '}{blast.sentByEmail}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {d.failed > 0 && (
+                              <button
+                                onClick={() => handleResendFailed(blast.id)}
+                                disabled={resendingBlast === blast.id}
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition-colors disabled:opacity-50"
+                              >
+                                {resendingBlast === blast.id
+                                  ? <Loader2 size={11} className="animate-spin" />
+                                  : <Send size={11} />
+                                }
+                                Resend {d.failed} failed
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                          <Users size={10} />
-                          {blast.recipientCount.toLocaleString()}
-                        </span>
+
+                        {hasDeliveryData ? (
+                          <div className="flex flex-wrap items-center gap-3 mt-1">
+                            <span className="flex items-center gap-1 text-xs text-green-700">
+                              <CheckCircle2 size={11} />
+                              <span className="font-semibold">{d.delivered.toLocaleString()}</span> delivered
+                            </span>
+                            {d.pending > 0 && (
+                              <span className="flex items-center gap-1 text-xs text-slate-400">
+                                <Loader2 size={11} />
+                                <span className="font-semibold">{d.pending.toLocaleString()}</span> pending
+                              </span>
+                            )}
+                            {d.failed > 0 && (
+                              <span className="flex items-center gap-1 text-xs text-red-600">
+                                <AlertCircle size={11} />
+                                <span className="font-semibold">{d.failed.toLocaleString()}</span> failed
+                              </span>
+                            )}
+                            {d.bounced > 0 && (
+                              <span className="flex items-center gap-1 text-xs text-orange-600">
+                                <UserX size={11} />
+                                <span className="font-semibold">{d.bounced.toLocaleString()}</span> bounced
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                            <Users size={11} />
+                            {blast.recipientCount.toLocaleString()} sent — delivery tracking starts on next blast
+                          </span>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
