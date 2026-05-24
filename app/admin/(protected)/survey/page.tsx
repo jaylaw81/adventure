@@ -6,7 +6,6 @@ import {
   XCircle, Reply, Send, Loader2, MessagesSquare, Clock,
   BarChart2, Star, Users, CheckCircle, TrendingUp,
 } from 'lucide-react'
-import { SURVEYS } from '@/lib/surveys'
 
 /* ══════════════════════════════════════════════════════════════
    LEGACY SURVEY TYPES & COMPONENTS
@@ -509,67 +508,107 @@ function StructuredSurveyTab({ data }: { data: SurveyAnalytics }) {
    PAGE
    ══════════════════════════════════════════════════════════════ */
 
-type Tab = 'legacy' | string
-
 export default function SurveyAdminPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('happiness')
+  const [activeTab, setActiveTab] = useState<string>('')
   const [analyticsData, setAnalyticsData] = useState<SurveyAnalytics[]>([])
   const [analyticsLoading, setAnalyticsLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/admin/survey/v2')
       .then(r => r.json())
-      .then(data => { setAnalyticsData(data); setAnalyticsLoading(false) })
+      .then((data: SurveyAnalytics[]) => {
+        setAnalyticsData(data)
+        if (data.length > 0) setActiveTab(data[0].slug)
+        setAnalyticsLoading(false)
+      })
   }, [])
-
-  const tabs = [
-    ...SURVEYS.map(s => ({ id: s.slug, label: s.title })),
-    { id: 'legacy', label: 'Legacy Feedback' },
-  ]
 
   const currentData = analyticsData.find(d => d.slug === activeTab)
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Surveys</h1>
-        <p className="text-slate-500 text-sm mt-1">Response analytics and user feedback</p>
+    <div className="flex" style={{ minHeight: '100vh' }}>
+      {/* ── Left: survey list ── */}
+      <div className="w-60 shrink-0 sticky top-0 h-screen overflow-y-auto bg-slate-50 border-r border-slate-200 flex flex-col">
+        <div className="px-4 pt-5 pb-4 border-b border-slate-200">
+          <div className="flex items-center gap-2 mb-0.5">
+            <BarChart2 size={13} className="text-slate-400" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Surveys</span>
+          </div>
+          <p className="text-xs text-slate-400">Response analytics</p>
+        </div>
+
+        <nav className="flex-1 p-2 flex flex-col gap-0.5">
+          {analyticsLoading ? (
+            <div className="flex justify-center py-10">
+              <Loader2 size={16} className="animate-spin text-slate-400" />
+            </div>
+          ) : (
+            <>
+              {analyticsData.map(survey => {
+                const isActive = activeTab === survey.slug
+                return (
+                  <button
+                    key={survey.slug}
+                    onClick={() => setActiveTab(survey.slug)}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center justify-between gap-2 ${
+                      isActive ? 'bg-violet-50' : 'hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className={`text-sm font-medium truncate leading-tight ${
+                        isActive ? 'text-violet-800' : 'text-slate-800'
+                      }`}>
+                        {survey.title}
+                      </div>
+                      <div className={`text-xs mt-0.5 ${isActive ? 'text-violet-400' : 'text-slate-400'}`}>
+                        {survey.shown} shown
+                      </div>
+                    </div>
+                    {survey.completed > 0 && (
+                      <span className={`text-xs rounded-full px-1.5 py-0.5 font-semibold shrink-0 ${
+                        isActive ? 'bg-violet-200 text-violet-700' : 'bg-violet-100 text-violet-600'
+                      }`}>
+                        {survey.completed}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+
+              <div className="mx-3 my-1.5 border-t border-slate-200" />
+
+              <button
+                onClick={() => setActiveTab('legacy')}
+                className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
+                  activeTab === 'legacy' ? 'bg-violet-50' : 'hover:bg-slate-100'
+                }`}
+              >
+                <div className={`text-sm font-medium leading-tight ${
+                  activeTab === 'legacy' ? 'text-violet-800' : 'text-slate-600'
+                }`}>
+                  Legacy Feedback
+                </div>
+                <div className={`text-xs mt-0.5 ${activeTab === 'legacy' ? 'text-violet-400' : 'text-slate-400'}`}>
+                  Original open-ended survey
+                </div>
+              </button>
+            </>
+          )}
+        </nav>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex items-center gap-1 border-b border-slate-200 mb-8">
-        {tabs.map(tab => {
-          const analytics = analyticsData.find(d => d.slug === tab.id)
-          const isActive = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap -mb-px ${
-                isActive
-                  ? 'border-violet-600 text-violet-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              {tab.label}
-              {tab.id !== 'legacy' && analytics && analytics.completed > 0 && (
-                <span className="text-xs bg-violet-100 text-violet-700 rounded-full px-1.5 py-0.5 font-semibold">
-                  {analytics.completed}
-                </span>
-              )}
-            </button>
-          )
-        })}
+      {/* ── Right: content ── */}
+      <div className="flex-1 min-w-0 p-8">
+        {activeTab === 'legacy' ? (
+          <LegacyTab />
+        ) : analyticsLoading ? (
+          <div className="flex items-center justify-center py-20 text-slate-400 text-sm gap-2">
+            <Loader2 size={16} className="animate-spin" /> Loading analytics…
+          </div>
+        ) : currentData ? (
+          <StructuredSurveyTab data={currentData} />
+        ) : null}
       </div>
-
-      {/* Tab content */}
-      {activeTab === 'legacy' ? (
-        <LegacyTab />
-      ) : analyticsLoading ? (
-        <div className="text-center py-20 text-slate-400 text-sm">Loading analytics…</div>
-      ) : currentData ? (
-        <StructuredSurveyTab data={currentData} />
-      ) : null}
     </div>
   )
 }

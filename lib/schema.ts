@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, doublePrecision, integer, boolean, index, uniqueIndex, json } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 
 // Forward-declare chapters so nodes can reference it below
@@ -220,6 +220,17 @@ export const organizationWaitlist = pgTable('organization_waitlist', {
   index('org_waitlist_email_idx').on(t.email),
 ])
 
+export const surveyConfigs = pgTable('survey_configs', {
+  slug: text('slug').primaryKey(),
+  title: text('title').notNull(),
+  intro: text('intro').notNull(),
+  surveyKind: text('survey_kind').notNull(), // 'quantitative' | 'qualitative'
+  minDaysBetweenShows: integer('min_days_between_shows').notNull(),
+  dismissCooldownDays: integer('dismiss_cooldown_days').notNull(),
+  questions: json('questions').notNull().$type<import('./surveys').SurveyQuestion[]>(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
 export const surveyResponses = pgTable('survey_responses', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   userEmail: text('user_email').references(() => users.email, { onDelete: 'set null' }),
@@ -285,6 +296,7 @@ export const adminMessages = pgTable('admin_messages', {
   index('admin_messages_user_id_idx').on(t.userId),
 ])
 
+export type SurveyConfig = typeof surveyConfigs.$inferSelect
 export type SurveyImpressionV2 = typeof surveyImpressionsV2.$inferSelect
 export type SurveyAnswerV2 = typeof surveyAnswersV2.$inferSelect
 export type AdminMessage = typeof adminMessages.$inferSelect

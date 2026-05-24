@@ -14,6 +14,7 @@ export interface SurveyDef {
   title: string
   intro: string
   questions: SurveyQuestion[]
+  surveyKind: 'quantitative' | 'qualitative'
   minDaysBetweenShows: number
   dismissCooldownDays: number
 }
@@ -23,6 +24,7 @@ export const SURVEYS: SurveyDef[] = [
     slug: 'happiness',
     title: 'How are we doing?',
     intro: 'Your answers directly shape what we build next — this takes about 60 seconds and genuinely helps.',
+    surveyKind: 'qualitative',
     minDaysBetweenShows: 30,
     dismissCooldownDays: 7,
     questions: [
@@ -52,6 +54,7 @@ export const SURVEYS: SurveyDef[] = [
     slug: 'willingness_to_pay',
     title: 'A quick question about value',
     intro: "We're thinking about optional premium features. Your honest input helps us make the right call — and makes sure we never charge for what should stay free.",
+    surveyKind: 'quantitative',
     minDaysBetweenShows: 60,
     dismissCooldownDays: 14,
     questions: [
@@ -81,6 +84,7 @@ export const SURVEYS: SurveyDef[] = [
     slug: 'feature_request',
     title: 'Help us prioritize',
     intro: 'We have more ideas than time. Your picks decide what gets built — responses like yours are the single biggest input into our roadmap.',
+    surveyKind: 'quantitative',
     minDaysBetweenShows: 45,
     dismissCooldownDays: 10,
     questions: [
