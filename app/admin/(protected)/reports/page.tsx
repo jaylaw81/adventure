@@ -146,40 +146,36 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Reports</h1>
         <p className="text-slate-500 text-sm mt-1">User-submitted reports requiring review</p>
       </div>
 
       {/* Report type toggle */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-xl w-fit">
         <button
           onClick={() => { setReportType('story'); setTab('pending'); setReviewingId(null) }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
-            reportType === 'story'
-              ? 'bg-amber-500 text-white border-amber-500'
-              : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            reportType === 'story' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           Story Reports
           {pendingStory > 0 && (
-            <span className={`px-1.5 py-0.5 text-xs font-bold rounded-full ${reportType === 'story' ? 'bg-white text-amber-600' : 'bg-red-500 text-white'}`}>
+            <span className="px-1.5 py-0.5 text-xs font-bold rounded-full bg-red-500 text-white">
               {pendingStory}
             </span>
           )}
         </button>
         <button
           onClick={() => { setReportType('review'); setTab('pending'); setReviewingId(null) }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-colors ${
-            reportType === 'review'
-              ? 'bg-amber-500 text-white border-amber-500'
-              : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            reportType === 'review' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
           }`}
         >
           Review Reports
           {pendingReview > 0 && (
-            <span className={`px-1.5 py-0.5 text-xs font-bold rounded-full ${reportType === 'review' ? 'bg-white text-amber-600' : 'bg-red-500 text-white'}`}>
+            <span className="px-1.5 py-0.5 text-xs font-bold rounded-full bg-red-500 text-white">
               {pendingReview}
             </span>
           )}

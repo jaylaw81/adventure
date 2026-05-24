@@ -312,7 +312,7 @@ function SurveyEditor({
   }, [deleteConfirm, draft.slug, onDelete])
 
   return (
-    <div className="p-8 flex flex-col gap-6 max-w-2xl">
+    <div className="p-4 md:p-8 flex flex-col gap-6 max-w-2xl">
       {/* Per-survey heading */}
       <div className="flex items-start justify-between pb-2 border-b border-slate-100 gap-4">
         <div className="min-w-0">
@@ -596,9 +596,9 @@ export default function SurveysConfigPage() {
   const existingSlugs = surveys.map(s => s.slug)
 
   return (
-    <div className="flex" style={{ minHeight: '100vh' }}>
+    <div className="flex flex-col md:flex-row" style={{ minHeight: '100vh' }}>
       {/* ── Left: survey list ── */}
-      <div className="w-60 shrink-0 sticky top-0 h-screen overflow-y-auto bg-slate-50 border-r border-slate-200 flex flex-col">
+      <div className="w-full md:w-60 md:shrink-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col max-h-64 md:max-h-none overflow-y-auto">
         {/* Panel header */}
         <div className="px-4 pt-5 pb-4 border-b border-slate-200">
           <div className="flex items-center gap-2 mb-3.5">

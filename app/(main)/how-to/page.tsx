@@ -4,7 +4,7 @@ import JsonLd from '@/components/JsonLd'
 import {
   Plus, GitBranch, Share2, Sparkles, Play,
   BookOpen, ChevronRight, CheckCircle2, Pencil,
-  ArrowRight, MousePointerClick, Settings, Lightbulb, BookMarked,
+  ArrowRight, MousePointerClick, Settings, Lightbulb, BookMarked, Music,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -255,8 +255,8 @@ const howToSchema = {
       itemListElement: [
         { '@type': 'HowToStep', position: 1, name: 'Create a new story', text: 'Sign in, then click New Story on the home page. Give your story a title and an optional description.' },
         { '@type': 'HowToStep', position: 2, name: 'Set audience and tags', text: 'Click Settings in the toolbar to set the audience (All Ages, Teens, or Adults Only) and tags.' },
-        { '@type': 'HowToStep', position: 3, name: 'Add scenes to the canvas', text: 'Click Add Scene in the toolbar. Click any scene card to open the editor panel.' },
-        { '@type': 'HowToStep', position: 4, name: 'Organize scenes into chapters', text: 'Use the chapter sidebar to add chapters. Each chapter gets its own canvas view and a Start scene. Use Next Chapter scenes to link chapters together.' },
+        { '@type': 'HowToStep', position: 3, name: 'Add scenes to the canvas', text: 'Click Add Scene in the toolbar. Click any scene card to open the editor panel. You can set a scene type, write content, mark it Done, and attach ambient sound or music that plays automatically for readers.' },
+        { '@type': 'HowToStep', position: 4, name: 'Organize scenes into chapters', text: 'Use the chapter sidebar to add chapters. Each chapter gets its own canvas view and a Start scene. Use Next Chapter scenes to link chapters together. Set an Entry scene on a Next Chapter scene to send readers to a specific scene in the next chapter.' },
         { '@type': 'HowToStep', position: 5, name: 'Connect scenes with choices', text: 'Hover a scene card to reveal handles. Drag from a handle to another scene to create a choice.' },
         { '@type': 'HowToStep', position: 6, name: 'Generate AI scene images', text: 'Open a completed scene and click Generate Image with AI.' },
         { '@type': 'HowToStep', position: 7, name: 'Publish your story', text: 'Toggle Make Public on your story card to publish and list it on the Explore page.' },
@@ -367,6 +367,7 @@ export default function HowToPage() {
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Set the <strong className="text-white">Scene Type</strong> — Start, Scene, Ending, or Next Chapter</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Write a <strong className="text-white">Title</strong> and <strong className="text-white">Content</strong></span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Mark the scene as <strong className="text-white">Done</strong> when you&apos;re finished writing it</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Click the <strong className="text-white">music note button</strong> to search and attach ambient sound or music — it autoplays when readers reach the scene</span></li>
                   </ul>
                   <Callout>Each chapter needs one <strong>Start</strong> scene. Use <strong>Ending</strong> to conclude a path, or <strong>Next Chapter</strong> to send readers onward.</Callout>
                 </StepCard>
@@ -385,6 +386,7 @@ export default function HowToPage() {
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Click <strong className="text-white">Add Chapter</strong> in the sidebar to create a new chapter — a Start scene is added automatically</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Select a chapter to view only its scenes on the canvas</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Add a <strong className="text-white">Next Chapter</strong> scene to link the end of one chapter to the start of the next</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Use the <strong className="text-white">Entry scene</strong> dropdown on a Next Chapter scene to send readers to a specific scene in the next chapter, not just the default Start</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Click <Kbd>View all scenes</Kbd> at the bottom of the sidebar to see the full story at once</span></li>
                   </ul>
                   <Callout>Each chapter is its own canvas view — keeping things clean even for epic, multi-chapter stories.</Callout>
@@ -523,6 +525,8 @@ export default function HowToPage() {
               { icon: MousePointerClick, tip: 'Drag scenes freely to rearrange the canvas — positions are saved automatically.' },
               { icon: Sparkles, tip: 'AI images respect your audience setting — Adults Only stories never depict minors.' },
               { icon: BookOpen, tip: 'The home page shows reachable ending count — a useful measure of story depth.' },
+              { icon: Music, tip: 'Scene sounds autoplay when readers arrive. Use ambient tracks to set the mood — readers can pause, adjust volume, or mute globally from the header.' },
+              { icon: BookMarked, tip: 'On Next Chapter scenes, set an Entry scene to drop readers into a specific scene in the next chapter based on where their path leads — not just the default Start.' },
             ].map(({ icon: Icon, tip }) => (
               <div key={tip} className="flex items-start gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 hover:bg-white/8 transition-colors">
                 <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center shrink-0">

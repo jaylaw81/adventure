@@ -12,6 +12,8 @@ export const users = pgTable('users', {
   passwordHash: text('password_hash'), // null for Google-only accounts
   tier: text('tier').notNull().default('free'), // 'free' | 'organization'
   status: text('status').notNull().default('active'), // 'active' | 'suspended'
+  emailSubscribed: boolean('email_subscribed').notNull().default(true),
+  unsubscribeToken: text('unsubscribe_token').unique().$defaultFn(() => crypto.randomUUID()),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -286,6 +288,15 @@ export const surveyAnswersV2 = pgTable('survey_answers_v2', {
   index('survey_answers_v2_imp_idx').on(t.impressionId),
 ])
 
+export const emailBlasts = pgTable('email_blasts', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  subject: text('subject').notNull(),
+  bodyHtml: text('body_html').notNull(),
+  sentByEmail: text('sent_by_email').notNull(),
+  recipientCount: integer('recipient_count').notNull().default(0),
+  sentAt: timestamp('sent_at').defaultNow().notNull(),
+})
+
 export const adminMessages = pgTable('admin_messages', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -297,6 +308,7 @@ export const adminMessages = pgTable('admin_messages', {
   index('admin_messages_user_id_idx').on(t.userId),
 ])
 
+export type EmailBlast = typeof emailBlasts.$inferSelect
 export type SurveyConfig = typeof surveyConfigs.$inferSelect
 export type SurveyImpressionV2 = typeof surveyImpressionsV2.$inferSelect
 export type SurveyAnswerV2 = typeof surveyAnswersV2.$inferSelect

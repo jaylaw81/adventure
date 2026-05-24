@@ -44,6 +44,23 @@ body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Tiptap RTE content styles */
+.ProseMirror ul { list-style-type: disc; padding-left: 1.5em; margin: 0.5em 0; }
+.ProseMirror ol { list-style-type: decimal; padding-left: 1.5em; margin: 0.5em 0; }
+.ProseMirror li { margin: 0.25em 0; }
+.ProseMirror strong { font-weight: 700; }
+.ProseMirror em { font-style: italic; }
+.ProseMirror u { text-decoration: underline; }
+.ProseMirror a { color: #6d28d9; text-decoration: underline; }
+.ProseMirror p { margin: 0.5em 0; }
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
 @keyframes slamIn {
   0%   { transform: translateY(140%) rotate(calc(var(--card-rot) + 14deg)); opacity: 0; }
   55%  { opacity: 1; }

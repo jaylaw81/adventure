@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { Search, X, School, Download, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react'
+import { Search, X, Download, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react'
 
 const ROLE_LABEL: Record<string, string> = {
   teacher: 'Teacher',
@@ -145,11 +145,18 @@ export default function WaitlistPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-start justify-between">
+    <div className="p-4 md:p-8">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Organization Waitlist</h1>
           <p className="text-slate-500 text-sm mt-1">Educators and schools interested in the Organization tier</p>
+          <div className="flex items-center gap-4 mt-2 flex-wrap">
+            <span className="text-sm text-slate-500"><span className="font-semibold text-slate-900">{stats.total}</span> total</span>
+            <div className="w-px h-3.5 bg-slate-200 shrink-0" />
+            <span className="text-sm text-slate-500"><span className="font-semibold text-amber-600">{stats.pending}</span> pending</span>
+            <span className="text-sm text-slate-500"><span className="font-semibold text-green-600">{stats.accepted}</span> accepted</span>
+            <span className="text-sm text-slate-500"><span className="font-semibold text-red-500">{stats.denied}</span> denied</span>
+          </div>
         </div>
         <button
           onClick={exportCsv}
@@ -161,26 +168,8 @@ export default function WaitlistPage() {
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Total Sign-ups', value: stats.total,    icon: School,       color: 'bg-amber-100 text-amber-600' },
-          { label: 'Pending',        value: stats.pending,  icon: Clock,        color: 'bg-amber-100 text-amber-600' },
-          { label: 'Accepted',       value: stats.accepted, icon: CheckCircle2, color: 'bg-green-100 text-green-600' },
-          { label: 'Denied',         value: stats.denied,   icon: XCircle,      color: 'bg-red-100 text-red-500'    },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
-            <div className={`p-2.5 rounded-lg ${color}`}><Icon size={18} /></div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900">{value}</p>
-              <p className="text-xs text-slate-500">{label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
@@ -220,7 +209,8 @@ export default function WaitlistPage() {
             {entries.length === 0 ? 'No waitlist sign-ups yet.' : 'No results match your filters.'}
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
                 <th className="text-left px-5 py-3 font-semibold">Name</th>
@@ -282,6 +272,7 @@ export default function WaitlistPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

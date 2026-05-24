@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Play, Search, X, BookOpen, Users, Globe, Lock, ExternalLink } from 'lucide-react'
+import { Play, Search, X, Globe, Lock, ExternalLink } from 'lucide-react'
 
 const AUDIENCE_LABEL: Record<string, string> = {
   all: 'All Ages',
@@ -58,40 +58,15 @@ export default function AdminDashboard() {
   }), [stories])
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
+    <div className="p-4 md:p-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Stories</h1>
-        <p className="text-slate-500 text-sm mt-1">All stories across all users</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
-          <div className="p-2.5 bg-amber-100 rounded-lg">
-            <BookOpen size={18} className="text-amber-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-            <p className="text-xs text-slate-500">Total Stories</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
-          <div className="p-2.5 bg-green-100 rounded-lg">
-            <Globe size={18} className="text-green-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900">{stats.public}</p>
-            <p className="text-xs text-slate-500">Public</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
-          <div className="p-2.5 bg-blue-100 rounded-lg">
-            <Users size={18} className="text-blue-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900">{stats.uniqueUsers}</p>
-            <p className="text-xs text-slate-500">Authors</p>
-          </div>
+        <div className="flex items-center gap-4 mt-1.5 flex-wrap">
+          <p className="text-slate-500 text-sm">All stories across all users</p>
+          <div className="w-px h-3.5 bg-slate-200 shrink-0" />
+          <span className="text-sm text-slate-500"><span className="font-semibold text-slate-900">{stats.total}</span> total</span>
+          <span className="text-sm text-slate-500"><span className="font-semibold text-slate-900">{stats.public}</span> public</span>
+          <span className="text-sm text-slate-500"><span className="font-semibold text-slate-900">{stats.uniqueUsers}</span> authors</span>
         </div>
       </div>
 
@@ -119,7 +94,8 @@ export default function AdminDashboard() {
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-slate-400 text-sm">No stories found.</div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
                 <th className="text-left px-5 py-3 font-semibold">Story</th>
@@ -194,6 +170,7 @@ export default function AdminDashboard() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
       {!loading && (

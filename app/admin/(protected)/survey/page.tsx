@@ -451,7 +451,7 @@ function StructuredSurveyTab({ data }: { data: SurveyAnalytics }) {
   return (
     <div>
       {/* Overview stats */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 md:mb-8">
         <StatPill label="Times Shown" value={data.shown} />
         <StatPill label="Completed" value={data.completed} sub={`${data.completionRate}% completion rate`} />
         <StatPill label="Dismissed" value={data.dismissed} />
@@ -526,9 +526,9 @@ export default function SurveyAdminPage() {
   const currentData = analyticsData.find(d => d.slug === activeTab)
 
   return (
-    <div className="flex" style={{ minHeight: '100vh' }}>
+    <div className="flex flex-col md:flex-row" style={{ minHeight: '100vh' }}>
       {/* ── Left: survey list ── */}
-      <div className="w-60 shrink-0 sticky top-0 h-screen overflow-y-auto bg-slate-50 border-r border-slate-200 flex flex-col">
+      <div className="w-full md:w-60 md:shrink-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col max-h-64 md:max-h-none overflow-y-auto">
         <div className="px-4 pt-5 pb-4 border-b border-slate-200">
           <div className="flex items-center gap-2 mb-0.5">
             <BarChart2 size={13} className="text-slate-400" />
@@ -598,7 +598,7 @@ export default function SurveyAdminPage() {
       </div>
 
       {/* ── Right: content ── */}
-      <div className="flex-1 min-w-0 p-8">
+      <div className="flex-1 min-w-0 p-4 md:p-8">
         {activeTab === 'legacy' ? (
           <LegacyTab />
         ) : analyticsLoading ? (

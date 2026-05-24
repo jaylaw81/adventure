@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Save, Trash2, User, AlertTriangle, CalendarDays, ShieldCheck, ArrowLeft } from 'lucide-react'
+import { Save, Trash2, AlertTriangle, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff } from 'lucide-react'
 import Link from 'next/link'
 import PageBanner from '@/components/shared/PageBanner'
 import { calcAge } from '@/lib/age'
@@ -44,6 +44,8 @@ function ProfileContent() {
   const [saveMsg, setSaveMsg] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [emailSubscribed, setEmailSubscribed] = useState(true)
+  const [subSaving, setSubSaving] = useState(false)
 
   useEffect(() => {
     fetch('/api/profile')
@@ -53,7 +55,24 @@ function ProfileContent() {
         setDisplayName(data.displayName || '')
         setBirthDate(data.birthDate || '')
       })
+    fetch('/api/profile/email-subscription')
+      .then(r => r.json())
+      .then(data => { if (typeof data.emailSubscribed === 'boolean') setEmailSubscribed(data.emailSubscribed) })
   }, [])
+
+  const handleSubscriptionToggle = async () => {
+    setSubSaving(true)
+    try {
+      const res = await fetch('/api/profile/email-subscription', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailSubscribed: !emailSubscribed }),
+      })
+      if (res.ok) setEmailSubscribed(v => !v)
+    } finally {
+      setSubSaving(false)
+    }
+  }
 
   const age = birthDate ? calcAge(birthDate) : null
   const birthdateValid = birthDate.match(/^\d{4}-\d{2}-\d{2}$/) && age !== null && age >= 13
@@ -228,6 +247,38 @@ function ProfileContent() {
           )}
         </div>
       </div>
+
+      {/* Email preferences — hide during required setup */}
+      {!isRequired && (
+        <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-base font-semibold text-gray-900 mb-1">Email Preferences</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Receive occasional product updates and new feature announcements.
+          </p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              {emailSubscribed
+                ? <Bell size={16} className="text-amber-500 shrink-0" />
+                : <BellOff size={16} className="text-gray-400 shrink-0" />
+              }
+              <span className="text-sm text-gray-700">
+                {emailSubscribed ? 'Subscribed to update emails' : 'Unsubscribed from update emails'}
+              </span>
+            </div>
+            <button
+              onClick={handleSubscriptionToggle}
+              disabled={subSaving}
+              className={`shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
+                emailSubscribed
+                  ? 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200'
+              }`}
+            >
+              {subSaving ? 'Saving…' : emailSubscribed ? 'Unsubscribe' : 'Re-subscribe'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Danger zone — hide during required setup */}
       {!isRequired && (
