@@ -7,6 +7,7 @@ import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { getGlobalMuted, setGlobalMuted, onGlobalMuteChange } from '@/lib/globalMute'
+import { analytics } from '@/lib/analytics'
 
 interface OrgMembership {
   orgName: string
@@ -75,6 +76,12 @@ export default function Header() {
     return onGlobalMuteChange(setGlobalMutedState)
   }, [])
 
+  const handleGlobalMuteToggle = () => {
+    const next = !globalMuted
+    setGlobalMuted(next)
+    analytics.globalSoundToggle(next)
+  }
+
   return (
     <header
       className={`sticky top-0 z-30 transition-all duration-200 ${
@@ -124,7 +131,7 @@ export default function Header() {
 
         {/* Global mute — mobile */}
         <button
-          onClick={() => setGlobalMuted(!globalMuted)}
+          onClick={handleGlobalMuteToggle}
           className="sm:hidden ml-auto p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
           aria-label={globalMuted ? 'Unmute sounds' : 'Mute sounds'}
         >
@@ -143,7 +150,7 @@ export default function Header() {
         {/* Global mute toggle — desktop */}
         <div className="hidden sm:block relative group ml-auto">
           <button
-            onClick={() => setGlobalMuted(!globalMuted)}
+            onClick={handleGlobalMuteToggle}
             className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
             aria-label={globalMuted ? 'Unmute sounds' : 'Mute sounds'}
           >

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Music, Play, Pause, Volume2, VolumeX } from 'lucide-react'
 import { getGlobalMuted, onGlobalMuteChange } from '@/lib/globalMute'
+import { analytics } from '@/lib/analytics'
 
 interface Props {
   soundUrl: string
@@ -28,11 +29,11 @@ export default function SceneAudioPlayer({ soundUrl, soundTitle }: Props) {
     audio.oncanplaythrough = () => {
       setReady(true)
       audio.play()
-        .then(() => setPlaying(true))
+        .then(() => { setPlaying(true); analytics.sceneSoundPlay(soundTitle, 'autoplay') })
         .catch(() => {/* browser blocked autoplay — user can press play manually */})
     }
     audio.onerror = () => setReady(false)
-    audio.onended = () => setPlaying(false)
+    audio.onended = () => { setPlaying(false); analytics.sceneSoundEnded(soundTitle) }
     audio.load()
 
     setPlaying(false)
@@ -66,8 +67,9 @@ export default function SceneAudioPlayer({ soundUrl, soundTitle }: Props) {
     if (playing) {
       audio.pause()
       setPlaying(false)
+      analytics.sceneSoundPause(soundTitle)
     } else {
-      audio.play().then(() => setPlaying(true)).catch(() => {})
+      audio.play().then(() => { setPlaying(true); analytics.sceneSoundPlay(soundTitle, 'manual') }).catch(() => {})
     }
   }
 
@@ -77,6 +79,7 @@ export default function SceneAudioPlayer({ soundUrl, soundTitle }: Props) {
     const next = !muted
     audio.muted = next
     setMuted(next)
+    analytics.sceneSoundLocalMute(next)
   }
 
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {

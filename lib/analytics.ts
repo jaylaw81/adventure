@@ -83,6 +83,22 @@ export const analytics = {
   landingSignInClicked: (location: string) =>
     track('landing_sign_in_clicked', { location }),
 
+  // --- Sound ---
+  sceneSoundPlay: (soundTitle: string, trigger: 'manual' | 'autoplay') =>
+    track('scene_sound_play', { sound_title: soundTitle, trigger }),
+
+  sceneSoundPause: (soundTitle: string) =>
+    track('scene_sound_pause', { sound_title: soundTitle }),
+
+  sceneSoundEnded: (soundTitle: string) =>
+    track('scene_sound_ended', { sound_title: soundTitle }),
+
+  sceneSoundLocalMute: (muted: boolean) =>
+    track('scene_sound_local_mute', { muted }),
+
+  globalSoundToggle: (muted: boolean) =>
+    track('global_sound_toggle', { muted }),
+
   // --- Auth ---
   userRegistered: (method: 'credentials' | 'google') => {
     track('user_registered', { method })
