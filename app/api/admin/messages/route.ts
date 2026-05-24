@@ -38,19 +38,31 @@ export async function POST(req: NextRequest) {
 
   const sentByEmail = session.user.email ?? 'admin'
 
-  const results = await Promise.allSettled(
-    recipients.map(user =>
-      sendEmailBlast({
-        to: user.email,
-        displayName: user.displayName || null,
-        subject,
-        bodyHtml,
-        unsubscribeToken: user.unsubscribeToken ?? user.email,
-      })
-    )
-  )
+  // Resend rate limit is 5 req/s — send in batches of 4 with a 1.1s pause between batches.
+  const BATCH_SIZE = 4
+  const BATCH_DELAY_MS = 1100
+  let successCount = 0
 
-  const successCount = results.filter(r => r.status === 'fulfilled').length
+  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
+    const batch = recipients.slice(i, i + BATCH_SIZE)
+    const batchResults = await Promise.allSettled(
+      batch.map(user =>
+        sendEmailBlast({
+          to: user.email,
+          displayName: user.displayName || null,
+          subject,
+          bodyHtml,
+          unsubscribeToken: user.unsubscribeToken ?? user.email,
+        })
+      )
+    )
+    successCount += batchResults.filter(r => r.status === 'fulfilled').length
+
+    // Wait between batches, but skip the delay after the last one.
+    if (i + BATCH_SIZE < recipients.length) {
+      await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS))
+    }
+  }
 
   const [blast] = await db
     .insert(emailBlasts)
