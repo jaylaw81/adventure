@@ -371,6 +371,8 @@ function DemoCanvasInner() {
       nodeType: 'scene',
       status: 'in_progress',
       imageUrl: null,
+      soundUrl: null,
+      soundTitle: null,
       chapterId: null,
       nextChapterId: null,
       chapterEntryNodeId: null,

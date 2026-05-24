@@ -6,6 +6,7 @@ import { X, Trash2, Sparkles, RefreshCw, ImageOff, Save, Check, Wand2, ChevronDo
 import type { Node, Chapter } from '@/lib/schema'
 import { analytics } from '@/lib/analytics'
 import type { AnalyzeResult } from '@/app/api/adventures/[id]/nodes/[nodeId]/analyze/route'
+import SoundPicker from './SoundPicker'
 
 interface Props {
   node: Node | null
@@ -38,6 +39,8 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
   const [generatingImage, setGeneratingImage] = useState(false)
   const [regenCount, setRegenCount] = useState(0)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [soundUrl, setSoundUrl] = useState<string | null>(null)
+  const [soundTitle, setSoundTitle] = useState<string | null>(null)
   const [assistantOpen, setAssistantOpen] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<AnalyzeResult | null>(null)
@@ -61,6 +64,8 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
       setChapterId(node.chapterId ?? null)
       setNextChapterId(node.nextChapterId ?? null)
       setChapterEntryNodeId(node.chapterEntryNodeId ?? null)
+      setSoundUrl(node.soundUrl ?? null)
+      setSoundTitle(node.soundTitle ?? null)
       setRegenCount(0)
       setSaveError(null)
       setShowDeleteConfirm(false)
@@ -292,6 +297,21 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
             <p className="text-xs text-gray-400 mt-1">Add scene content first to generate an image</p>
           )}
         </div>
+
+        <SoundPicker
+          currentSoundUrl={soundUrl}
+          currentSoundTitle={soundTitle}
+          onSelect={(url, title) => {
+            setSoundUrl(url)
+            setSoundTitle(title)
+            save({ soundUrl: url, soundTitle: title })
+          }}
+          onRemove={() => {
+            setSoundUrl(null)
+            setSoundTitle(null)
+            save({ soundUrl: null, soundTitle: null })
+          }}
+        />
 
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>

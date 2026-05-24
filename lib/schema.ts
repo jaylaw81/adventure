@@ -52,6 +52,8 @@ export const nodes = pgTable('nodes', {
   nodeType: text('node_type').notNull().default('scene'), // 'start' | 'scene' | 'ending' | 'chapter_end'
   status: text('status').notNull().default('in_progress'), // 'in_progress' | 'completed'
   imageUrl: text('image_url'),
+  soundUrl: text('sound_url'),
+  soundTitle: text('sound_title'),
   positionX: doublePrecision('position_x').notNull().default(0),
   positionY: doublePrecision('position_y').notNull().default(0),
   // For chapter_end nodes: specific entry scene in the next chapter (overrides getChapterStartNode)
@@ -251,6 +253,27 @@ export const surveyDismissals = pgTable('survey_dismissals', {
   index('survey_dismissals_user_email_idx').on(t.userEmail),
 ])
 
+export const surveyImpressionsV2 = pgTable('survey_impressions_v2', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  surveySlug: text('survey_slug').notNull(),
+  userEmail: text('user_email').references(() => users.email, { onDelete: 'set null' }),
+  shownAt: timestamp('shown_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+  dismissedAt: timestamp('dismissed_at'),
+}, (t) => [
+  index('survey_imp_v2_user_email_idx').on(t.userEmail),
+  index('survey_imp_v2_slug_idx').on(t.surveySlug),
+])
+
+export const surveyAnswersV2 = pgTable('survey_answers_v2', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  impressionId: uuid('impression_id').notNull().references(() => surveyImpressionsV2.id, { onDelete: 'cascade' }),
+  questionKey: text('question_key').notNull(),
+  answerValue: text('answer_value').notNull(),
+}, (t) => [
+  index('survey_answers_v2_imp_idx').on(t.impressionId),
+])
+
 export const adminMessages = pgTable('admin_messages', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -262,6 +285,8 @@ export const adminMessages = pgTable('admin_messages', {
   index('admin_messages_user_id_idx').on(t.userId),
 ])
 
+export type SurveyImpressionV2 = typeof surveyImpressionsV2.$inferSelect
+export type SurveyAnswerV2 = typeof surveyAnswersV2.$inferSelect
 export type AdminMessage = typeof adminMessages.$inferSelect
 export type User = typeof users.$inferSelect
 export type Organization = typeof organizations.$inferSelect

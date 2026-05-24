@@ -1,4 +1,5 @@
 import type { Node } from '@/lib/schema'
+import SceneAudioPlayer from './SceneAudioPlayer'
 
 interface Props {
   node: Node
@@ -7,6 +8,9 @@ interface Props {
 export default function SceneView({ node }: Props) {
   return (
     <div className="max-w-2xl mx-auto">
+      {node.soundUrl && node.soundTitle && (
+        <SceneAudioPlayer soundUrl={node.soundUrl} soundTitle={node.soundTitle} />
+      )}
       {node.imageUrl && (
         <div className="relative w-full h-64 rounded-2xl overflow-hidden mb-6 shadow-md">
           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -130,7 +130,7 @@ export default function Header() {
             <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
           ) : session ? (
             <>
-              {session.user.profileComplete && (
+              {session.user.profileComplete && pathname !== '/' && (
                 <Link
                   href="/create"
                   className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:scale-105 hover:brightness-110"

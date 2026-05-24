@@ -1,13 +1,13 @@
 'use client'
 
 import { SessionProvider } from 'next-auth/react'
-import SurveyModal from './SurveyModal'
+import SurveyModalV2 from './SurveyModalV2'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       {children}
-      <SurveyModal />
+      <SurveyModalV2 />
     </SessionProvider>
   )
 }
