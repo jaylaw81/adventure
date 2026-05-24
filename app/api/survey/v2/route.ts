@@ -29,7 +29,9 @@ export async function GET() {
     if (hoursSince < 24) return Response.json({ shouldShow: false })
   }
 
-  const surveys = await getSurveys()
+  const allSurveys = await getSurveys()
+  // Only show surveys that are not explicitly paused
+  const surveys = allSurveys.filter(s => s.active !== false)
 
   // Pick the survey with the highest priority to show
   for (const survey of surveys) {

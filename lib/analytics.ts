@@ -99,6 +99,20 @@ export const analytics = {
   globalSoundToggle: (muted: boolean) =>
     track('global_sound_toggle', { muted }),
 
+  // --- Surveys ---
+  surveyShown: (slug: string, title: string) =>
+    track('survey_shown', { survey_slug: slug, survey_title: title }),
+
+  surveyDismissed: (slug: string, title: string) =>
+    track('survey_dismissed', { survey_slug: slug, survey_title: title }),
+
+  surveyCompleted: (slug: string, title: string, answeredCount: number) =>
+    track('survey_completed', { survey_slug: slug, survey_title: title, answered_count: answeredCount }),
+
+  // Text answers are excluded (may contain PII). Structured answers only.
+  surveyAnswer: (slug: string, questionKey: string, questionType: string, answerValue: string) =>
+    track('survey_answer', { survey_slug: slug, question_key: questionKey, question_type: questionType, answer_value: answerValue }),
+
   // --- Auth ---
   userRegistered: (method: 'credentials' | 'google') => {
     track('user_registered', { method })

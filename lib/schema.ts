@@ -228,6 +228,7 @@ export const surveyConfigs = pgTable('survey_configs', {
   minDaysBetweenShows: integer('min_days_between_shows').notNull(),
   dismissCooldownDays: integer('dismiss_cooldown_days').notNull(),
   questions: json('questions').notNull().$type<import('./surveys').SurveyQuestion[]>(),
+  active: boolean('active').notNull().default(true),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 

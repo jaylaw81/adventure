@@ -17,6 +17,7 @@ export interface SurveyDef {
   surveyKind: 'quantitative' | 'qualitative'
   minDaysBetweenShows: number
   dismissCooldownDays: number
+  active?: boolean // undefined = true; hardcoded surveys are always active unless overridden in DB
 }
 
 export const SURVEYS: SurveyDef[] = [

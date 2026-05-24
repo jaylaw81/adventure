@@ -19,6 +19,7 @@ export async function getSurveys(): Promise<SurveyDef[]> {
         minDaysBetweenShows: override.minDaysBetweenShows,
         dismissCooldownDays: override.dismissCooldownDays,
         questions: override.questions,
+        active: override.active,
       }
     })
 
@@ -33,6 +34,7 @@ export async function getSurveys(): Promise<SurveyDef[]> {
         minDaysBetweenShows: c.minDaysBetweenShows,
         dismissCooldownDays: c.dismissCooldownDays,
         questions: c.questions,
+        active: c.active,
       }))
 
     return [...merged, ...dbOnly]

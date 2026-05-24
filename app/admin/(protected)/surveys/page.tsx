@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import {
   Settings2, ChevronDown, ChevronUp, Plus, Trash2, Save,
   RotateCcw, GripVertical, CheckCircle, Loader2, AlertCircle, X,
-  ClipboardList,
+  ClipboardList, PauseCircle, PlayCircle,
 } from 'lucide-react'
 
 type QuestionType = 'stars' | 'nps' | 'multiple_choice' | 'yes_no_maybe' | 'text'
@@ -26,6 +26,7 @@ interface SurveyDef {
   minDaysBetweenShows: number
   dismissCooldownDays: number
   questions: SurveyQuestion[]
+  active?: boolean
 }
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
@@ -202,19 +203,38 @@ function QuestionEditor({
 /* ─── Survey editor ───────────────────────────────────────────── */
 
 function SurveyEditor({
-  survey, isNew, existingSlugs, onSaved, onDelete,
+  survey, isNew, existingSlugs, onSaved, onDelete, onActiveChanged,
 }: {
   survey: SurveyDef
   isNew: boolean
   existingSlugs: string[]
   onSaved: (s: SurveyDef, prevSlug: string) => void
   onDelete: (slug: string) => void
+  onActiveChanged: (slug: string, active: boolean) => void
 }) {
   const [draft, setDraft] = useState<SurveyDef>(survey)
   const [slugEdited, setSlugEdited] = useState(!isNew)
   const [status, setStatus] = useState<SaveStatus>('idle')
   const [hasChanges, setHasChanges] = useState(isNew)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [isActive, setIsActive] = useState(survey.active !== false)
+  const [toggleStatus, setToggleStatus] = useState<'idle' | 'saving'>('idle')
+
+  const handleToggleActive = useCallback(async () => {
+    const next = !isActive
+    setToggleStatus('saving')
+    try {
+      const res = await fetch(`/api/admin/surveys/${draft.slug}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: next }),
+      })
+      if (!res.ok) throw new Error()
+      setIsActive(next)
+      onActiveChanged(draft.slug, next)
+    } catch { /* leave state unchanged on error */ }
+    setToggleStatus('idle')
+  }, [isActive, draft.slug, onActiveChanged])
 
   const update = (patch: Partial<SurveyDef>) => {
     setDraft(d => {
@@ -294,28 +314,54 @@ function SurveyEditor({
   return (
     <div className="p-8 flex flex-col gap-6 max-w-2xl">
       {/* Per-survey heading */}
-      <div className="flex items-end justify-between pb-2 border-b border-slate-100">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">
-            {isNew ? 'New survey' : (draft.title || draft.slug)}
-          </h2>
+      <div className="flex items-start justify-between pb-2 border-b border-slate-100 gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg font-bold text-slate-900 truncate">
+              {isNew ? 'New survey' : (draft.title || draft.slug)}
+            </h2>
+            {!isNew && !isActive && (
+              <span className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                Paused
+              </span>
+            )}
+          </div>
           <p className="text-sm text-slate-400 mt-0.5 font-mono">
             {isNew ? 'Not yet saved' : `/${draft.slug}`}
           </p>
         </div>
         {!isNew && (
-          <button
-            onClick={handleDelete}
-            onBlur={() => setDeleteConfirm(false)}
-            className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
-              deleteConfirm
-                ? 'bg-red-50 text-red-600 font-medium'
-                : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
-            }`}
-          >
-            <Trash2 size={13} />
-            {deleteConfirm ? 'Confirm delete' : 'Delete'}
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleToggleActive}
+              disabled={toggleStatus === 'saving'}
+              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                isActive
+                  ? 'text-slate-500 hover:text-amber-600 hover:bg-amber-50'
+                  : 'text-amber-700 bg-amber-50 hover:bg-amber-100'
+              }`}
+            >
+              {toggleStatus === 'saving'
+                ? <Loader2 size={13} className="animate-spin" />
+                : isActive
+                  ? <PauseCircle size={13} />
+                  : <PlayCircle size={13} />
+              }
+              {isActive ? 'Pause' : 'Resume'}
+            </button>
+            <button
+              onClick={handleDelete}
+              onBlur={() => setDeleteConfirm(false)}
+              className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                deleteConfirm
+                  ? 'bg-red-50 text-red-600 font-medium'
+                  : 'text-slate-400 hover:text-red-500 hover:bg-red-50'
+              }`}
+            >
+              <Trash2 size={13} />
+              {deleteConfirm ? 'Confirm delete' : 'Delete'}
+            </button>
+          </div>
         )}
       </div>
 
@@ -542,6 +588,10 @@ export default function SurveysConfigPage() {
     setActiveKey(remaining[0]?.slug ?? null)
   }
 
+  const handleActiveChanged = (slug: string, active: boolean) => {
+    setSurveys(prev => prev.map(s => s.slug === slug ? { ...s, active } : s))
+  }
+
   const activeSurvey = activeKey === NEW_TAB_KEY ? null : surveys.find(s => s.slug === activeKey)
   const existingSlugs = surveys.map(s => s.slug)
 
@@ -583,10 +633,17 @@ export default function SurveysConfigPage() {
                       isActive ? 'bg-violet-50' : 'hover:bg-slate-100'
                     }`}
                   >
-                    <div className={`text-sm font-medium truncate leading-tight ${
-                      isActive ? 'text-violet-800' : 'text-slate-800'
-                    }`}>
-                      {s.title || s.slug}
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className={`text-sm font-medium truncate leading-tight ${
+                        isActive ? 'text-violet-800' : 'text-slate-800'
+                      }`}>
+                        {s.title || s.slug}
+                      </span>
+                      {s.active === false && (
+                        <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600">
+                          Paused
+                        </span>
+                      )}
                     </div>
                     <div className={`flex items-center gap-1 mt-0.5 text-xs ${
                       isActive ? 'text-violet-400' : 'text-slate-400'
@@ -639,6 +696,7 @@ export default function SurveysConfigPage() {
             existingSlugs={existingSlugs}
             onSaved={handleSaved}
             onDelete={handleDelete}
+            onActiveChanged={handleActiveChanged}
           />
         ) : activeSurvey ? (
           <SurveyEditor
@@ -648,6 +706,7 @@ export default function SurveysConfigPage() {
             existingSlugs={existingSlugs}
             onSaved={handleSaved}
             onDelete={handleDelete}
+            onActiveChanged={handleActiveChanged}
           />
         ) : !loading ? (
           <div className="flex flex-col items-center justify-center h-full min-h-96 gap-4 text-center px-8">

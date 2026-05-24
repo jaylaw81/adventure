@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { X, Star, CheckCircle2, Sparkles } from 'lucide-react'
 import type { SurveyDef } from '@/lib/surveys'
+import { analytics } from '@/lib/analytics'
 
 const MIN_USAGE_MS = 10 * 60 * 1000
 const SHOW_DELAY_MS = 35_000
@@ -212,6 +213,9 @@ export default function SurveyModalV2() {
   const handleClose = useCallback(async () => {
     setIsVisible(false)
     if (!surveyState) return
+    if (!submitted) {
+      analytics.surveyDismissed(surveyState.survey.slug, surveyState.survey.title)
+    }
     try {
       await fetch('/api/survey/v2/dismiss', {
         method: 'POST',
@@ -219,7 +223,7 @@ export default function SurveyModalV2() {
         body: JSON.stringify({ impressionId: surveyState.impressionId }),
       })
     } catch { /* best-effort */ }
-  }, [surveyState])
+  }, [surveyState, submitted])
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -240,11 +244,25 @@ export default function SurveyModalV2() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ impressionId: surveyState.impressionId, answers }),
       })
+      analytics.surveyCompleted(survey.slug, survey.title, Object.keys(answers).length)
+      // Send structured answers individually — text answers excluded (may contain PII)
+      survey.questions.forEach(q => {
+        if (q.type !== 'text' && answers[q.key]) {
+          analytics.surveyAnswer(survey.slug, q.key, q.type, answers[q.key])
+        }
+      })
     } catch { /* best-effort */ }
     setSubmitted(true)
     setSubmitting(false)
     setTimeout(() => setIsVisible(false), 2800)
   }, [surveyState, answers, submitting])
+
+  // Track when the modal actually appears
+  useEffect(() => {
+    if (isVisible && surveyState) {
+      analytics.surveyShown(surveyState.survey.slug, surveyState.survey.title)
+    }
+  }, [isVisible, surveyState])
 
   const setAnswer = useCallback((key: string, value: string) => {
     setAnswers(prev => ({ ...prev, [key]: value }))
