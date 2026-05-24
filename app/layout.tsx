@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
 import Providers from '@/components/Providers'
-import GoogleAnalytics from '@/components/GoogleAnalytics'
 import JsonLd from '@/components/JsonLd'
 
 const SITE_URL = 'https://www.storyquestor.com'
@@ -43,7 +42,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${geist.className} antialiased min-h-screen`} style={{ background: '#faf5ff' }}>
-        <GoogleAnalytics />
         <JsonLd data={{
           '@context': 'https://schema.org',
           '@graph': [
