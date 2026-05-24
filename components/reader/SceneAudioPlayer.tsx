@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Music, Play, Pause, Volume2, VolumeX } from 'lucide-react'
+import { getGlobalMuted, onGlobalMuteChange } from '@/lib/globalMute'
 
 interface Props {
   soundUrl: string
@@ -13,18 +14,25 @@ export default function SceneAudioPlayer({ soundUrl, soundTitle }: Props) {
   const [muted, setMuted] = useState(false)
   const [volume, setVolume] = useState(0.5)
   const [ready, setReady] = useState(false)
+  const [globalMuted, setGlobalMutedState] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // Create / swap audio element when URL changes
   useEffect(() => {
     const audio = new Audio(soundUrl)
-    audio.loop = true
+    audio.loop = false
     audio.volume = volume
-    audio.muted = muted
+    audio.muted = getGlobalMuted() || muted
     audioRef.current = audio
 
-    audio.oncanplaythrough = () => setReady(true)
+    audio.oncanplaythrough = () => {
+      setReady(true)
+      audio.play()
+        .then(() => setPlaying(true))
+        .catch(() => {/* browser blocked autoplay — user can press play manually */})
+    }
     audio.onerror = () => setReady(false)
+    audio.onended = () => setPlaying(false)
     audio.load()
 
     setPlaying(false)
@@ -36,6 +44,21 @@ export default function SceneAudioPlayer({ soundUrl, soundTitle }: Props) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundUrl])
+
+  // Sync with global mute toggle from the header
+  useEffect(() => {
+    setGlobalMutedState(getGlobalMuted())
+    return onGlobalMuteChange((gm) => {
+      setGlobalMutedState(gm)
+      if (audioRef.current) audioRef.current.muted = gm || muted
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Apply combined mute whenever either flag changes
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.muted = globalMuted || muted
+  }, [globalMuted, muted])
 
   const toggle = () => {
     const audio = audioRef.current
@@ -105,14 +128,14 @@ export default function SceneAudioPlayer({ soundUrl, soundTitle }: Props) {
       {/* Volume controls */}
       <div className="flex items-center gap-1.5 shrink-0">
         <button onClick={toggleMute} className="text-violet-400 hover:text-violet-600 transition-colors" aria-label="Toggle mute">
-          {muted || volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
+          {(globalMuted || muted || volume === 0) ? <VolumeX size={14} /> : <Volume2 size={14} />}
         </button>
         <input
           type="range"
           min="0"
           max="1"
           step="0.05"
-          value={muted ? 0 : volume}
+          value={(globalMuted || muted) ? 0 : volume}
           onChange={handleVolume}
           className="w-16 accent-violet-500"
           aria-label="Volume"

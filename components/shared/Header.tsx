@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LogOut, Scroll, ChevronDown, Menu, X, School } from 'lucide-react'
+import { LogOut, Scroll, ChevronDown, Menu, X, School, Volume2, VolumeX } from 'lucide-react'
 import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
+import { getGlobalMuted, setGlobalMuted, onGlobalMuteChange } from '@/lib/globalMute'
 
 interface OrgMembership {
   orgName: string
@@ -38,6 +39,7 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [orgMembership, setOrgMembership] = useState<OrgMembership | null>(null)
   const [scrolled, setScrolled] = useState(false)
+  const [globalMuted, setGlobalMutedState] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
 
@@ -67,6 +69,11 @@ export default function Header() {
   }, [])
 
   useEffect(() => { setMobileOpen(false) }, [pathname])
+
+  useEffect(() => {
+    setGlobalMutedState(getGlobalMuted())
+    return onGlobalMuteChange(setGlobalMutedState)
+  }, [])
 
   return (
     <header
@@ -115,17 +122,41 @@ export default function Header() {
           <NavLink href="/organizations">For Schools</NavLink>
         </nav>
 
+        {/* Global mute — mobile */}
+        <button
+          onClick={() => setGlobalMuted(!globalMuted)}
+          className="sm:hidden ml-auto p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+          aria-label={globalMuted ? 'Unmute sounds' : 'Mute sounds'}
+        >
+          {globalMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+        </button>
+
         {/* Hamburger — mobile only */}
         <button
           onClick={() => setMobileOpen(v => !v)}
-          className="sm:hidden ml-auto p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+          className="sm:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
           aria-label="Toggle menu"
         >
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
+        {/* Global mute toggle — desktop */}
+        <div className="hidden sm:block relative group ml-auto">
+          <button
+            onClick={() => setGlobalMuted(!globalMuted)}
+            className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label={globalMuted ? 'Unmute sounds' : 'Mute sounds'}
+          >
+            {globalMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+          </button>
+          <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 rounded-lg text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ background: 'rgba(13,12,26,0.88)' }}>
+            {globalMuted ? 'Unmute sounds' : 'Mute sounds'}
+          </span>
+        </div>
+
         {/* Right side */}
-        <div className="hidden sm:flex ml-auto items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3">
           {status === 'loading' ? (
             <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" />
           ) : session ? (
