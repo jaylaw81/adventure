@@ -7,6 +7,7 @@ import { X, Sparkles } from 'lucide-react'
 
 interface BillingStatus {
   tier: string
+  grandfathered: boolean
   subscriptionStatus: string | null
   trialEndsAt: string | null
   gracePeriodEndsAt: string | null
@@ -31,6 +32,7 @@ export default function SubscriptionNoticeBanner() {
     fetch('/api/billing/status')
       .then(r => r.json())
       .then((data: BillingStatus) => {
+        if (data.grandfathered) return
         if (data.tier === 'organization') return // org billing comes later
         if (data.subscriptionStatus === 'active' || data.subscriptionStatus === 'trialing') return
         if (!data.canCreate) return // already locked — the page gate handles this

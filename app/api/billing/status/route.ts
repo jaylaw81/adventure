@@ -17,6 +17,7 @@ export async function GET() {
     const [user] = await db
       .select({
         tier: users.tier,
+        grandfathered: users.grandfathered,
         subscriptionStatus: users.subscriptionStatus,
         subscriptionAmountCents: users.subscriptionAmountCents,
         stripeCustomerId: users.stripeCustomerId,
@@ -30,6 +31,7 @@ export async function GET() {
 
     return NextResponse.json({
       tier: user?.tier ?? 'free',
+      grandfathered: user?.grandfathered ?? false,
       subscriptionStatus: user?.subscriptionStatus ?? null,
       subscriptionAmountCents: user?.subscriptionAmountCents ?? null,
       hasStripeAccount: !!user?.stripeCustomerId,
