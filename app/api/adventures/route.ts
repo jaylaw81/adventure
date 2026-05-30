@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, chapters, nodes, choices } from '@/lib/schema'
 import { getAdventures } from '@/lib/queries'
+import { canCreateStories } from '@/lib/subscription'
 
 const ORIGINAL_OWNER = 'jaylaw81@gmail.com'
 
@@ -148,6 +149,11 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const allowed = await canCreateStories(session.user.email)
+    if (!allowed) {
+      return NextResponse.json({ error: 'Subscription required' }, { status: 402 })
     }
 
     const body = await req.json()

@@ -42,10 +42,12 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
+    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     await db.insert(users).values({
       email: normalizedEmail,
       displayName: displayName?.trim() || '',
       passwordHash,
+      trialEndsAt,
     })
 
     return NextResponse.json({ ok: true })

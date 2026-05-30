@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Save, Trash2, AlertTriangle, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff } from 'lucide-react'
+import { Save, Trash2, AlertTriangle, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff, CreditCard, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import PageBanner from '@/components/shared/PageBanner'
 import { calcAge } from '@/lib/age'
@@ -47,6 +47,18 @@ function ProfileContent() {
   const [emailSubscribed, setEmailSubscribed] = useState(true)
   const [subSaving, setSubSaving] = useState(false)
 
+  // Billing state
+  interface BillingStatus {
+    subscriptionStatus: string | null
+    subscriptionAmountCents: number | null
+    hasStripeAccount: boolean
+    trialEndsAt: string | null
+    gracePeriodEndsAt: string | null
+    canCreate: boolean
+  }
+  const [billing, setBilling] = useState<BillingStatus | null>(null)
+  const [portalLoading, setPortalLoading] = useState(false)
+
   useEffect(() => {
     fetch('/api/profile')
       .then(r => r.json())
@@ -58,6 +70,9 @@ function ProfileContent() {
     fetch('/api/profile/email-subscription')
       .then(r => r.json())
       .then(data => { if (typeof data.emailSubscribed === 'boolean') setEmailSubscribed(data.emailSubscribed) })
+    fetch('/api/billing/status')
+      .then(r => r.json())
+      .then(data => { if (!data.error) setBilling(data) })
   }, [])
 
   const handleSubscriptionToggle = async () => {
@@ -71,6 +86,17 @@ function ProfileContent() {
       if (res.ok) setEmailSubscribed(v => !v)
     } finally {
       setSubSaving(false)
+    }
+  }
+
+  const openPortal = async () => {
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/billing/portal', { method: 'POST' })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } finally {
+      setPortalLoading(false)
     }
   }
 
@@ -277,6 +303,80 @@ function ProfileContent() {
               {subSaving ? 'Saving…' : emailSubscribed ? 'Unsubscribe' : 'Re-subscribe'}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Billing — hide during required setup */}
+      {!isRequired && billing && (
+        <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <CreditCard size={16} className="text-violet-500" />
+            <h2 className="text-base font-semibold text-gray-900">Subscription</h2>
+          </div>
+
+          {(billing.subscriptionStatus === 'active' || billing.subscriptionStatus === 'trialing') ? (
+            <>
+              <p className="text-sm text-gray-500 mb-4">
+                {billing.subscriptionStatus === 'trialing' ? 'Free trial active' : 'Active subscriber'}
+                {billing.subscriptionAmountCents
+                  ? ` · $${(billing.subscriptionAmountCents / 100).toFixed(2)}/month`
+                  : ''}
+              </p>
+              <button
+                onClick={openPortal}
+                disabled={portalLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                <ExternalLink size={14} />
+                {portalLoading ? 'Opening…' : 'Manage subscription'}
+              </button>
+              <p className="text-xs text-gray-400 mt-2">Pause or cancel anytime from the billing portal.</p>
+            </>
+          ) : billing.subscriptionStatus === 'paused' ? (
+            <>
+              <p className="text-sm text-gray-500 mb-4">Your subscription is paused — story creation is currently disabled.</p>
+              <button
+                onClick={openPortal}
+                disabled={portalLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                <ExternalLink size={14} />
+                {portalLoading ? 'Opening…' : 'Resume subscription'}
+              </button>
+            </>
+          ) : billing.subscriptionStatus === 'past_due' ? (
+            <>
+              <p className="text-sm text-red-600 mb-4">Your last payment failed. Update your payment method to restore access.</p>
+              <button
+                onClick={openPortal}
+                disabled={portalLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                <ExternalLink size={14} />
+                {portalLoading ? 'Opening…' : 'Update payment method'}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-gray-500 mb-4">
+                {billing.canCreate
+                  ? (() => {
+                      const deadline = billing.trialEndsAt ?? billing.gracePeriodEndsAt
+                      if (!deadline) return 'Subscribe to unlock story creation and editing.'
+                      const date = new Date(deadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+                      return `Your free access ends on ${date}. Subscribe to keep creating.`
+                    })()
+                  : 'Subscribe to unlock story creation and editing.'}
+              </p>
+              <Link
+                href="/subscribe"
+                className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-semibold transition-all hover:brightness-110"
+                style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
+              >
+                Subscribe from $2/month
+              </Link>
+            </>
+          )}
         </div>
       )}
 

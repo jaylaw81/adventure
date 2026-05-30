@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getAdventureWithData } from '@/lib/queries'
+import { canCreateStories } from '@/lib/subscription'
 import Canvas from '@/components/editor/Canvas'
 
 export default async function EditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -14,6 +15,11 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   const isOwner = session?.user?.email === adventure.userEmail
   const isAdmin = !!session?.user?.isAdmin
   if (!session?.user?.email || (!isOwner && !isAdmin)) redirect('/')
+
+  if (!isAdmin) {
+    const allowed = await canCreateStories(session.user.email)
+    if (!allowed) redirect(`/subscribe?from=/edit/${id}`)
+  }
 
   return (
     <Canvas

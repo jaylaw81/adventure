@@ -6,6 +6,11 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-05-30
+
+- Pay-what-you-want subscription: users can now subscribe for as little as $2/month (choosing any amount they wish) to unlock story creation and editing, with a 7-day free trial for new accounts and a 30-day grace period for existing users.
+- Subscription management: subscribers can pause or cancel their subscription at any time from the Profile Settings page via the Stripe billing portal.
+
 ## 2026-05-25
 
 - Email blast: admins can now send formatted update emails to all subscribed users directly from the admin dashboard, with a rich text editor and a changelog reference panel for drafting messages.

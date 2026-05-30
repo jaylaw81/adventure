@@ -14,6 +14,12 @@ export const users = pgTable('users', {
   status: text('status').notNull().default('active'), // 'active' | 'suspended'
   emailSubscribed: boolean('email_subscribed').notNull().default(true),
   unsubscribeToken: text('unsubscribe_token').unique().$defaultFn(() => crypto.randomUUID()),
+  stripeCustomerId: text('stripe_customer_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
+  subscriptionStatus: text('subscription_status'), // 'active'|'trialing'|'paused'|'past_due'|'canceled'
+  subscriptionAmountCents: integer('subscription_amount_cents'),
+  trialEndsAt: timestamp('trial_ends_at'),
+  gracePeriodEndsAt: timestamp('grace_period_ends_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
