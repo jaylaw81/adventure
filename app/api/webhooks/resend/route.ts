@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Webhook } from 'svix'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { emailBlastRecipients } from '@/lib/schema'
@@ -7,23 +8,31 @@ import { emailBlastRecipients } from '@/lib/schema'
 // Dashboard → Webhooks → Add endpoint → https://yourdomain.com/api/webhooks/resend
 // Select events: email.delivered, email.bounced, email.complained
 //
-// Optionally set RESEND_WEBHOOK_SECRET in .env.local and in the Resend dashboard
-// to verify webhook signatures. Without it the endpoint is unauthenticated.
+// Copy the signing secret from Resend and set RESEND_WEBHOOK_SECRET in your env vars.
+// Without it the endpoint accepts all requests unauthenticated.
 
-function verifySecret(req: NextRequest): boolean {
-  const secret = process.env.RESEND_WEBHOOK_SECRET
-  if (!secret) return true // verification disabled
-  return req.headers.get('x-resend-signature') === secret
-}
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
-  if (!verifySecret(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const body = await req.text()
+
+  const secret = process.env.RESEND_WEBHOOK_SECRET
+  if (secret) {
+    const wh = new Webhook(secret)
+    try {
+      wh.verify(body, {
+        'svix-id': req.headers.get('svix-id') ?? '',
+        'svix-timestamp': req.headers.get('svix-timestamp') ?? '',
+        'svix-signature': req.headers.get('svix-signature') ?? '',
+      })
+    } catch {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+    }
   }
 
   let payload: { type: string; data: { email_id: string } }
   try {
-    payload = await req.json()
+    payload = JSON.parse(body)
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
