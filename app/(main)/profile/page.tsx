@@ -386,6 +386,9 @@ function ProfileContent() {
           <h2 className="text-base font-semibold text-red-700 mb-1">Danger Zone</h2>
           <p className="text-sm text-gray-500 mb-4">
             Deleting your account is permanent. All your stories, scenes, and images will be removed and cannot be recovered.
+            {billing && (billing.subscriptionStatus === 'active' || billing.subscriptionStatus === 'trialing') && (
+              <span className="block mt-1 text-red-500 font-medium">Your active subscription will also be cancelled immediately.</span>
+            )}
           </p>
 
           {!confirmDelete ? (
@@ -399,7 +402,12 @@ function ProfileContent() {
           ) : (
             <div className="flex flex-col gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
               <p className="text-sm font-semibold text-red-700">Are you absolutely sure?</p>
-              <p className="text-xs text-red-600">This will delete all your stories and cannot be undone.</p>
+              <p className="text-xs text-red-600">
+                This will delete all your stories and cannot be undone.
+                {billing && (billing.subscriptionStatus === 'active' || billing.subscriptionStatus === 'trialing') && (
+                  <span className="block mt-0.5">Your active subscription will be cancelled at the same time.</span>
+                )}
+              </p>
               <div className="flex gap-3">
                 <button
                   onClick={handleDeleteAccount}

@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures } from '@/lib/schema'
+import { stripe } from '@/lib/stripe'
 
 async function getSession() {
   const session = await getServerSession(authOptions)
@@ -58,6 +59,21 @@ export async function DELETE() {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const email = session.user.email!
+
+  // Cancel Stripe subscription if one exists
+  const [user] = await db
+    .select({ stripeSubscriptionId: users.stripeSubscriptionId })
+    .from(users)
+    .where(eq(users.email, email))
+
+  if (user?.stripeSubscriptionId) {
+    try {
+      await stripe.subscriptions.cancel(user.stripeSubscriptionId)
+    } catch {
+      // Don't block account deletion if Stripe cancel fails (e.g. already cancelled)
+    }
+  }
+
   // Adventures cascade-delete nodes and choices automatically
   await db.delete(adventures).where(eq(adventures.userEmail, email))
   await db.delete(users).where(eq(users.email, email))
