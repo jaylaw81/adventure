@@ -17,7 +17,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function TermsPage() {
-  const updated = 'March 5, 2026'
+  const updated = 'May 30, 2026'
 
   return (
     <>
@@ -72,6 +72,33 @@ export default function TermsPage() {
             <li>We do not guarantee the originality or intellectual property status of generated images</li>
             <li>You must not use the image generation feature to create prohibited content as defined above</li>
           </ul>
+        </Section>
+
+        <Section title="Subscription and Billing">
+          <p>
+            <strong>Free trial</strong> — new accounts include a 7-day free trial. No payment information is required during the trial. At the end of the trial, a subscription is required to continue creating and editing stories.
+          </p>
+          <p>
+            <strong>Pay what you want</strong> — StoryQuestor uses a pay-what-you-want subscription model. You choose the monthly amount you wish to pay, with a minimum of $2.00 USD per month. The amount you choose does not affect the features available to you.
+          </p>
+          <p>
+            <strong>What requires a subscription</strong> — creating new stories and editing existing stories requires an active subscription. Reading and browsing published stories is always free and does not require an account or subscription.
+          </p>
+          <p>
+            <strong>Billing</strong> — subscriptions are billed monthly on the date you subscribed. Payments are processed securely by Stripe. By subscribing, you authorise us to charge your payment method on a recurring monthly basis until you cancel.
+          </p>
+          <p>
+            <strong>Pausing and cancelling</strong> — you may pause or cancel your subscription at any time from your{' '}
+            <Link href="/profile" className="text-amber-600 hover:underline">Profile Settings</Link>{' '}
+            via the billing portal. Cancellation takes effect at the end of your current billing period; you retain access until then. Pausing suspends your billing and access until you resume.
+          </p>
+          <p>
+            <strong>Account deletion</strong> — if you delete your account, your subscription is cancelled immediately. No refund is issued for any unused portion of the current billing period.
+          </p>
+          <p>
+            <strong>Refunds</strong> — subscription fees are generally non-refundable. If you believe you have been charged in error, contact us at{' '}
+            <a href="mailto:billing@storyquestor.com" className="text-amber-600 hover:underline">billing@storyquestor.com</a>.
+          </p>
         </Section>
 
         <Section title="Advertising">

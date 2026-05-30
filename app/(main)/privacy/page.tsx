@@ -17,7 +17,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function PrivacyPage() {
-  const updated = 'March 5, 2026'
+  const updated = 'May 30, 2026'
 
   return (
     <>
@@ -45,6 +45,7 @@ export default function PrivacyPage() {
 
         <Section title="Information We Collect">
           <p><strong>Account information</strong> — when you sign in with Google we receive your name, email address, and profile picture from your Google account. We store your email as your account identifier.</p>
+          <p><strong>Payment information</strong> — if you subscribe to StoryQuestor, your payment details (card number, billing address) are collected and stored directly by Stripe. We never see or store your full card number. We store your Stripe customer ID and subscription status in our database to manage your access to the Service.</p>
           <p><strong>Profile information</strong> — you may optionally provide a display name. You are required to provide a date of birth so we can apply age-appropriate content filters. We store this in our database but do not share it with third parties.</p>
           <p><strong>Content you create</strong> — story titles, scene text, choices, tags, and audience settings you author on StoryQuestor are stored in our database and, if you choose to make them public, are visible to other users.</p>
           <p><strong>Usage data</strong> — we collect anonymised analytics data (pages visited, actions taken, browser and device type) via Google Analytics 4. This data is aggregated and used to improve the Service.</p>
@@ -86,7 +87,25 @@ export default function PrivacyPage() {
               <strong>Hugging Face (AI image generation)</strong> — scene content is sent to Hugging Face&apos;s inference API to generate images. Content is not stored by Hugging Face beyond processing.{' '}
               <a href="https://huggingface.co/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Hugging Face Privacy Policy</a>
             </li>
+            <li>
+              <strong>Stripe (payment processing)</strong> — subscription payments are processed by Stripe. When you subscribe, you interact directly with Stripe&apos;s secure checkout. Stripe collects and stores your payment card details under their own security standards (PCI DSS). We receive only a customer ID and subscription status from Stripe.{' '}
+              <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Stripe Privacy Policy</a>
+            </li>
           </ul>
+        </Section>
+
+        <Section title="Payments and Billing">
+          <p>
+            StoryQuestor offers a pay-what-you-want subscription for creators. Creating and editing stories requires an active subscription (minimum $2/month). Reading and browsing stories is always free. New accounts receive a 7-day free trial with no payment required upfront.
+          </p>
+          <p>
+            Subscription payments are processed securely by Stripe. We store your Stripe customer ID and subscription status to determine your access level. We do not store full card numbers or CVV codes.
+          </p>
+          <p>
+            You may pause or cancel your subscription at any time from your{' '}
+            <Link href="/profile" className="text-amber-600 hover:underline">Profile Settings</Link>.
+            If you delete your account, your subscription is cancelled immediately and no further charges will be made.
+          </p>
         </Section>
 
         <Section title="Advertising">

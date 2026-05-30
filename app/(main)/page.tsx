@@ -250,8 +250,11 @@ function LandingPage() {
                 Create Stories Where<br />
                 <span className="text-amber-400">Every Choice Matters</span>
               </h1>
-              <p className="text-lg sm:text-xl text-white/60 mb-8 max-w-xl">
+              <p className="text-lg sm:text-xl text-white/60 mb-4 max-w-xl">
                 Build branching adventures on a visual canvas. Add AI scene images. Share with readers who shape the outcome.
+              </p>
+              <p className="text-sm text-violet-300/70 mb-8 max-w-xl">
+                Free for 7 days — then pay what you want, starting at $2/month.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link
@@ -260,7 +263,7 @@ function LandingPage() {
                   className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-white shadow-lg transition-all hover:scale-105 hover:brightness-110"
                   style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
                 >
-                  Start creating — it&apos;s free
+                  Try free for 7 days
                   <ArrowRight size={16} />
                 </Link>
                 <Link
@@ -398,6 +401,7 @@ function LandingPage() {
               { num: '04', title: 'One-click Publish', desc: 'Share your story with a public link. Built-in validation catches dead ends before your readers do.' },
               { num: '05', title: 'Audience Controls', desc: 'Set age ratings and genre tags. Reach the right readers with the right story.' },
               { num: '06', title: 'Ratings & Reviews', desc: 'Readers rate and review. Build credibility through community feedback across every ending they discover.' },
+              { num: '07', title: 'Pay What You Want', desc: 'Creating and editing stories requires a subscription — starting at just $2/month, you choose the amount. Reading and browsing are always free.' },
             ].map(({ num, title, desc }) => (
               <div key={num} className="flex items-start gap-6 sm:gap-10 py-6 group">
                 <span className="text-xs font-mono text-violet-300 pt-1.5 w-6 shrink-0">{num}</span>
@@ -422,8 +426,11 @@ function LandingPage() {
           <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-5 leading-tight">
             Ready to tell your story?
           </h2>
-          <p className="text-white/60 text-lg mb-10 max-w-lg mx-auto">
-            Join creators building branching adventures their readers love. It&apos;s free to start.
+          <p className="text-white/60 text-lg mb-3 max-w-lg mx-auto">
+            Join creators building branching adventures their readers love.
+          </p>
+          <p className="text-violet-300/60 text-sm mb-10">
+            7 days free — then pay what you want from $2/month. Cancel anytime.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -432,7 +439,7 @@ function LandingPage() {
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-lg font-semibold text-white shadow-xl transition-all hover:scale-105 hover:brightness-110"
               style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
             >
-              Create a free account
+              Start your free trial
               <ArrowRight size={18} />
             </Link>
             <Link
