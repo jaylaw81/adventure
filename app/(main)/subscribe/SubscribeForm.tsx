@@ -6,7 +6,7 @@ import { Scroll, Sparkles, Zap, Heart } from 'lucide-react'
 
 const PRESETS = [
   { cents: 200, label: '$2' },
-  { cents: 500, label: '$5' },
+  { cents: 500, label: '$5', badge: 'Popular' },
   { cents: 1000, label: '$10' },
   { cents: 2000, label: '$20' },
 ]
@@ -120,16 +120,21 @@ export default function SubscribeForm({ hasTrial, trialEndsAt, gracePeriodEndsAt
           <div>
             <p className="text-sm font-semibold text-gray-800 mb-3">Choose your monthly amount</p>
             <div className="grid grid-cols-4 gap-2 mb-3">
-              {PRESETS.map(({ cents, label }) => (
+              {PRESETS.map(({ cents, label, badge }) => (
                 <button
                   key={cents}
                   onClick={() => { setSelected(cents); setUseCustom(false); setError('') }}
-                  className={`py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${
+                  className={`relative py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${
                     !useCustom && selected === cents
                       ? 'border-violet-500 bg-violet-50 text-violet-700 shadow-sm'
                       : 'border-gray-200 text-gray-700 hover:border-violet-300'
                   }`}
                 >
+                  {badge && (
+                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-wide bg-violet-500 text-white px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                      {badge}
+                    </span>
+                  )}
                   {label}
                 </button>
               ))}
