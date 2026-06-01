@@ -85,7 +85,7 @@ export const authOptions: NextAuthOptions = {
         }
       }
       // On first JWT creation or when missing, fetch from DB
-      if ((!token.displayName || token.birthDate === undefined || token.tier === undefined) && token.email) {
+      if ((!token.displayName || !token.birthDate || token.tier === undefined) && token.email) {
         try {
           const [user] = await db.select().from(users).where(eq(users.email, token.email as string))
           if (user) {

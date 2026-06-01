@@ -55,6 +55,7 @@ function ProfileContent() {
     trialEndsAt: string | null
     gracePeriodEndsAt: string | null
     canCreate: boolean
+    isOrgUser: boolean
   }
   const [billing, setBilling] = useState<BillingStatus | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
@@ -118,8 +119,10 @@ function ProfileContent() {
       await update({ displayName: displayName.trim(), birthDate })
       setSaveMsg('Saved!')
       setTimeout(() => setSaveMsg(''), 3000)
-      // If this was the required setup flow, send them home
-      if (isRequired) router.push('/')
+      // If this was the required setup flow, hard-navigate home so the
+      // freshly-set JWT cookie is sent in the next request and the middleware
+      // sees the updated birthDate (SPA push can race with cookie propagation).
+      if (isRequired) window.location.replace('/')
     } catch {
       setSaveMsg('Failed to save')
     } finally {
@@ -314,7 +317,11 @@ function ProfileContent() {
             <h2 className="text-base font-semibold text-gray-900">Subscription</h2>
           </div>
 
-          {(billing.subscriptionStatus === 'active' || billing.subscriptionStatus === 'trialing') ? (
+          {billing.isOrgUser ? (
+            <p className="text-sm text-gray-500">
+              Your access is provided through your organization — no personal subscription required.
+            </p>
+          ) : (billing.subscriptionStatus === 'active' || billing.subscriptionStatus === 'trialing') ? (
             <>
               <p className="text-sm text-gray-500 mb-4">
                 {billing.subscriptionStatus === 'trialing' ? 'Free trial active' : 'Active subscriber'}

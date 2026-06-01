@@ -1,6 +1,23 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { users } from '@/lib/schema'
+import { users, organizations, organizationMembers } from '@/lib/schema'
+
+/** True if the user is an org admin or member — their access is covered by the organization. */
+export async function isOrgUser(email: string): Promise<boolean> {
+  const [orgAdmin] = await db
+    .select({ adminEmail: organizations.adminEmail })
+    .from(organizations)
+    .where(eq(organizations.adminEmail, email))
+    .limit(1)
+  if (orgAdmin) return true
+
+  const [orgMember] = await db
+    .select({ userEmail: organizationMembers.userEmail })
+    .from(organizationMembers)
+    .where(eq(organizationMembers.userEmail, email))
+    .limit(1)
+  return !!orgMember
+}
 
 export async function canCreateStories(email: string): Promise<boolean> {
   const [user] = await db
@@ -20,5 +37,6 @@ export async function canCreateStories(email: string): Promise<boolean> {
   if (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing') return true
   if (user.trialEndsAt && user.trialEndsAt > new Date()) return true
   if (user.gracePeriodEndsAt && user.gracePeriodEndsAt > new Date()) return true
+  if (await isOrgUser(email)) return true
   return false
 }

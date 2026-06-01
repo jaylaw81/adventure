@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
-import { canCreateStories } from '@/lib/subscription'
+import { canCreateStories, isOrgUser } from '@/lib/subscription'
 
 export async function GET() {
   try {
@@ -27,11 +27,15 @@ export async function GET() {
       .from(users)
       .where(eq(users.email, email))
 
-    const canCreate = await canCreateStories(email)
+    const [canCreate, orgUser] = await Promise.all([
+      canCreateStories(email),
+      isOrgUser(email),
+    ])
 
     return NextResponse.json({
       tier: user?.tier ?? 'free',
       grandfathered: user?.grandfathered ?? false,
+      isOrgUser: orgUser,
       subscriptionStatus: user?.subscriptionStatus ?? null,
       subscriptionAmountCents: user?.subscriptionAmountCents ?? null,
       hasStripeAccount: !!user?.stripeCustomerId,

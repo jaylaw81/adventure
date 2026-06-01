@@ -4,11 +4,16 @@ import { eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
+import { isOrgUser } from '@/lib/subscription'
 import SubscribeForm from './SubscribeForm'
 
 export default async function SubscribePage() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) redirect('/sign-in?next=/subscribe')
+
+  // Org admins and members don't need a personal subscription
+  const orgUser = await isOrgUser(session.user.email)
+  if (orgUser) redirect('/profile')
 
   const [user] = await db
     .select({
