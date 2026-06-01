@@ -6,6 +6,12 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-06-01
+
+- Discord community: a Discord server invite link is now visible in the site footer, the desktop user menu, and the mobile menu so users can quickly get live support.
+- Organization access: org admins and members invited to an organization no longer see subscription prompts — their access is covered by the organization and the profile page reflects this.
+- Onboarding birthdate fix: users who complete the required profile setup (date of birth) are now correctly redirected to the home page without being asked to complete their profile a second time.
+
 ## 2026-05-30
 
 - Pay-what-you-want subscription: users can now subscribe for as little as $2/month (choosing any amount they wish) to unlock story creation and editing, with a 7-day free trial for new accounts and a 30-day grace period for existing users.
