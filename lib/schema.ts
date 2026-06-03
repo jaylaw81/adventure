@@ -143,6 +143,7 @@ export const organizations = pgTable('organizations', {
   adminEmail: text('admin_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
   description: text('description'),
   privacyLevel: text('privacy_level').notNull().default('org-only'), // 'public' | 'org-only' | 'private'
+  status: text('status').notNull().default('active'), // 'active' | 'suspended'
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (t) => [

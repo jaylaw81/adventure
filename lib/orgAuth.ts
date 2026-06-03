@@ -18,7 +18,7 @@ export async function getOrgAdminContext(): Promise<OrgAdminContext | null> {
     .where(eq(organizations.adminEmail, session.user.email))
     .limit(1)
 
-  if (!org) return null
+  if (!org || org.status === 'suspended') return null
   return { session, org }
 }
 

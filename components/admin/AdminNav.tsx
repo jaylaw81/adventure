@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { ShieldCheck, BookOpen, Flag, LogOut, School, MessageSquareHeart, Users, Settings2, Menu, X, Mail } from 'lucide-react'
+import { ShieldCheck, BookOpen, Flag, LogOut, School, MessageSquareHeart, Users, Settings2, Menu, X, Mail, Building2 } from 'lucide-react'
 
 export default function AdminNav() {
   const pathname = usePathname()
@@ -36,6 +36,7 @@ export default function AdminNav() {
   const NAV_ITEMS = [
     { href: '/admin', label: 'Stories', icon: BookOpen, badge: 0, badgeStyle: 'alert' },
     { href: '/admin/users', label: 'Users', icon: Users, badge: 0, badgeStyle: 'alert' },
+    { href: '/admin/orgs', label: 'Organizations', icon: Building2, badge: 0, badgeStyle: 'alert' },
     { href: '/admin/reports', label: 'Reports', icon: Flag, badge: pendingReports, badgeStyle: 'alert' },
     { href: '/admin/survey', label: 'Survey', icon: MessageSquareHeart, badge: surveyCount, badgeStyle: 'count' },
     { href: '/admin/surveys', label: 'Survey Editor', icon: Settings2, badge: 0, badgeStyle: 'count' },
