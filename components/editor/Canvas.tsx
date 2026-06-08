@@ -217,9 +217,14 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
   const { screenToFlowPosition } = useReactFlow()
   const [dbNodes, setDbNodes] = useState<Node[]>(initialNodes)
   const [dbChapters, setDbChapters] = useState<Chapter[]>(initialChapters)
-  const [activeChapterId, setActiveChapterId] = useState<string | null>(
-    initialChapters.length > 0 ? initialChapters[0].id : null
-  )
+  const [activeChapterId, setActiveChapterId] = useState<string | null>(() => {
+    if (initialChapters.length === 0) return null
+    // If any nodes lack a chapter assignment, default to "all scenes" view so
+    // nothing appears missing. This happens when a story was created from a
+    // template (nodes have no chapter) and chapters were added later.
+    const hasOrphans = initialNodes.some(n => n.chapterId === null)
+    return hasOrphans ? null : initialChapters[0].id
+  })
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
