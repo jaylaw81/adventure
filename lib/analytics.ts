@@ -1,9 +1,3 @@
-declare global {
-  interface Window {
-    gtag: (command: string, ...args: unknown[]) => void
-  }
-}
-
 export function track(event: string, params?: Record<string, string | number | boolean>) {
   if (typeof window === 'undefined' || !window.gtag) return
   window.gtag('event', event, params)

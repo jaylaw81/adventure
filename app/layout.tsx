@@ -35,11 +35,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" style={{ colorScheme: 'light' }}>
       <head>
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9068413627358148"
-          crossOrigin="anonymous"
-        />
+        {/* Google Consent Mode v2 defaults — must run before any GA/Ads scripts */}
+        <script dangerouslySetInnerHTML={{ __html: `
+(function(){
+  try {
+    var m=document.cookie.match(/(?:^|; )sq_consent=([^;]*)/);
+    var c=m?JSON.parse(decodeURIComponent(m[1])):null;
+    var a=c&&c.version===1&&c.analytics===true;
+    var d=c&&c.version===1&&c.advertising===true;
+    window.dataLayer=window.dataLayer||[];
+    function gtag(){dataLayer.push(arguments);}
+    window.gtag=gtag;
+    gtag('consent','default',{
+      analytics_storage:a?'granted':'denied',
+      ad_storage:d?'granted':'denied',
+      ad_user_data:d?'granted':'denied',
+      ad_personalization:d?'granted':'denied',
+      wait_for_update:500
+    });
+  }catch(e){}
+})();
+        `}} />
       </head>
       <body className={`${geist.className} antialiased min-h-screen`} style={{ background: '#faf5ff' }}>
         <JsonLd data={{

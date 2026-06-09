@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Scroll } from 'lucide-react'
+import CookieSettingsButton from '@/components/gdpr/CookieSettingsButton'
 
 export default function Footer() {
   return (
@@ -43,6 +44,10 @@ export default function Footer() {
               style={{ color: '#6d28d9' }}>
               Terms of Service
             </Link>
+            <CookieSettingsButton
+              className="text-sm transition-colors hover:opacity-80"
+              style={{ color: '#6d28d9' } as React.CSSProperties}
+            />
           </nav>
 
           {/* Social + Copyright */}
