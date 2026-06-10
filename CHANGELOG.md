@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-06-10
+
+- Admin Earnings page: new admin dashboard page showing MRR, ARR, projected revenue if trial users convert, revenue distribution by subscription amount, subscriber status breakdown, and a sortable table of all active subscribers.
+
 ## 2026-06-01
 
 - Discord community: a Discord server invite link is now visible in the site footer, the desktop user menu, and the mobile menu so users can quickly get live support.
