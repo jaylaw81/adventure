@@ -20,6 +20,12 @@ export async function GET() {
         tier: users.tier,
         status: users.status,
         createdAt: users.createdAt,
+        grandfathered: users.grandfathered,
+        subscriptionStatus: users.subscriptionStatus,
+        subscriptionAmountCents: users.subscriptionAmountCents,
+        trialEndsAt: users.trialEndsAt,
+        gracePeriodEndsAt: users.gracePeriodEndsAt,
+        stripeCustomerId: users.stripeCustomerId,
       })
       .from(users)
       .orderBy(desc(users.createdAt)),
