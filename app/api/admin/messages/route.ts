@@ -1,12 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { and, desc, eq, gt, notExists, sql } from 'drizzle-orm'
+import { and, desc, eq, gt, isNull, lt, ne, notExists, or, sql } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures, emailBlasts, emailBlastRecipients } from '@/lib/schema'
 import { sendEmailBlast } from '@/lib/email'
 
 const INACTIVE_DAYS = 30
+
+function needsBillingWhereClause() {
+  const now = new Date()
+  // Mirrors the "needs_setup" category in getBillingInfo:
+  // not org, not grandfathered, no active/trialing subscription,
+  // trial expired or never set, grace period expired or never set,
+  // and not past_due/canceled/paused (those are "issues").
+  return and(
+    eq(users.emailSubscribed, true),
+    eq(users.grandfathered, false),
+    ne(users.tier, 'organization'),
+    or(isNull(users.subscriptionStatus), ne(users.subscriptionStatus, 'active')),
+    or(isNull(users.subscriptionStatus), ne(users.subscriptionStatus, 'trialing')),
+    or(isNull(users.trialEndsAt), lt(users.trialEndsAt, now)),
+    or(isNull(users.gracePeriodEndsAt), lt(users.gracePeriodEndsAt, now)),
+    or(isNull(users.subscriptionStatus), and(
+      ne(users.subscriptionStatus, 'past_due'),
+      ne(users.subscriptionStatus, 'canceled'),
+      ne(users.subscriptionStatus, 'paused'),
+    )),
+  )
+}
 
 function inactiveWhereClause() {
   const cutoff = new Date(Date.now() - INACTIVE_DAYS * 24 * 60 * 60 * 1000)
@@ -28,7 +50,7 @@ export async function GET() {
 
   const cutoff = new Date(Date.now() - INACTIVE_DAYS * 24 * 60 * 60 * 1000)
 
-  const [blasts, [counts], [inactiveRow], deliveryStats] = await Promise.all([
+  const [blasts, [counts], [inactiveRow], [trialEndedRow], deliveryStats] = await Promise.all([
     db.select().from(emailBlasts).orderBy(desc(emailBlasts.sentAt)),
     db.select({
       subscribed:   sql<number>`count(*) filter (where ${users.emailSubscribed} = true)::int`,
@@ -45,6 +67,7 @@ export async function GET() {
         )
       )
     ),
+    db.select({ count: sql<number>`count(*)::int` }).from(users).where(needsBillingWhereClause()),
     db.select({
       blastId:   emailBlastRecipients.blastId,
       delivered: sql<number>`count(*) filter (where ${emailBlastRecipients.status} = 'delivered')::int`,
@@ -61,7 +84,7 @@ export async function GET() {
     delivery: deliveryMap[b.id] ?? { delivered: 0, failed: 0, bounced: 0, pending: 0 },
   }))
 
-  const stats = { ...counts, inactive: inactiveRow.count }
+  const stats = { ...counts, inactive: inactiveRow.count, needsBilling: trialEndedRow.count }
   return NextResponse.json({ blasts: blastsWithStats, stats })
 }
 
@@ -71,7 +94,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const { subject, bodyHtml, audience = 'all' } = await req.json()
+  const { subject, bodyHtml, audience = 'all' } = await req.json() as { subject: string; bodyHtml: string; audience: 'all' | 'organization' | 'inactive' | 'needs_billing' }
   if (!subject?.trim() || !bodyHtml?.trim()) {
     return NextResponse.json({ error: 'Subject and body are required' }, { status: 400 })
   }
@@ -84,6 +107,9 @@ export async function POST(req: NextRequest) {
     }
     if (audience === 'inactive') {
       return db.select(cols).from(users).where(inactiveWhereClause())
+    }
+    if (audience === 'needs_billing') {
+      return db.select(cols).from(users).where(needsBillingWhereClause())
     }
     return db.select(cols).from(users).where(eq(users.emailSubscribed, true))
   })()

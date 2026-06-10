@@ -65,9 +65,9 @@ export default function MessagesPage() {
   const [subject, setSubject] = useState('')
   const [blasts, setBlasts] = useState<Blast[]>([])
   const [loadingBlasts, setLoadingBlasts] = useState(true)
-  const [stats, setStats] = useState<{ subscribed: number; unsubscribed: number; org: number; inactive: number } | null>(null)
+  const [stats, setStats] = useState<{ subscribed: number; unsubscribed: number; org: number; inactive: number; needsBilling: number } | null>(null)
   const [changelog, setChangelog] = useState<ChangelogEntry[]>([])
-  const [audience, setAudience] = useState<'all' | 'organization' | 'inactive'>('all')
+  const [audience, setAudience] = useState<'all' | 'organization' | 'inactive' | 'needs_billing'>('all')
   const [sending, setSending] = useState(false)
   const [sendResult, setSendResult] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
   const [resendingBlast, setResendingBlast] = useState<string | null>(null)
@@ -257,9 +257,10 @@ export default function MessagesPage() {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Audience</p>
                 <div className="flex flex-col sm:flex-row gap-2">
                   {([
-                    { value: 'all',          label: 'All subscribers',      count: stats?.subscribed,  desc: 'Every user who has not unsubscribed' },
-                    { value: 'organization', label: 'Organization users',   count: stats?.org,         desc: 'Subscribed users on the org tier' },
-                    { value: 'inactive',     label: 'Inactive (30+ days)',  count: stats?.inactive,    desc: 'Subscribed users with no story activity in 30 days' },
+                    { value: 'all',          label: 'All subscribers',      count: stats?.subscribed,   desc: 'Every user who has not unsubscribed' },
+                    { value: 'organization', label: 'Organization users',   count: stats?.org,          desc: 'Subscribed users on the org tier' },
+                    { value: 'inactive',     label: 'Inactive (30+ days)',  count: stats?.inactive,     desc: 'Subscribed users with no story activity in 30 days' },
+                    { value: 'needs_billing', label: 'Needs billing',        count: stats?.needsBilling, desc: 'Users with no active subscription (matches admin Users page)' },
                   ] as const).map(opt => (
                     <button
                       key={opt.value}
@@ -334,7 +335,7 @@ export default function MessagesPage() {
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <Users size={14} />
                   {stats !== null ? (() => {
-                    const count = audience === 'organization' ? stats.org : audience === 'inactive' ? stats.inactive : stats.subscribed
+                    const count = audience === 'organization' ? stats.org : audience === 'inactive' ? stats.inactive : audience === 'needs_billing' ? stats.needsBilling : stats.subscribed
                     return <>Will send to <span className="font-semibold text-slate-700">{count.toLocaleString()}</span> user{count !== 1 ? 's' : ''}</>
                   })() : 'Calculating recipients…'}
                 </div>
