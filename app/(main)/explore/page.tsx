@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import { analytics } from '@/lib/analytics'
 import ReviewsModal from '@/components/explore/ReviewsModal'
 import PageBanner from '@/components/shared/PageBanner'
+import ShareButtons from '@/components/shared/ShareButtons'
 
 const AUDIENCE_OPTIONS = [
   { value: 'all', label: 'All Ages' },
@@ -373,6 +374,17 @@ export default function ExplorePage() {
                         <Play size={14} />
                         Play Story
                       </Link>
+                    </div>
+                    {/* Share footer — separated from the card body so it doesn't crowd the CTA */}
+                    <div className="px-5 py-3 border-t border-violet-100 bg-violet-50/40">
+                      <ShareButtons
+                        title={story.title}
+                        url={
+                          story.shareToken
+                            ? `https://www.storyquestor.com/s/${story.shareToken}`
+                            : `https://www.storyquestor.com/play/${story.id}`
+                        }
+                      />
                     </div>
                   </div>
                 )
