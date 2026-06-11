@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures, emailBlasts, emailBlastRecipients } from '@/lib/schema'
 import { sendEmailBlast } from '@/lib/email'
+import { buildSegmentWhere, type SegmentCondition } from '@/lib/segmentQuery'
 
 const INACTIVE_DAYS = 30
 
@@ -94,7 +95,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const { subject, bodyHtml, audience = 'all' } = await req.json() as { subject: string; bodyHtml: string; audience: 'all' | 'organization' | 'inactive' | 'needs_billing' }
+  const { subject, bodyHtml, audience = 'all', conditions } = await req.json() as {
+    subject: string
+    bodyHtml: string
+    audience: 'all' | 'organization' | 'inactive' | 'needs_billing' | 'custom'
+    conditions?: SegmentCondition[]
+  }
   if (!subject?.trim() || !bodyHtml?.trim()) {
     return NextResponse.json({ error: 'Subject and body are required' }, { status: 400 })
   }
@@ -110,6 +116,10 @@ export async function POST(req: NextRequest) {
     }
     if (audience === 'needs_billing') {
       return db.select(cols).from(users).where(needsBillingWhereClause())
+    }
+    if (audience === 'custom' && conditions?.length) {
+      const segWhere = buildSegmentWhere(conditions)
+      return db.select(cols).from(users).where(and(eq(users.emailSubscribed, true), segWhere))
     }
     return db.select(cols).from(users).where(eq(users.emailSubscribed, true))
   })()

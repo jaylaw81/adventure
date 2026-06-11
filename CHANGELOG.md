@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-06-11
+
+- Admin Insights page: new admin dashboard showing actionable recommendations based on user behavior — trials expiring soon, unpublished creators, new users who haven't started a story, abandoned stories, social content suggestions with one-click post copy, and optional Google Analytics integration for feature usage and traffic source data.
+
 ## 2026-06-10
 
 - Admin Earnings page: new admin dashboard page showing MRR, ARR, projected revenue if trial users convert, revenue distribution by subscription amount, subscriber status breakdown, and a sortable table of all active subscribers.

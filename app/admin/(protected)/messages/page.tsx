@@ -10,8 +10,10 @@ import Placeholder from '@tiptap/extension-placeholder'
 import {
   Bold, Italic, UnderlineIcon, Link2, AlignLeft, AlignCenter,
   List, ListOrdered, Send, History, Users, UserX, ChevronRight, Loader2,
-  CheckCircle2, AlertCircle,
+  CheckCircle2, AlertCircle, SlidersHorizontal,
 } from 'lucide-react'
+import SegmentBuilder from '@/components/admin/SegmentBuilder'
+import type { SegmentCondition } from '@/lib/segmentTypes'
 
 interface ChangelogEntry {
   date: string
@@ -67,7 +69,9 @@ export default function MessagesPage() {
   const [loadingBlasts, setLoadingBlasts] = useState(true)
   const [stats, setStats] = useState<{ subscribed: number; unsubscribed: number; org: number; inactive: number; needsBilling: number } | null>(null)
   const [changelog, setChangelog] = useState<ChangelogEntry[]>([])
-  const [audience, setAudience] = useState<'all' | 'organization' | 'inactive' | 'needs_billing'>('all')
+  const [audience, setAudience] = useState<'all' | 'organization' | 'inactive' | 'needs_billing' | 'custom'>('all')
+  const [segmentConditions, setSegmentConditions] = useState<SegmentCondition[]>([])
+  const [segmentCount, setSegmentCount] = useState<number | null>(null)
   const [sending, setSending] = useState(false)
   const [sendResult, setSendResult] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
   const [resendingBlast, setResendingBlast] = useState<string | null>(null)
@@ -119,7 +123,12 @@ export default function MessagesPage() {
       const res = await fetch('/api/admin/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, bodyHtml, audience }),
+        body: JSON.stringify({
+          subject,
+          bodyHtml,
+          audience,
+          ...(audience === 'custom' ? { conditions: segmentConditions } : {}),
+        }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -256,17 +265,18 @@ export default function MessagesPage() {
               <div className="px-4 py-3 border-b border-slate-200">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Audience</p>
                 <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="grid grid-cols-2 gap-2 w-full">
                   {([
-                    { value: 'all',          label: 'All subscribers',      count: stats?.subscribed,   desc: 'Every user who has not unsubscribed' },
-                    { value: 'organization', label: 'Organization users',   count: stats?.org,          desc: 'Subscribed users on the org tier' },
-                    { value: 'inactive',     label: 'Inactive (30+ days)',  count: stats?.inactive,     desc: 'Subscribed users with no story activity in 30 days' },
-                    { value: 'needs_billing', label: 'Needs billing',        count: stats?.needsBilling, desc: 'Users with no active subscription (matches admin Users page)' },
+                    { value: 'all',           label: 'All subscribers',     count: stats?.subscribed,   desc: 'Every user who has not unsubscribed' },
+                    { value: 'organization',  label: 'Organization users',  count: stats?.org,          desc: 'Subscribed users on the org tier' },
+                    { value: 'inactive',      label: 'Inactive (30+ days)', count: stats?.inactive,     desc: 'No story activity in 30 days' },
+                    { value: 'needs_billing', label: 'Needs billing',       count: stats?.needsBilling, desc: 'No active subscription' },
                   ] as const).map(opt => (
                     <button
                       key={opt.value}
                       type="button"
                       onClick={() => setAudience(opt.value)}
-                      className={`flex-1 text-left px-3 py-2.5 rounded-lg border transition-colors ${
+                      className={`text-left px-3 py-2.5 rounded-lg border transition-colors ${
                         audience === opt.value
                           ? 'border-slate-900 bg-slate-900 text-white'
                           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
@@ -283,8 +293,44 @@ export default function MessagesPage() {
                       <p className={`text-xs mt-0.5 ${audience === opt.value ? 'text-slate-400' : 'text-slate-400'}`}>{opt.desc}</p>
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={() => setAudience('custom')}
+                    className={`text-left px-3 py-2.5 rounded-lg border transition-colors col-span-2 ${
+                      audience === 'custom'
+                        ? 'border-violet-600 bg-violet-600 text-white'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 text-xs font-semibold">
+                        <SlidersHorizontal size={12} /> Custom segment
+                      </span>
+                      {audience === 'custom' && segmentCount !== null && (
+                        <span className="text-xs font-bold tabular-nums text-violet-200">
+                          {segmentCount.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-xs mt-0.5 ${audience === 'custom' ? 'text-violet-300' : 'text-slate-400'}`}>
+                      Build a custom filter with multiple conditions
+                    </p>
+                  </button>
+                  </div>
                 </div>
               </div>
+
+              {/* Segment builder */}
+              {audience === 'custom' && (
+                <div className="px-4 py-4 border-b border-slate-200">
+                  <SegmentBuilder
+                    conditions={segmentConditions}
+                    onChange={setSegmentConditions}
+                    recipientCount={segmentCount}
+                    onCountChange={setSegmentCount}
+                  />
+                </div>
+              )}
 
               {/* Toolbar */}
               {editor && (
@@ -335,7 +381,12 @@ export default function MessagesPage() {
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <Users size={14} />
                   {stats !== null ? (() => {
-                    const count = audience === 'organization' ? stats.org : audience === 'inactive' ? stats.inactive : audience === 'needs_billing' ? stats.needsBilling : stats.subscribed
+                    const count = audience === 'custom'
+                      ? (segmentCount ?? 0)
+                      : audience === 'organization' ? stats.org
+                      : audience === 'inactive' ? stats.inactive
+                      : audience === 'needs_billing' ? stats.needsBilling
+                      : stats.subscribed
                     return <>Will send to <span className="font-semibold text-slate-700">{count.toLocaleString()}</span> user{count !== 1 ? 's' : ''}</>
                   })() : 'Calculating recipients…'}
                 </div>

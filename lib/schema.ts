@@ -321,6 +321,14 @@ export const emailBlastRecipients = pgTable('email_blast_recipients', {
   index('ebr_resend_id_idx').on(t.resendId),
 ])
 
+export const emailSegments = pgTable('email_segments', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull(),
+  conditions: text('conditions').notNull(), // JSON: SegmentCondition[]
+  createdByEmail: text('created_by_email').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 export const adminMessages = pgTable('admin_messages', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -332,6 +340,7 @@ export const adminMessages = pgTable('admin_messages', {
   index('admin_messages_user_id_idx').on(t.userId),
 ])
 
+export type EmailSegment = typeof emailSegments.$inferSelect
 export type EmailBlast = typeof emailBlasts.$inferSelect
 export type EmailBlastRecipient = typeof emailBlastRecipients.$inferSelect
 export type SurveyConfig = typeof surveyConfigs.$inferSelect
