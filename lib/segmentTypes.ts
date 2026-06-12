@@ -7,6 +7,8 @@ export type SegmentCondition =
   | { field: 'has_stories';             value: boolean }
   | { field: 'has_public_stories';      value: boolean }
   | { field: 'story_count_min';         value: number }
+  | { field: 'has_linear_stories';      value: boolean }
+  | { field: 'has_abandoned_story_days'; value: number }
   | { field: 'account_status';          value: 'active' | 'suspended' }
   | { field: 'joined_last_days';        value: number }
   | { field: 'joined_more_than_days';   value: number }
@@ -14,15 +16,17 @@ export type SegmentCondition =
   | { field: 'inactive_days';           value: number }
 
 export const FIELD_LABELS: Record<SegmentCondition['field'], string> = {
-  billing_status:         'Billing status',
-  has_stories:            'Has stories',
-  has_public_stories:     'Has public stories',
-  story_count_min:        'Story count ≥',
-  account_status:         'Account status',
-  joined_last_days:       'Joined in last N days',
-  joined_more_than_days:  'Joined more than N days ago',
-  trial_ends_within_days: 'Trial ends within N days',
-  inactive_days:          'Inactive for N+ days',
+  billing_status:           'Billing status',
+  has_stories:              'Has stories',
+  has_public_stories:       'Has public stories',
+  story_count_min:          'Story count ≥',
+  has_linear_stories:       'Has linear stories (no choices)',
+  has_abandoned_story_days: 'Has story not updated in N days',
+  account_status:           'Account status',
+  joined_last_days:         'Joined in last N days',
+  joined_more_than_days:    'Joined more than N days ago',
+  trial_ends_within_days:   'Trial ends within N days',
+  inactive_days:            'Inactive for N+ days',
 }
 
 export const BILLING_STATUS_LABELS: Record<BillingStatus, string> = {

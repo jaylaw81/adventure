@@ -129,7 +129,16 @@ export async function POST(req: NextRequest) {
   // Insert blast first so recipients can FK reference it
   const [blast] = await db
     .insert(emailBlasts)
-    .values({ subject, bodyHtml, sentByEmail, recipientCount: 0 })
+    .values({
+      subject,
+      bodyHtml,
+      sentByEmail,
+      recipientCount: 0,
+      audience,
+      segmentConditions: audience === 'custom' && conditions?.length
+        ? JSON.stringify(conditions)
+        : null,
+    })
     .returning()
 
   // Send in batches of 4 — Resend rate limit is 5 req/s

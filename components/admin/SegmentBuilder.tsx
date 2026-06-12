@@ -35,15 +35,17 @@ interface Props {
 type FieldType = 'billing_status' | 'boolean' | 'number' | 'account_status'
 
 const FIELD_TYPES: Record<SegmentCondition['field'], FieldType> = {
-  billing_status:         'billing_status',
-  has_stories:            'boolean',
-  has_public_stories:     'boolean',
-  story_count_min:        'number',
-  account_status:         'account_status',
-  joined_last_days:       'number',
-  joined_more_than_days:  'number',
-  trial_ends_within_days: 'number',
-  inactive_days:          'number',
+  billing_status:           'billing_status',
+  has_stories:              'boolean',
+  has_public_stories:       'boolean',
+  story_count_min:          'number',
+  has_linear_stories:       'boolean',
+  has_abandoned_story_days: 'number',
+  account_status:           'account_status',
+  joined_last_days:         'number',
+  joined_more_than_days:    'number',
+  trial_ends_within_days:   'number',
+  inactive_days:            'number',
 }
 
 function defaultValue(field: SegmentCondition['field']): SegmentCondition['value'] {
@@ -56,16 +58,18 @@ function defaultValue(field: SegmentCondition['field']): SegmentCondition['value
 
 function conditionLabel(c: SegmentCondition): string {
   switch (c.field) {
-    case 'billing_status':        return `Billing is ${BILLING_STATUS_LABELS[c.value as BillingStatus]}`
-    case 'has_stories':           return c.value ? 'Has at least one story' : 'Has no stories'
-    case 'has_public_stories':    return c.value ? 'Has a public story' : 'Has no public stories'
-    case 'story_count_min':       return `Story count ≥ ${c.value}`
-    case 'account_status':        return `Account is ${c.value}`
-    case 'joined_last_days':      return `Joined in the last ${c.value} days`
-    case 'joined_more_than_days': return `Joined more than ${c.value} days ago`
-    case 'trial_ends_within_days':return `Trial ends within ${c.value} days`
-    case 'inactive_days':         return `Inactive for ${c.value}+ days`
-    default:                      return ''
+    case 'billing_status':          return `Billing is ${BILLING_STATUS_LABELS[c.value as BillingStatus]}`
+    case 'has_stories':             return c.value ? 'Has at least one story' : 'Has no stories'
+    case 'has_public_stories':      return c.value ? 'Has a public story' : 'Has no public stories'
+    case 'story_count_min':         return `Story count ≥ ${c.value}`
+    case 'has_linear_stories':      return c.value ? 'Has a linear story (no choices)' : 'No linear stories'
+    case 'has_abandoned_story_days':return `Has story not updated in ${c.value}+ days`
+    case 'account_status':          return `Account is ${c.value}`
+    case 'joined_last_days':        return `Joined in the last ${c.value} days`
+    case 'joined_more_than_days':   return `Joined more than ${c.value} days ago`
+    case 'trial_ends_within_days':  return `Trial ends within ${c.value} days`
+    case 'inactive_days':           return `Inactive for ${c.value}+ days`
+    default:                        return ''
   }
 }
 
@@ -156,7 +160,7 @@ function ConditionRow({
             type="number"
             min={1}
             value={condition.value as number}
-            onChange={e => onChange({ field: condition.field as 'story_count_min' | 'joined_last_days' | 'joined_more_than_days' | 'trial_ends_within_days' | 'inactive_days', value: Math.max(1, parseInt(e.target.value) || 1) })}
+            onChange={e => onChange({ field: condition.field as 'story_count_min' | 'has_abandoned_story_days' | 'joined_last_days' | 'joined_more_than_days' | 'trial_ends_within_days' | 'inactive_days', value: Math.max(1, parseInt(e.target.value) || 1) })}
             className="w-20 text-xs border border-slate-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 text-center"
           />
         )}

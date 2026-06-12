@@ -2,7 +2,7 @@
 // For client-safe types/labels use lib/segmentTypes.ts instead.
 import { and, eq, exists, gt, isNotNull, isNull, lt, ne, notExists, or, sql } from 'drizzle-orm'
 import { db } from './db'
-import { users, adventures } from './schema'
+import { users, adventures, choices } from './schema'
 import type { SegmentCondition, BillingStatus } from './segmentTypes'
 
 export type { SegmentCondition, BillingStatus }
@@ -21,6 +21,27 @@ const subPublic = () =>
 const subUpdatedAfter = (cutoff: Date) =>
   db.select({ x: adventures.userEmail }).from(adventures)
     .where(and(eq(adventures.userEmail, users.email), gt(adventures.updatedAt, cutoff)))
+
+// Stories with at least one node but zero choices (no branching)
+const subLinear = () =>
+  db.select({ x: adventures.userEmail }).from(adventures)
+    .where(and(
+      eq(adventures.userEmail, users.email),
+      eq(adventures.status, 'active'),
+      notExists(
+        db.select({ y: choices.adventureId }).from(choices)
+          .where(eq(choices.adventureId, adventures.id))
+      )
+    ))
+
+// Stories not touched since a cutoff date (draft or published)
+const subAbandonedBefore = (cutoff: Date) =>
+  db.select({ x: adventures.userEmail }).from(adventures)
+    .where(and(
+      eq(adventures.userEmail, users.email),
+      eq(adventures.status, 'active'),
+      lt(adventures.updatedAt, cutoff)
+    ))
 
 // ── Billing clause ────────────────────────────────────────────────────────────
 
@@ -72,6 +93,12 @@ function conditionClause(c: SegmentCondition, now: Date) {
       return c.value ? exists(subAny()) : notExists(subAny())
     case 'has_public_stories':
       return c.value ? exists(subPublic()) : notExists(subPublic())
+    case 'has_linear_stories':
+      return c.value ? exists(subLinear()) : notExists(subLinear())
+    case 'has_abandoned_story_days': {
+      const cutoff = new Date(now.getTime() - c.value * 86_400_000)
+      return exists(subAbandonedBefore(cutoff))
+    }
     case 'story_count_min':
       return sql`(select count(*) from ${adventures} where ${adventures.userEmail} = ${users.email} and ${adventures.status} = 'active') >= ${c.value}`
     case 'account_status':

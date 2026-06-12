@@ -303,6 +303,8 @@ export const emailBlasts = pgTable('email_blasts', {
   sentByEmail: text('sent_by_email').notNull(),
   recipientCount: integer('recipient_count').notNull().default(0),
   sentAt: timestamp('sent_at').defaultNow().notNull(),
+  audience: text('audience').notNull().default('all'),
+  segmentConditions: text('segment_conditions'), // JSON: SegmentCondition[] when audience='custom'
 })
 
 export const emailBlastRecipients = pgTable('email_blast_recipients', {

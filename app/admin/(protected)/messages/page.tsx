@@ -10,10 +10,11 @@ import Placeholder from '@tiptap/extension-placeholder'
 import {
   Bold, Italic, UnderlineIcon, Link2, AlignLeft, AlignCenter,
   List, ListOrdered, Send, History, Users, UserX, ChevronRight, Loader2,
-  CheckCircle2, AlertCircle, SlidersHorizontal,
+  CheckCircle2, AlertCircle, SlidersHorizontal, Tag,
 } from 'lucide-react'
 import SegmentBuilder from '@/components/admin/SegmentBuilder'
 import type { SegmentCondition } from '@/lib/segmentTypes'
+import { FIELD_LABELS, BILLING_STATUS_LABELS, type BillingStatus } from '@/lib/segmentTypes'
 
 interface ChangelogEntry {
   date: string
@@ -34,6 +35,33 @@ interface Blast {
   recipientCount: number
   sentAt: string
   delivery: BlastDelivery
+  audience: string
+  segmentConditions: string | null
+}
+
+const AUDIENCE_LABELS: Record<string, string> = {
+  all:           'All subscribers',
+  organization:  'Org users',
+  inactive:      'Inactive (30+ days)',
+  needs_billing: 'Needs billing',
+  custom:        'Custom segment',
+}
+
+function conditionLabel(c: SegmentCondition): string {
+  switch (c.field) {
+    case 'billing_status':          return `Billing: ${BILLING_STATUS_LABELS[c.value as BillingStatus]}`
+    case 'has_stories':             return c.value ? 'Has stories' : 'No stories'
+    case 'has_public_stories':      return c.value ? 'Has public story' : 'No public stories'
+    case 'story_count_min':         return `Stories ≥ ${c.value}`
+    case 'has_linear_stories':      return c.value ? 'Has linear story' : 'No linear stories'
+    case 'has_abandoned_story_days':return `Story idle ${c.value}+ days`
+    case 'account_status':          return `Account: ${c.value}`
+    case 'joined_last_days':        return `Joined < ${c.value}d ago`
+    case 'joined_more_than_days':   return `Joined > ${c.value}d ago`
+    case 'trial_ends_within_days':  return `Trial ends < ${c.value}d`
+    case 'inactive_days':           return `Inactive ${c.value}+ days`
+    default:                        return FIELD_LABELS[(c as SegmentCondition).field] ?? ''
+  }
 }
 
 function ToolbarButton({
@@ -431,6 +459,27 @@ export default function MessagesPage() {
                               {new Date(blast.sentAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                               {' · '}{blast.sentByEmail}
                             </p>
+                            {/* Audience badge */}
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                                blast.audience === 'custom'
+                                  ? 'bg-violet-50 text-violet-700 border border-violet-200'
+                                  : 'bg-slate-100 text-slate-600'
+                              }`}>
+                                {blast.audience === 'custom' ? <Tag size={10} /> : <Users size={10} />}
+                                {AUDIENCE_LABELS[blast.audience] ?? blast.audience}
+                              </span>
+                              {blast.audience === 'custom' && blast.segmentConditions && (() => {
+                                try {
+                                  const conds: SegmentCondition[] = JSON.parse(blast.segmentConditions)
+                                  return conds.map((c, i) => (
+                                    <span key={i} className="inline-flex items-center px-2 py-0.5 bg-violet-50 text-violet-600 text-xs rounded-full border border-violet-100">
+                                      {conditionLabel(c)}
+                                    </span>
+                                  ))
+                                } catch { return null }
+                              })()}
+                            </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             {d.failed > 0 && (
