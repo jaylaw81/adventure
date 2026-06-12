@@ -332,7 +332,7 @@ export default function HowToPage() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-amber-400">Part 1</p>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Creating a Story</h2>
+              <h2 id="creating-a-story" className="text-2xl sm:text-3xl font-extrabold text-white">Creating a Story</h2>
             </div>
           </div>
           <p className="text-gray-400 mb-12 ml-[52px]">Build your branching adventure from scratch on the visual canvas.</p>
@@ -342,11 +342,11 @@ export default function HowToPage() {
             {/* Step 1 + 2: Create & Settings */}
             <div className="flex flex-col lg:flex-row gap-10 items-start">
               <div className="flex-1 flex flex-col gap-8">
-                <StepCard number={1} title="Create a new story" accent="amber">
+                <StepCard number={1} title="Create a new story" accent="amber" id="create-a-new-story">
                   Sign in, then click <Kbd>New Story</Kbd> on the home page. Give your story a title and an optional description — you can always update these later in settings.
                   <Callout>Creating and editing stories requires a subscription (from $2/month, pay what you want). New accounts include a <strong>7-day free trial</strong> — no payment needed to get started. Reading stories is always free.</Callout>
                 </StepCard>
-                <StepCard number={2} title="Set your audience and tags" accent="amber">
+                <StepCard number={2} title="Set your audience and tags" accent="amber" id="audience-and-tags">
                   Click the <Kbd>Settings</Kbd> button in the editor toolbar to configure:
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Audience</strong> — All Ages, Teens, or Adults Only. Affects how AI images are generated.</span></li>
@@ -362,7 +362,7 @@ export default function HowToPage() {
             {/* Step 3: Scenes */}
             <div className="flex flex-col lg:flex-row-reverse gap-10 items-start">
               <div className="flex-1 flex flex-col gap-4">
-                <StepCard number={3} title="Add scenes to the canvas" accent="amber">
+                <StepCard number={3} title="Add scenes to the canvas" accent="amber" id="add-scenes">
                   Click <Kbd>Add Scene</Kbd> in the toolbar. A new scene card appears on the canvas. Click any card to open the editor panel where you can:
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Set the <strong className="text-white">Scene Type</strong> — Start, Scene, Ending, or Next Chapter</span></li>
@@ -381,7 +381,7 @@ export default function HowToPage() {
             {/* Step 4: Chapters */}
             <div className="flex flex-col lg:flex-row gap-10 items-start">
               <div className="flex-1">
-                <StepCard number={4} title="Organize scenes into chapters" accent="amber">
+                <StepCard number={4} title="Organize scenes into chapters" accent="amber" id="chapters">
                   Use the <strong className="text-white">chapter sidebar</strong> on the left to break your story into acts or chapters. Every new story starts with Chapter 1 already created.
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Click <strong className="text-white">Add Chapter</strong> in the sidebar to create a new chapter — a Start scene is added automatically</span></li>
@@ -401,7 +401,7 @@ export default function HowToPage() {
             {/* Step 5: Connections */}
             <div className="flex flex-col lg:flex-row-reverse gap-10 items-start">
               <div className="flex-1">
-                <StepCard number={5} title="Connect scenes with choices" accent="amber">
+                <StepCard number={5} title="Connect scenes with choices" accent="amber" id="connect-scenes">
                   Hover over any scene card to reveal connection handles on the edges. Drag from a handle on one scene to another to create a choice. A prompt will ask you to name the choice (e.g. "Go left" or "Open the door").
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Double-click a choice label to <strong className="text-white">rename</strong> it</span></li>
@@ -418,14 +418,14 @@ export default function HowToPage() {
             {/* Step 6 + 7 */}
             <div className="flex flex-col lg:flex-row gap-10 items-start">
               <div className="flex-1 flex flex-col gap-8">
-                <StepCard number={6} title="Generate AI scene images" accent="amber">
+                <StepCard number={6} title="Generate AI scene images" accent="amber" id="ai-images">
                   Open a completed scene and click <Kbd><Sparkles size={11} className="inline" /> Generate Image with AI</Kbd>. StoryQuestor creates a cinematic illustration based on your scene title and content.
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>You can regenerate up to <strong className="text-white">two times</strong> per scene</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Images generate automatically when you mark a scene <strong className="text-white">Completed</strong></span></li>
                   </ul>
                 </StepCard>
-                <StepCard number={7} title="Publish and share" accent="amber">
+                <StepCard number={7} title="Publish and share" accent="amber" id="publish-and-share">
                   On the home page, click <Kbd><Share2 size={11} className="inline" /> Share</Kbd> on your story card. This generates a public link and lists your story on the <Link href="/explore" className="text-amber-400 hover:underline">Explore</Link> page.
                   <Callout>Toggle sharing off at any time to make a story private again.</Callout>
                 </StepCard>
@@ -448,7 +448,7 @@ export default function HowToPage() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-amber-500">Part 2</p>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Playing a Story</h2>
+              <h2 id="playing-a-story" className="text-2xl sm:text-3xl font-extrabold text-gray-900">Playing a Story</h2>
             </div>
           </div>
           <p className="text-gray-500 mb-12 ml-[52px]">Discover stories created by the community and navigate branching paths.</p>
@@ -458,32 +458,31 @@ export default function HowToPage() {
             <div className="flex-1 flex flex-col gap-6">
               {[
                 {
-                  n: 1, title: 'Find a story',
+                  n: 1, title: 'Find a story', id: 'find-a-story',
                   body: <>Browse the <Link href="/explore" className="text-amber-600 hover:underline font-medium">Explore</Link> page to discover public stories. Click <Kbd dark>Play</Kbd> on any card, then <Kbd dark>Start Playing</Kbd>. Or just open a direct link someone shared with you.</>
                 },
                 {
-                  n: 2, title: 'Read each scene',
+                  n: 2, title: 'Read each scene', id: 'read-each-scene',
                   body: <>Each scene shows a <strong>title</strong>, an <strong>AI-generated illustration</strong>, and <strong>story prose</strong>. Read through it before choosing — the writing gives you context for each option.</>
                 },
                 {
-                  n: 3, title: 'Make your choice',
+                  n: 3, title: 'Make your choice', id: 'make-your-choice',
                   body: <>At the bottom of every scene you&apos;ll see up to three choice buttons. Tap one to move to the next scene. Every choice shapes your unique path through the story.</>
                 },
                 {
-                  n: 4, title: 'Navigate and go back',
+                  n: 4, title: 'Navigate and go back', id: 'navigate-and-go-back',
                   body: <>Use the <Kbd dark>← Back</Kbd> button in the top-left to undo your last choice and try a different path. Use <Kbd dark>Home</Kbd> to return to the main page at any time.</>
                 },
                 {
-                  n: 5, title: 'Reach an ending',
+                  n: 5, title: 'Reach an ending', id: 'reach-an-ending',
                   body: <>When you arrive at an Ending scene you&apos;ll see a short ceremony marking the close of that path. Click <Kbd dark>Play Again</Kbd> to restart and discover different outcomes.</>
-
                 },
                 {
-                  n: 6, title: 'Rate and review',
+                  n: 6, title: 'Rate and review', id: 'rate-and-review',
                   body: <>After reaching an ending you can leave a <strong>star rating</strong> and a <strong>written review</strong>. Ratings are shown on the Explore page to help other readers find great stories.</>
                 },
-              ].map(({ n, title, body }) => (
-                <StepCard key={n} number={n} title={title} accent="light">
+              ].map(({ n, title, id, body }) => (
+                <StepCard key={n} number={n} title={title} accent="light" id={id}>
                   {body}
                 </StepCard>
               ))}
@@ -514,7 +513,7 @@ export default function HowToPage() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-amber-400">Pro Tips</p>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white">Tips &amp; Tricks</h2>
+              <h2 id="tips-and-tricks" className="text-2xl sm:text-3xl font-extrabold text-white">Tips &amp; Tricks</h2>
             </div>
           </div>
 
@@ -569,7 +568,7 @@ export default function HowToPage() {
 
 /* ── Sub-components ──────────────────────────────────────────────── */
 
-function StepCard({ number, title, accent, children }: { number: number; title: string; accent: 'amber' | 'light'; children: React.ReactNode }) {
+function StepCard({ number, title, accent, id, children }: { number: number; title: string; accent: 'amber' | 'light'; id?: string; children: React.ReactNode }) {
   const dark = accent === 'amber'
   return (
     <div className={`rounded-2xl border p-6 ${dark ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
@@ -577,7 +576,7 @@ function StepCard({ number, title, accent, children }: { number: number; title: 
         <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-sm font-bold text-gray-900 shrink-0">
           {number}
         </div>
-        <h3 className={`text-base font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
+        <h3 id={id} className={`text-base font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
       </div>
       <div className={`text-sm leading-relaxed ml-11 ${dark ? 'text-gray-400' : 'text-gray-600'}`}>
         {children}
