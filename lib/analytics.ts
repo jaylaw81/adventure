@@ -1,5 +1,6 @@
 export function track(event: string, params?: Record<string, string | number | boolean>) {
   if (typeof window === 'undefined' || !window.gtag) return
+  if (window.location.pathname.startsWith('/admin')) return
   window.gtag('event', event, params)
 }
 

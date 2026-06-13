@@ -1,15 +1,17 @@
 'use client'
 
 import Script from 'next/script'
+import { usePathname } from 'next/navigation'
 import { useConsent } from './ConsentProvider'
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 const ADSENSE_ID = 'ca-pub-9068413627358148'
 
 export default function ConsentScripts() {
+  const pathname = usePathname()
   const { consent, ready } = useConsent()
 
-  if (!ready) return null
+  if (!ready || pathname?.startsWith('/admin')) return null
 
   const analyticsGranted = consent?.analytics === true
   const advertisingGranted = consent?.advertising === true
