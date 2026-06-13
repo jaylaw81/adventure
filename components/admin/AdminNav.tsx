@@ -19,12 +19,12 @@ export default function AdminNav() {
       fetch('/api/admin/review-reports').then(r => r.json()).catch(() => []),
       fetch('/api/admin/waitlist').then(r => r.json()).catch(() => []),
       fetch('/api/admin/survey').then(r => r.json()).catch(() => []),
-    ]).then(([stories, reviews, waitlist, survey]: [{ status: string }[], { status: string }[], unknown[], unknown[]]) => {
+    ]).then(([stories, reviews, waitlist, survey]: [{ status: string }[], { status: string }[], { status: string }[], unknown[]]) => {
       const pending =
         stories.filter(r => r.status === 'pending').length +
         reviews.filter(r => r.status === 'pending').length
       setPendingReports(pending)
-      setWaitlistCount(Array.isArray(waitlist) ? waitlist.length : 0)
+      setWaitlistCount(Array.isArray(waitlist) ? waitlist.filter(w => w.status === 'pending').length : 0)
       setSurveyCount(Array.isArray(survey) ? survey.length : 0)
     })
   }, [pathname])
