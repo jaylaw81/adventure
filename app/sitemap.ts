@@ -18,6 +18,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${SITE_URL}/choose-your-own-adventure`,
+      lastModified: new Date('2025-01-01'),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
       url: `${SITE_URL}/how-to`,
       lastModified: new Date('2025-01-01'),
       changeFrequency: 'monthly',

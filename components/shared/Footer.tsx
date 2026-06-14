@@ -31,6 +31,10 @@ export default function Footer() {
               style={{ color: '#6d28d9' }}>
               How it works
             </Link>
+            <Link href="/choose-your-own-adventure" className="text-sm transition-colors"
+              style={{ color: '#6d28d9' }}>
+              CYOA History
+            </Link>
             <a href="https://discord.gg/SkP85wW3" target="_blank" rel="noopener noreferrer"
               className="text-sm transition-colors hover:opacity-80"
               style={{ color: '#6d28d9' }}>

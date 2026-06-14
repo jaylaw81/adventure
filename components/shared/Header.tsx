@@ -127,6 +127,9 @@ export default function Header() {
           )}
           {!session && <NavLink href="/demo">Try Demo</NavLink>}
           <NavLink href="/organizations">For Schools</NavLink>
+          {(!session || session.user.profileComplete) && (
+            <NavLink href="/choose-your-own-adventure">CYOA History</NavLink>
+          )}
         </nav>
 
         {/* Global mute — mobile */}
@@ -347,6 +350,12 @@ export default function Header() {
             className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/organizations' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
             For Schools
           </Link>
+          {(!session || session.user.profileComplete) && (
+            <Link href="/choose-your-own-adventure" onClick={() => setMobileOpen(false)}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/choose-your-own-adventure' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+              CYOA History
+            </Link>
+          )}
 
           <div className="border-t border-white/10 mt-2 pt-3 flex flex-col gap-2">
             {session ? (
