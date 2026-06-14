@@ -3,6 +3,7 @@ import { getAdventure, getStartNode } from '@/lib/queries'
 
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
+export const revalidate = 86400 // cache generated image for 24 hours
 
 const AUDIENCE_BADGE: Record<string, { label: string; color: string }> = {
   all:    { label: 'All Ages',     color: '#16a34a' },
@@ -14,17 +15,44 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
+async function fetchImageAsDataUrl(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 4000)
+    const res = await fetch(url, { signal: controller.signal })
+    clearTimeout(timeout)
+    if (!res.ok) return null
+    const buffer = await res.arrayBuffer()
+    const mime = res.headers.get('content-type') ?? 'image/jpeg'
+    return `data:${mime};base64,${Buffer.from(buffer).toString('base64')}`
+  } catch {
+    return null
+  }
+}
+
 export default async function Image({ params }: Props) {
   const { id } = await params
-  const [adventure, startNode] = await Promise.all([
-    getAdventure(id),
-    getStartNode(id),
-  ])
 
-  const title = adventure?.title ?? 'Untitled Story'
-  const description = adventure?.description ?? ''
-  const imageUrl = startNode?.imageUrl ?? null
-  const badge = AUDIENCE_BADGE[adventure?.audience ?? 'all'] ?? AUDIENCE_BADGE.all
+  let title = 'Untitled Story'
+  let description = ''
+  let imageData: string | null = null
+  let badge = AUDIENCE_BADGE.all
+
+  try {
+    const [adventure, startNode] = await Promise.all([
+      getAdventure(id),
+      getStartNode(id),
+    ])
+    title = adventure?.title ?? 'Untitled Story'
+    description = adventure?.description ?? ''
+    badge = AUDIENCE_BADGE[adventure?.audience ?? 'all'] ?? AUDIENCE_BADGE.all
+    if (startNode?.imageUrl) {
+      imageData = await fetchImageAsDataUrl(startNode.imageUrl)
+    }
+  } catch {
+    // render fallback image without story data
+  }
+
   const shortDesc = description.length > 140 ? description.slice(0, 137) + '…' : description
 
   return new ImageResponse(
@@ -39,11 +67,11 @@ export default async function Image({ params }: Props) {
           overflow: 'hidden',
         }}
       >
-        {/* Story cover image as blurred background */}
-        {imageUrl && (
+        {/* Story cover image as background panel */}
+        {imageData && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={imageUrl}
+            src={imageData}
             alt=""
             style={{
               position: 'absolute',
@@ -62,7 +90,7 @@ export default async function Image({ params }: Props) {
           style={{
             position: 'absolute',
             inset: 0,
-            background: imageUrl
+            background: imageData
               ? 'linear-gradient(to right, #0f172a 45%, rgba(15,23,42,0.5) 75%, rgba(15,23,42,0.2) 100%)'
               : 'transparent',
           }}
