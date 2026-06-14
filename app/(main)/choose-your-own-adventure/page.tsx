@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ExternalLink, BookOpen, Pencil } from 'lucide-react'
 import JsonLd from '@/components/JsonLd'
+import TimelineScroller from '@/components/cyoa/TimelineScroller'
 
 const SITE_URL = 'https://www.storyquestor.com'
 const AMZN_TAG = 'storyquestor-20'
@@ -284,30 +285,7 @@ export default function CYOAHistoryPage() {
       </section>
 
       {/* ── Timeline ── */}
-      <section className="px-6 py-20" style={{ background: '#faf5ff' }}>
-        <div className="max-w-3xl mx-auto">
-          <p className="text-xs font-semibold uppercase tracking-widest text-violet-500 mb-3">Timeline</p>
-          <h2 id="timeline" className="text-3xl font-extrabold mb-10" style={{ color: '#1e0a3c' }}>
-            From Bedtime Story to Global Phenomenon
-          </h2>
-          <div className="relative">
-            <div className="absolute left-[72px] top-0 bottom-0 w-px bg-violet-200" />
-            <div className="flex flex-col gap-8">
-              {TIMELINE.map(({ year, event }) => (
-                <div key={year} className="flex gap-6 items-start">
-                  <div className="w-[72px] shrink-0 text-right">
-                    <span className="text-sm font-bold" style={{ color: '#7c3aed' }}>{year}</span>
-                  </div>
-                  <div className="relative pl-6">
-                    <div className="absolute left-0 top-1.5 w-2.5 h-2.5 rounded-full bg-violet-400 -translate-x-1/2" />
-                    <p className="text-sm text-gray-600 leading-relaxed">{event}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <TimelineScroller entries={TIMELINE} />
 
       {/* ── Featured Books ── */}
       <section className="px-6 py-20 bg-white">
