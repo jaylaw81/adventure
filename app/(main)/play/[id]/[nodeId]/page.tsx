@@ -183,8 +183,24 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         )}
       </div>
 
-      <div className="mt-10 pt-6 border-t border-gray-100 flex justify-end">
-        <ReportButton adventureId={id} />
+      <div className="mt-10 pt-6 border-t border-gray-100">
+        {!isOwner && (
+          <div className="mb-4 flex items-center justify-between gap-4 rounded-xl border border-violet-100 bg-violet-50/70 px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-violet-900">Write your own adventure</p>
+              <p className="text-xs text-violet-500 mt-0.5">Free 7-day trial · from $2/month after</p>
+            </div>
+            <Link
+              href="/sign-up"
+              className="shrink-0 px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-lg transition-colors"
+            >
+              Start writing →
+            </Link>
+          </div>
+        )}
+        <div className="flex justify-end">
+          <ReportButton adventureId={id} />
+        </div>
       </div>
     </div>
     </SceneEntrance>

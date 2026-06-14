@@ -1,6 +1,6 @@
-import { eq, sql, and, inArray, desc } from 'drizzle-orm'
+import { eq, sql, and, inArray, isNotNull, desc } from 'drizzle-orm'
 import { db } from './db'
-import { adventures, nodes, choices, chapters } from './schema'
+import { adventures, nodes, choices, chapters, storyReviews } from './schema'
 
 export type AdventureWithCounts = Awaited<ReturnType<typeof getAdventures>>[number]
 
@@ -164,4 +164,82 @@ export async function getStartNode(adventureId: string) {
     .where(eq(nodes.adventureId, adventureId))
     .limit(1)
   return first ?? null
+}
+
+export async function getAllPublicTags(): Promise<string[]> {
+  const rows = await db
+    .select({ tags: adventures.tags })
+    .from(adventures)
+    .where(and(eq(adventures.isPublic, true), eq(adventures.status, 'active')))
+
+  const tagSet = new Set<string>()
+  for (const row of rows) {
+    try {
+      const parsed = JSON.parse(row.tags ?? '[]')
+      if (Array.isArray(parsed)) {
+        for (const t of parsed) {
+          if (typeof t === 'string' && t.trim()) tagSet.add(t.trim())
+        }
+      }
+    } catch { /* ignore */ }
+  }
+  return [...tagSet].sort()
+}
+
+export async function getPublicAdventuresByTag(tag: string) {
+  const tagFilter = sql`${adventures.tags}::jsonb @> ${JSON.stringify([tag])}::jsonb`
+
+  const [stories, ratingRows] = await Promise.all([
+    db
+      .select({
+        id: adventures.id,
+        title: adventures.title,
+        description: adventures.description,
+        audience: adventures.audience,
+        tags: adventures.tags,
+        shareToken: adventures.shareToken,
+        updatedAt: adventures.updatedAt,
+        createdAt: adventures.createdAt,
+      })
+      .from(adventures)
+      .where(and(eq(adventures.isPublic, true), eq(adventures.status, 'active'), tagFilter))
+      .orderBy(desc(adventures.updatedAt)),
+    db
+      .select({
+        adventureId: storyReviews.adventureId,
+        avgRating: sql<number>`round(avg(${storyReviews.rating})::numeric, 1)::float`,
+        reviewCount: sql<number>`count(*)::int`,
+      })
+      .from(storyReviews)
+      .where(eq(storyReviews.hidden, false))
+      .groupBy(storyReviews.adventureId),
+  ])
+
+  const ratingMap = new Map(ratingRows.map(r => [r.adventureId, r]))
+  const adventureIds = stories.map(s => s.id)
+
+  const startNodeImages = adventureIds.length > 0
+    ? await db
+        .select({ adventureId: nodes.adventureId, imageUrl: nodes.imageUrl })
+        .from(nodes)
+        .where(and(
+          inArray(nodes.adventureId, adventureIds),
+          eq(nodes.nodeType, 'start'),
+          isNotNull(nodes.imageUrl),
+        ))
+    : []
+
+  const coverMap = new Map<string, string>()
+  for (const row of startNodeImages) {
+    if (!coverMap.has(row.adventureId) && row.imageUrl) {
+      coverMap.set(row.adventureId, row.imageUrl)
+    }
+  }
+
+  return stories.map(s => ({
+    ...s,
+    avgRating: ratingMap.get(s.id)?.avgRating ?? null,
+    reviewCount: ratingMap.get(s.id)?.reviewCount ?? 0,
+    coverImageUrl: coverMap.get(s.id) ?? null,
+  }))
 }

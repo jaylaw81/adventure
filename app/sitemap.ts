@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { getPublicAdventures } from '@/lib/queries'
+import { getPublicAdventures, getAllPublicTags } from '@/lib/queries'
 
 const SITE_URL = 'https://www.storyquestor.com'
 
@@ -43,7 +43,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  const stories = await getPublicAdventures()
+  const [stories, tags] = await Promise.all([
+    getPublicAdventures(),
+    getAllPublicTags(),
+  ])
 
   const storyPages: MetadataRoute.Sitemap = stories.map(story => ({
     url: `${SITE_URL}/play/${story.id}`,
@@ -52,5 +55,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  return [...staticPages, ...storyPages]
+  const tagPages: MetadataRoute.Sitemap = tags.map(tag => ({
+    url: `${SITE_URL}/explore/${encodeURIComponent(tag)}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }))
+
+  return [...staticPages, ...storyPages, ...tagPages]
 }
