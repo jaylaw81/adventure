@@ -3,10 +3,26 @@ import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { users } from '@/lib/schema'
+import { users, organizationMembers } from '@/lib/schema'
 import { isAdult } from '@/lib/age'
+
+async function resolveEffectiveTier(email: string, storedTier: string): Promise<string> {
+  if (storedTier !== 'free') return storedTier
+  const [membership] = await db
+    .select({ id: organizationMembers.id })
+    .from(organizationMembers)
+    .where(and(
+      eq(organizationMembers.userEmail, email),
+      eq(organizationMembers.status, 'active'),
+    ))
+    .limit(1)
+  if (!membership) return storedTier
+  // Repair the stored tier so future logins skip this check
+  await db.update(users).set({ tier: 'organization' }).where(eq(users.email, email))
+  return 'organization'
+}
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'jaylaw81@gmail.com'
 
@@ -79,7 +95,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
               token.birthDate = user.birthDate ?? undefined
               token.isAdult = isAdult(user.birthDate)
-              token.tier = user.tier
+              token.tier = await resolveEffectiveTier(token.email as string, user.tier)
             }
           } catch {}
         }
@@ -92,7 +108,7 @@ export const authOptions: NextAuthOptions = {
             if (!token.displayName) token.displayName = user.displayName || token.name || ''
             token.birthDate = user.birthDate ?? undefined
             token.isAdult = isAdult(user.birthDate)
-            token.tier = user.tier
+            token.tier = await resolveEffectiveTier(token.email as string, user.tier)
           }
         } catch {
           token.displayName = token.displayName || token.name || ''

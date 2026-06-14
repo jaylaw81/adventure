@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { organizationInvites, organizationMembers, organizations, memberGroups } from '@/lib/schema'
+import { organizationInvites, organizationMembers, organizations, memberGroups, users } from '@/lib/schema'
 import { eq, and } from 'drizzle-orm'
 
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
@@ -31,6 +31,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
       role: invite.role ?? 'member',
     })
     .onConflictDoNothing()
+
+  // Elevate the user's tier so they get org-level access immediately
+  await db
+    .update(users)
+    .set({ tier: 'organization' })
+    .where(eq(users.email, session.user.email))
 
   // Assign to the invited group (if any) in the join table
   if (invite.groupId) {
