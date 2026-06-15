@@ -40,11 +40,12 @@ interface Blast {
 }
 
 const AUDIENCE_LABELS: Record<string, string> = {
-  all:           'All subscribers',
-  organization:  'Org users',
-  inactive:      'Inactive (30+ days)',
-  needs_billing: 'Needs billing',
-  custom:        'Custom segment',
+  all:              'All subscribers',
+  organization:     'Org users',
+  inactive:         'Inactive (30+ days)',
+  needs_billing:    'Needs billing',
+  custom:           'Custom segment',
+  resend_audience:  'Resend Audience',
 }
 
 function conditionLabel(c: SegmentCondition): string {
@@ -97,9 +98,13 @@ export default function MessagesPage() {
   const [loadingBlasts, setLoadingBlasts] = useState(true)
   const [stats, setStats] = useState<{ subscribed: number; unsubscribed: number; org: number; inactive: number; needsBilling: number } | null>(null)
   const [changelog, setChangelog] = useState<ChangelogEntry[]>([])
-  const [audience, setAudience] = useState<'all' | 'organization' | 'inactive' | 'needs_billing' | 'custom'>('all')
+  const [audience, setAudience] = useState<'all' | 'organization' | 'inactive' | 'needs_billing' | 'custom' | 'resend_audience'>('all')
   const [segmentConditions, setSegmentConditions] = useState<SegmentCondition[]>([])
   const [segmentCount, setSegmentCount] = useState<number | null>(null)
+  const [resendAudiences, setResendAudiences] = useState<{ id: string; name: string }[]>([])
+  const [resendAudienceId, setResendAudienceId] = useState<string>('')
+  const [resendAudienceCount, setResendAudienceCount] = useState<number | null>(null)
+  const [loadingResendCount, setLoadingResendCount] = useState(false)
   const [sending, setSending] = useState(false)
   const [sendResult, setSendResult] = useState<{ type: 'success' | 'error'; msg: string } | null>(null)
   const [resendingBlast, setResendingBlast] = useState<string | null>(null)
@@ -132,7 +137,21 @@ export default function MessagesPage() {
     fetch('/api/admin/changelog')
       .then(r => r.json())
       .then(data => { if (Array.isArray(data)) setChangelog(data) })
+    fetch('/api/admin/resend-audiences')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setResendAudiences(data) })
   }, [loadMessages])
+
+  const handleResendAudienceChange = useCallback((id: string) => {
+    setResendAudienceId(id)
+    setResendAudienceCount(null)
+    if (!id) return
+    setLoadingResendCount(true)
+    fetch(`/api/admin/resend-audiences?audienceId=${id}`)
+      .then(r => r.json())
+      .then(data => { if (typeof data.count === 'number') setResendAudienceCount(data.count) })
+      .finally(() => setLoadingResendCount(false))
+  }, [])
 
   const insertChangelog = useCallback((text: string) => {
     if (!editor) return
@@ -143,6 +162,10 @@ export default function MessagesPage() {
     const bodyHtml = editor?.getHTML() ?? ''
     if (!subject.trim() || !bodyHtml || bodyHtml === '<p></p>') {
       setSendResult({ type: 'error', msg: 'Subject and message body are required.' })
+      return
+    }
+    if (audience === 'resend_audience' && !resendAudienceId) {
+      setSendResult({ type: 'error', msg: 'Please select a Resend audience.' })
       return
     }
     setSending(true)
@@ -156,6 +179,10 @@ export default function MessagesPage() {
           bodyHtml,
           audience,
           ...(audience === 'custom' ? { conditions: segmentConditions } : {}),
+          ...(audience === 'resend_audience' ? {
+            resendAudienceId,
+            resendAudienceName: resendAudiences.find(a => a.id === resendAudienceId)?.name,
+          } : {}),
         }),
       })
       if (!res.ok) {
@@ -324,7 +351,7 @@ export default function MessagesPage() {
                   <button
                     type="button"
                     onClick={() => setAudience('custom')}
-                    className={`text-left px-3 py-2.5 rounded-lg border transition-colors col-span-2 ${
+                    className={`text-left px-3 py-2.5 rounded-lg border transition-colors ${
                       audience === 'custom'
                         ? 'border-violet-600 bg-violet-600 text-white'
                         : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
@@ -344,9 +371,60 @@ export default function MessagesPage() {
                       Build a custom filter with multiple conditions
                     </p>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setAudience('resend_audience')}
+                    className={`text-left px-3 py-2.5 rounded-lg border transition-colors ${
+                      audience === 'resend_audience'
+                        ? 'border-blue-600 bg-blue-600 text-white'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 text-xs font-semibold">
+                        <Tag size={12} /> Resend Audience
+                      </span>
+                      {audience === 'resend_audience' && (
+                        <span className="text-xs font-bold tabular-nums text-blue-200">
+                          {loadingResendCount ? '…' : resendAudienceCount !== null ? resendAudienceCount.toLocaleString() : ''}
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-xs mt-0.5 ${audience === 'resend_audience' ? 'text-blue-200' : 'text-slate-400'}`}>
+                      Send to a Resend audience contact list
+                    </p>
+                  </button>
                   </div>
                 </div>
               </div>
+
+              {/* Resend audience picker */}
+              {audience === 'resend_audience' && (
+                <div className="px-4 py-3 border-b border-slate-200">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
+                    Select Audience
+                  </label>
+                  {resendAudiences.length === 0 ? (
+                    <p className="text-sm text-slate-400">No Resend audiences found. Check your API key or add audiences in Resend.</p>
+                  ) : (
+                    <select
+                      value={resendAudienceId}
+                      onChange={e => handleResendAudienceChange(e.target.value)}
+                      className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                    >
+                      <option value="">— Choose an audience —</option>
+                      {resendAudiences.map(a => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
+                  )}
+                  {resendAudienceId && resendAudienceCount !== null && (
+                    <p className="text-xs text-slate-500 mt-1.5">
+                      {resendAudienceCount.toLocaleString()} subscribed contact{resendAudienceCount !== 1 ? 's' : ''} will receive this email
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Segment builder */}
               {audience === 'custom' && (
@@ -408,7 +486,11 @@ export default function MessagesPage() {
               <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <Users size={14} />
-                  {stats !== null ? (() => {
+                  {audience === 'resend_audience' ? (
+                    resendAudienceCount !== null
+                      ? <>Will send to <span className="font-semibold text-slate-700">{resendAudienceCount.toLocaleString()}</span> contact{resendAudienceCount !== 1 ? 's' : ''}</>
+                      : resendAudienceId ? 'Counting contacts…' : 'Select a Resend audience'
+                  ) : stats !== null ? (() => {
                     const count = audience === 'custom'
                       ? (segmentCount ?? 0)
                       : audience === 'organization' ? stats.org

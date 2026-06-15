@@ -95,17 +95,97 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const { subject, bodyHtml, audience = 'all', conditions } = await req.json() as {
+  const { subject, bodyHtml, audience = 'all', conditions, resendAudienceId, resendAudienceName } = await req.json() as {
     subject: string
     bodyHtml: string
-    audience: 'all' | 'organization' | 'inactive' | 'needs_billing' | 'custom'
+    audience: 'all' | 'organization' | 'inactive' | 'needs_billing' | 'custom' | 'resend_audience'
     conditions?: SegmentCondition[]
+    resendAudienceId?: string
+    resendAudienceName?: string
   }
   if (!subject?.trim() || !bodyHtml?.trim()) {
     return NextResponse.json({ error: 'Subject and body are required' }, { status: 400 })
   }
 
   const cols = { email: users.email, displayName: users.displayName, unsubscribeToken: users.unsubscribeToken }
+
+  // For Resend audience sends, fetch contacts directly from Resend API
+  if (audience === 'resend_audience') {
+    if (!resendAudienceId) {
+      return NextResponse.json({ error: 'resendAudienceId is required' }, { status: 400 })
+    }
+
+    let resendContacts: { email: string; first_name: string | null; unsubscribed: boolean }[] = []
+    try {
+      const res = await fetch(`https://api.resend.com/audiences/${resendAudienceId}/contacts`, {
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+        cache: 'no-store',
+      })
+      if (!res.ok) throw new Error(`Resend API ${res.status}`)
+      const body = await res.json()
+      resendContacts = (body.data ?? []).filter((c: { unsubscribed: boolean }) => !c.unsubscribed)
+    } catch (err) {
+      return NextResponse.json({ error: 'Failed to fetch Resend audience contacts' }, { status: 502 })
+    }
+
+    const sentByEmail = session.user.email ?? 'admin'
+    const [blast] = await db
+      .insert(emailBlasts)
+      .values({
+        subject,
+        bodyHtml,
+        sentByEmail,
+        recipientCount: 0,
+        audience: 'resend_audience',
+        segmentConditions: JSON.stringify({ audienceId: resendAudienceId, audienceName: resendAudienceName ?? resendAudienceId }),
+      })
+      .returning()
+
+    const BATCH_SIZE = 4
+    const BATCH_DELAY_MS = 1100
+    const recipientRows: { blastId: string; email: string; resendId: string | null; status: string; error: string | null }[] = []
+
+    for (let i = 0; i < resendContacts.length; i += BATCH_SIZE) {
+      const batch = resendContacts.slice(i, i + BATCH_SIZE)
+      const results = await Promise.allSettled(
+        batch.map(c =>
+          sendEmailBlast({
+            to: c.email,
+            displayName: c.first_name || null,
+            subject,
+            bodyHtml,
+            unsubscribeToken: c.email,
+          })
+        )
+      )
+      for (let j = 0; j < batch.length; j++) {
+        const r = results[j]
+        recipientRows.push({
+          blastId: blast.id,
+          email: batch[j].email,
+          resendId: r.status === 'fulfilled' ? r.value : null,
+          status: r.status === 'fulfilled' ? 'sent' : 'failed',
+          error: r.status === 'rejected' ? String(r.reason) : null,
+        })
+      }
+      if (i + BATCH_SIZE < resendContacts.length) {
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS))
+      }
+    }
+
+    const successCount = recipientRows.filter(r => r.status === 'sent').length
+    if (recipientRows.length > 0) {
+      await db.insert(emailBlastRecipients).values(recipientRows)
+    }
+    await db.update(emailBlasts).set({ recipientCount: successCount }).where(eq(emailBlasts.id, blast.id))
+
+    return NextResponse.json({
+      id: blast.id,
+      recipientCount: successCount,
+      total: resendContacts.length,
+      failed: resendContacts.length - successCount,
+    })
+  }
 
   const recipients = await (() => {
     if (audience === 'organization') {
