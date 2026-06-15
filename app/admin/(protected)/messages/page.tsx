@@ -26,6 +26,7 @@ interface BlastDelivery {
   failed: number
   bounced: number
   pending: number
+  queued: number
 }
 
 interface Blast {
@@ -96,7 +97,8 @@ export default function MessagesPage() {
   const [subject, setSubject] = useState('')
   const [blasts, setBlasts] = useState<Blast[]>([])
   const [loadingBlasts, setLoadingBlasts] = useState(true)
-  const [stats, setStats] = useState<{ subscribed: number; unsubscribed: number; org: number; inactive: number; needsBilling: number } | null>(null)
+  const [stats, setStats] = useState<{ subscribed: number; unsubscribed: number; org: number; inactive: number; needsBilling: number; sentToday: number; dailyLimit: number } | null>(null)
+  const [resumingBlast, setResumingBlast] = useState<string | null>(null)
   const [changelog, setChangelog] = useState<ChangelogEntry[]>([])
   const [audience, setAudience] = useState<'all' | 'organization' | 'inactive' | 'needs_billing' | 'custom' | 'resend_audience'>('all')
   const [segmentConditions, setSegmentConditions] = useState<SegmentCondition[]>([])
@@ -190,8 +192,9 @@ export default function MessagesPage() {
         setSendResult({ type: 'error', msg: data.error ?? 'Send failed.' })
         return
       }
-      const { recipientCount, total } = await res.json()
-      setSendResult({ type: 'success', msg: `Sent to ${recipientCount} of ${total} subscribed users.` })
+      const { recipientCount, total, queued } = await res.json()
+      const queuedNote = queued > 0 ? ` ${queued.toLocaleString()} queued — monthly limit reached.` : ''
+      setSendResult({ type: 'success', msg: `Sent to ${recipientCount} of ${total} users.${queuedNote}` })
       setSubject('')
       editor?.commands.clearContent()
       await loadMessages()
@@ -200,6 +203,21 @@ export default function MessagesPage() {
       setSending(false)
     }
   }, [editor, subject, audience, loadMessages])
+
+  const handleResume = useCallback(async (blastId: string) => {
+    setResumingBlast(blastId)
+    try {
+      const res = await fetch(`/api/admin/messages/${blastId}/resume`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data.error ?? 'Resume failed')
+        return
+      }
+      await loadMessages()
+    } finally {
+      setResumingBlast(null)
+    }
+  }, [loadMessages])
 
   const handleResendFailed = useCallback(async (blastId: string) => {
     setResendingBlast(blastId)
@@ -483,7 +501,32 @@ export default function MessagesPage() {
               <EditorContent editor={editor} />
 
               {/* Footer / send */}
-              <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-col gap-3">
+                {/* Daily usage bar */}
+                {stats !== null && stats.dailyLimit > 0 && (() => {
+                  const pct = Math.min(100, Math.round((stats.sentToday / stats.dailyLimit) * 100))
+                  const remaining = Math.max(0, stats.dailyLimit - stats.sentToday)
+                  const overLimit = remaining === 0
+                  return (
+                    <div>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className={overLimit ? 'text-red-600 font-medium' : 'text-slate-500'}>
+                          Daily usage: {stats.sentToday.toLocaleString()} / {stats.dailyLimit.toLocaleString()}
+                        </span>
+                        <span className={overLimit ? 'text-red-500 font-semibold' : 'text-slate-400'}>
+                          {overLimit ? 'Limit reached' : `${remaining.toLocaleString()} remaining`}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${overLimit ? 'bg-red-500' : pct > 80 ? 'bg-amber-500' : 'bg-green-500'}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })()}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <Users size={14} />
                   {audience === 'resend_audience' ? (
@@ -515,6 +558,7 @@ export default function MessagesPage() {
                     {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                     {sending ? 'Sending…' : 'Send Blast'}
                   </button>
+                </div>
                 </div>
               </div>
             </div>
@@ -564,6 +608,19 @@ export default function MessagesPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
+                            {d.queued > 0 && (
+                              <button
+                                onClick={() => handleResume(blast.id)}
+                                disabled={resumingBlast === blast.id}
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-colors disabled:opacity-50"
+                              >
+                                {resumingBlast === blast.id
+                                  ? <Loader2 size={11} className="animate-spin" />
+                                  : <Send size={11} />
+                                }
+                                Send {d.queued} queued
+                              </button>
+                            )}
                             {d.failed > 0 && (
                               <button
                                 onClick={() => handleResendFailed(blast.id)}
@@ -602,6 +659,12 @@ export default function MessagesPage() {
                               <span className="flex items-center gap-1 text-xs text-orange-600">
                                 <UserX size={11} />
                                 <span className="font-semibold">{d.bounced.toLocaleString()}</span> bounced
+                              </span>
+                            )}
+                            {d.queued > 0 && (
+                              <span className="flex items-center gap-1 text-xs text-blue-600">
+                                <Loader2 size={11} />
+                                <span className="font-semibold">{d.queued.toLocaleString()}</span> queued
                               </span>
                             )}
                           </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { and, desc, eq, gt, isNull, lt, ne, notExists, or, sql } from 'drizzle-orm'
+import { and, desc, eq, gt, gte, isNull, lt, ne, notExists, or, sql } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures, emailBlasts, emailBlastRecipients } from '@/lib/schema'
@@ -50,8 +50,10 @@ export async function GET() {
   }
 
   const cutoff = new Date(Date.now() - INACTIVE_DAYS * 24 * 60 * 60 * 1000)
+  const dayStart = new Date(new Date().setHours(0, 0, 0, 0))
+  const DAILY_LIMIT = parseInt(process.env.RESEND_DAILY_LIMIT ?? '0', 10)
 
-  const [blasts, [counts], [inactiveRow], [trialEndedRow], deliveryStats] = await Promise.all([
+  const [blasts, [counts], [inactiveRow], [trialEndedRow], deliveryStats, [usageRow]] = await Promise.all([
     db.select().from(emailBlasts).orderBy(desc(emailBlasts.sentAt)),
     db.select({
       subscribed:   sql<number>`count(*) filter (where ${users.emailSubscribed} = true)::int`,
@@ -75,17 +77,31 @@ export async function GET() {
       failed:    sql<number>`count(*) filter (where ${emailBlastRecipients.status} = 'failed')::int`,
       bounced:   sql<number>`count(*) filter (where ${emailBlastRecipients.status} = 'bounced')::int`,
       pending:   sql<number>`count(*) filter (where ${emailBlastRecipients.status} = 'sent')::int`,
+      queued:    sql<number>`count(*) filter (where ${emailBlastRecipients.status} = 'queued')::int`,
     }).from(emailBlastRecipients).groupBy(emailBlastRecipients.blastId),
+    db.select({ sentToday: sql<number>`count(*)::int` })
+      .from(emailBlastRecipients)
+      .where(and(
+        gte(emailBlastRecipients.sentAt, dayStart),
+        ne(emailBlastRecipients.status, 'failed'),
+        ne(emailBlastRecipients.status, 'queued'),
+      )),
   ])
 
   const deliveryMap = Object.fromEntries(deliveryStats.map(s => [s.blastId, s]))
 
   const blastsWithStats = blasts.map(b => ({
     ...b,
-    delivery: deliveryMap[b.id] ?? { delivered: 0, failed: 0, bounced: 0, pending: 0 },
+    delivery: deliveryMap[b.id] ?? { delivered: 0, failed: 0, bounced: 0, pending: 0, queued: 0 },
   }))
 
-  const stats = { ...counts, inactive: inactiveRow.count, needsBilling: trialEndedRow.count }
+  const stats = {
+    ...counts,
+    inactive: inactiveRow.count,
+    needsBilling: trialEndedRow.count,
+    sentToday: usageRow.sentToday,
+    dailyLimit: DAILY_LIMIT,
+  }
   return NextResponse.json({ blasts: blastsWithStats, stats })
 }
 
@@ -206,6 +222,26 @@ export async function POST(req: NextRequest) {
 
   const sentByEmail = session.user.email ?? 'admin'
 
+  // Check monthly quota and split if needed
+  const DAILY_LIMIT = parseInt(process.env.RESEND_DAILY_LIMIT ?? '0', 10)
+  const dayStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  let sendNow = recipients
+  let queueLater: typeof recipients = []
+
+  if (DAILY_LIMIT > 0) {
+    const [{ sentToday }] = await db
+      .select({ sentToday: sql<number>`count(*)::int` })
+      .from(emailBlastRecipients)
+      .where(and(
+        gte(emailBlastRecipients.sentAt, dayStart),
+        ne(emailBlastRecipients.status, 'failed'),
+        ne(emailBlastRecipients.status, 'queued'),
+      ))
+    const remaining = Math.max(0, DAILY_LIMIT - sentToday)
+    sendNow = recipients.slice(0, remaining)
+    queueLater = recipients.slice(remaining)
+  }
+
   // Insert blast first so recipients can FK reference it
   const [blast] = await db
     .insert(emailBlasts)
@@ -221,6 +257,19 @@ export async function POST(req: NextRequest) {
     })
     .returning()
 
+  // Insert queued recipients immediately so they're tracked
+  if (queueLater.length > 0) {
+    await db.insert(emailBlastRecipients).values(
+      queueLater.map(u => ({
+        blastId: blast.id,
+        email: u.email,
+        resendId: null,
+        status: 'queued',
+        error: null,
+      }))
+    )
+  }
+
   // Send in batches of 4 — Resend rate limit is 5 req/s
   const BATCH_SIZE = 4
   const BATCH_DELAY_MS = 1100
@@ -233,8 +282,8 @@ export async function POST(req: NextRequest) {
     error: string | null
   }[] = []
 
-  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-    const batch = recipients.slice(i, i + BATCH_SIZE)
+  for (let i = 0; i < sendNow.length; i += BATCH_SIZE) {
+    const batch = sendNow.slice(i, i + BATCH_SIZE)
     const results = await Promise.allSettled(
       batch.map(u =>
         sendEmailBlast({
@@ -258,19 +307,17 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    if (i + BATCH_SIZE < recipients.length) {
+    if (i + BATCH_SIZE < sendNow.length) {
       await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS))
     }
   }
 
   const successCount = recipientRows.filter(r => r.status === 'sent').length
 
-  // Bulk insert recipient tracking rows
   if (recipientRows.length > 0) {
     await db.insert(emailBlastRecipients).values(recipientRows)
   }
 
-  // Update blast with actual sent count
   await db.update(emailBlasts)
     .set({ recipientCount: successCount })
     .where(eq(emailBlasts.id, blast.id))
@@ -279,6 +326,7 @@ export async function POST(req: NextRequest) {
     id: blast.id,
     recipientCount: successCount,
     total: recipients.length,
-    failed: recipients.length - successCount,
+    failed: sendNow.length - successCount,
+    queued: queueLater.length,
   })
 }
