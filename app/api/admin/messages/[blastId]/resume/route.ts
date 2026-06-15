@@ -27,21 +27,21 @@ export async function POST(
     return NextResponse.json({ error: 'No queued recipients for this blast' }, { status: 400 })
   }
 
-  // Check remaining monthly quota
+  // Check remaining daily quota
   const DAILY_LIMIT = parseInt(process.env.RESEND_DAILY_LIMIT ?? '0', 10)
   const dayStart = new Date(new Date().setHours(0, 0, 0, 0))
   let canSend = queued.length
 
   if (DAILY_LIMIT > 0) {
-    const [{ sentThisMonth }] = await db
-      .select({ sentThisMonth: sql<number>`count(*)::int` })
+    const [{ sentToday }] = await db
+      .select({ sentToday: sql<number>`count(*)::int` })
       .from(emailBlastRecipients)
       .where(and(
-        gte(emailBlastRecipients.sentAt, monthStart),
+        gte(emailBlastRecipients.sentAt, dayStart),
         ne(emailBlastRecipients.status, 'failed'),
         ne(emailBlastRecipients.status, 'queued'),
       ))
-    const remaining = Math.max(0, DAILY_LIMIT - sentThisMonth)
+    const remaining = Math.max(0, DAILY_LIMIT - sentToday)
     if (remaining === 0) {
       return NextResponse.json({ error: 'Monthly send limit reached. Try again after your limit resets.' }, { status: 429 })
     }
