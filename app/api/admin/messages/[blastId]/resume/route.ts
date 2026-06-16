@@ -43,7 +43,7 @@ export async function POST(
       ))
     const remaining = Math.max(0, DAILY_LIMIT - sentToday)
     if (remaining === 0) {
-      return NextResponse.json({ error: 'Monthly send limit reached. Try again after your limit resets.' }, { status: 429 })
+      return NextResponse.json({ error: 'Daily send limit reached. The queued recipients will be sent automatically after midnight.' }, { status: 429 })
     }
     canSend = Math.min(queued.length, remaining)
   }

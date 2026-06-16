@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/send-queued-blasts",
+      "schedule": "5 0 * * *"
+    }
+  ]
+}
