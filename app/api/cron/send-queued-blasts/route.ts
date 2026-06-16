@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { and, eq, gte, ne, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { users, emailBlasts, emailBlastRecipients } from '@/lib/schema'
-import { sendEmailBlast } from '@/lib/email'
+import { sendEmailBlast, isQuotaError } from '@/lib/email'
 
 export const maxDuration = 300
 
@@ -104,18 +104,19 @@ export async function GET(req: Request) {
       for (let j = 0; j < batch.length; j++) {
         const r = results[j]
         const row = batch[j]
+        const quota = r.status === 'rejected' && isQuotaError(r.reason)
         await db
           .update(emailBlastRecipients)
           .set({
-            status: r.status === 'fulfilled' ? 'sent' : 'failed',
+            status: r.status === 'fulfilled' ? 'sent' : quota ? 'queued' : 'failed',
             resendId: r.status === 'fulfilled' ? r.value : null,
-            error: r.status === 'rejected' ? String(r.reason) : null,
+            error: r.status === 'rejected' && !quota ? String(r.reason) : null,
             sentAt: new Date(),
           })
           .where(eq(emailBlastRecipients.id, row.id))
 
         if (r.status === 'fulfilled') successCount++
-        else failCount++
+        else if (!quota) failCount++
       }
 
       if (i + BATCH_SIZE < toSend.length) {

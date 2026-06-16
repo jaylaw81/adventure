@@ -4,7 +4,7 @@ import { and, desc, eq, gt, gte, isNull, lt, ne, notExists, or, sql } from 'driz
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures, emailBlasts, emailBlastRecipients } from '@/lib/schema'
-import { sendEmailBlast } from '@/lib/email'
+import { sendEmailBlast, isQuotaError } from '@/lib/email'
 import { buildSegmentWhere, type SegmentCondition } from '@/lib/segmentQuery'
 
 const INACTIVE_DAYS = 30
@@ -177,12 +177,13 @@ export async function POST(req: NextRequest) {
       const batchSentAt = new Date()
       for (let j = 0; j < batch.length; j++) {
         const r = results[j]
+        const quota = r.status === 'rejected' && isQuotaError(r.reason)
         recipientRows.push({
           blastId: blast.id,
           email: batch[j].email,
           resendId: r.status === 'fulfilled' ? r.value : null,
-          status: r.status === 'fulfilled' ? 'sent' : 'failed',
-          error: r.status === 'rejected' ? String(r.reason) : null,
+          status: r.status === 'fulfilled' ? 'sent' : quota ? 'queued' : 'failed',
+          error: r.status === 'rejected' && !quota ? String(r.reason) : null,
           sentAt: batchSentAt,
         })
       }
@@ -302,12 +303,13 @@ export async function POST(req: NextRequest) {
     const batchSentAt = new Date()
     for (let j = 0; j < batch.length; j++) {
       const r = results[j]
+      const quota = r.status === 'rejected' && isQuotaError(r.reason)
       recipientRows.push({
         blastId: blast.id,
         email: batch[j].email,
         resendId: r.status === 'fulfilled' ? r.value : null,
-        status: r.status === 'fulfilled' ? 'sent' : 'failed',
-        error: r.status === 'rejected' ? String(r.reason) : null,
+        status: r.status === 'fulfilled' ? 'sent' : quota ? 'queued' : 'failed',
+        error: r.status === 'rejected' && !quota ? String(r.reason) : null,
         sentAt: batchSentAt,
       })
     }

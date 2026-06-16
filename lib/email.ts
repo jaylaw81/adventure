@@ -303,6 +303,10 @@ export async function sendEmailBlast(opts: {
   return data.id
 }
 
+export function isQuotaError(reason: unknown): boolean {
+  return String(reason).toLowerCase().includes('daily email sending quota')
+}
+
 export async function sendPasswordResetEmail(email: string, token: string) {
   // token is hex (a-f0-9 only) — safe to embed directly in a URL
   const resetUrl = `${SITE_URL}/reset-password?token=${token}`
