@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
 
     const BATCH_SIZE = 4
     const BATCH_DELAY_MS = 1100
-    const recipientRows: { blastId: string; email: string; resendId: string | null; status: string; error: string | null }[] = []
+    const recipientRows: { blastId: string; email: string; resendId: string | null; status: string; error: string | null; sentAt: Date }[] = []
 
     for (let i = 0; i < resendContacts.length; i += BATCH_SIZE) {
       const batch = resendContacts.slice(i, i + BATCH_SIZE)
@@ -174,6 +174,7 @@ export async function POST(req: NextRequest) {
           })
         )
       )
+      const batchSentAt = new Date()
       for (let j = 0; j < batch.length; j++) {
         const r = results[j]
         recipientRows.push({
@@ -182,6 +183,7 @@ export async function POST(req: NextRequest) {
           resendId: r.status === 'fulfilled' ? r.value : null,
           status: r.status === 'fulfilled' ? 'sent' : 'failed',
           error: r.status === 'rejected' ? String(r.reason) : null,
+          sentAt: batchSentAt,
         })
       }
       if (i + BATCH_SIZE < resendContacts.length) {
@@ -280,6 +282,7 @@ export async function POST(req: NextRequest) {
     resendId: string | null
     status: string
     error: string | null
+    sentAt: Date
   }[] = []
 
   for (let i = 0; i < sendNow.length; i += BATCH_SIZE) {
@@ -296,6 +299,7 @@ export async function POST(req: NextRequest) {
       )
     )
 
+    const batchSentAt = new Date()
     for (let j = 0; j < batch.length; j++) {
       const r = results[j]
       recipientRows.push({
@@ -304,6 +308,7 @@ export async function POST(req: NextRequest) {
         resendId: r.status === 'fulfilled' ? r.value : null,
         status: r.status === 'fulfilled' ? 'sent' : 'failed',
         error: r.status === 'rejected' ? String(r.reason) : null,
+        sentAt: batchSentAt,
       })
     }
 

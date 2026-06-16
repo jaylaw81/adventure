@@ -10,7 +10,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import {
   Bold, Italic, UnderlineIcon, Link2, AlignLeft, AlignCenter,
   List, ListOrdered, Send, History, Users, UserX, ChevronRight, Loader2,
-  CheckCircle2, AlertCircle, SlidersHorizontal, Tag,
+  CheckCircle2, AlertCircle, SlidersHorizontal, Tag, Clock,
 } from 'lucide-react'
 import SegmentBuilder from '@/components/admin/SegmentBuilder'
 import type { SegmentCondition } from '@/lib/segmentTypes'
@@ -193,7 +193,7 @@ export default function MessagesPage() {
         return
       }
       const { recipientCount, total, queued } = await res.json()
-      const queuedNote = queued > 0 ? ` ${queued.toLocaleString()} queued — monthly limit reached.` : ''
+      const queuedNote = queued > 0 ? ` ${queued.toLocaleString()} queued — will auto-send after midnight.` : ''
       setSendResult({ type: 'success', msg: `Sent to ${recipientCount} of ${total} users.${queuedNote}` })
       setSubject('')
       editor?.commands.clearContent()
@@ -255,6 +255,68 @@ export default function MessagesPage() {
           )}
         </div>
       </div>
+
+      {/* Send quota + queue status strip */}
+      {stats !== null && (() => {
+        const totalQueued = blasts.reduce((sum, b) => sum + (b.delivery?.queued ?? 0), 0)
+        const hasLimit = stats.dailyLimit > 0
+        if (!hasLimit && totalQueued === 0) return null
+        const pct = hasLimit ? Math.min(100, Math.round((stats.sentToday / stats.dailyLimit) * 100)) : 0
+        const remaining = hasLimit ? Math.max(0, stats.dailyLimit - stats.sentToday) : Infinity
+        const atLimit = hasLimit && remaining === 0
+        const isWarning = hasLimit && pct > 80 && !atLimit
+        const stripCls = atLimit
+          ? 'bg-red-50 border-red-200'
+          : isWarning
+          ? 'bg-amber-50 border-amber-200'
+          : 'bg-slate-50 border-slate-200'
+        const barCls = atLimit ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-green-500'
+        const labelCls = atLimit ? 'text-red-700' : isWarning ? 'text-amber-700' : 'text-slate-600'
+        const valueCls = atLimit ? 'text-red-600 font-semibold' : isWarning ? 'text-amber-700 font-medium' : 'text-slate-500'
+        return (
+          <div className={`mb-6 rounded-xl border px-5 py-3.5 flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-3 ${stripCls}`}>
+            {totalQueued > 0 && (
+              <div className="flex items-center gap-2.5 shrink-0">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-100">
+                  <Clock size={14} className="text-blue-600" />
+                </div>
+                <div className="text-sm leading-tight">
+                  <span className="font-semibold text-slate-800">{totalQueued.toLocaleString()}</span>
+                  <span className="text-slate-600"> email{totalQueued !== 1 ? 's' : ''} queued</span>
+                  <span className="text-slate-400 text-xs ml-1.5">auto-sends after midnight</span>
+                </div>
+              </div>
+            )}
+            {totalQueued > 0 && hasLimit && (
+              <div className="hidden sm:block w-px self-stretch bg-slate-200" />
+            )}
+            {hasLimit && (
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className={`font-semibold uppercase tracking-wide ${labelCls}`} style={{ fontSize: '0.7rem' }}>
+                    Today's quota
+                  </span>
+                  <span className={`text-xs ${valueCls}`}>
+                    {atLimit
+                      ? 'Limit reached — resets at midnight'
+                      : `${remaining.toLocaleString()} of ${stats.dailyLimit.toLocaleString()} remaining`}
+                  </span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${barCls}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs mt-1">
+                  <span className="text-slate-400">{stats.sentToday.toLocaleString()} sent</span>
+                  <span className="text-slate-400">{stats.dailyLimit.toLocaleString()} limit</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       <div className="flex flex-col xl:flex-row gap-6">
 
@@ -502,30 +564,6 @@ export default function MessagesPage() {
 
               {/* Footer / send */}
               <div className="px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-col gap-3">
-                {/* Daily usage bar */}
-                {stats !== null && stats.dailyLimit > 0 && (() => {
-                  const pct = Math.min(100, Math.round((stats.sentToday / stats.dailyLimit) * 100))
-                  const remaining = Math.max(0, stats.dailyLimit - stats.sentToday)
-                  const overLimit = remaining === 0
-                  return (
-                    <div>
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className={overLimit ? 'text-red-600 font-medium' : 'text-slate-500'}>
-                          Daily usage: {stats.sentToday.toLocaleString()} / {stats.dailyLimit.toLocaleString()}
-                        </span>
-                        <span className={overLimit ? 'text-red-500 font-semibold' : 'text-slate-400'}>
-                          {overLimit ? 'Limit reached' : `${remaining.toLocaleString()} remaining`}
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all ${overLimit ? 'bg-red-500' : pct > 80 ? 'bg-amber-500' : 'bg-green-500'}`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })()}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <Users size={14} />
