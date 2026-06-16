@@ -89,7 +89,10 @@ export default async function Image({ params }: Props) {
         <div
           style={{
             position: 'absolute',
-            inset: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
             background: imageData
               ? 'linear-gradient(to right, #0f172a 45%, rgba(15,23,42,0.5) 75%, rgba(15,23,42,0.2) 100%)'
               : 'transparent',
