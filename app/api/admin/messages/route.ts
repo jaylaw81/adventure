@@ -222,9 +222,9 @@ export async function POST(req: NextRequest) {
 
   const sentByEmail = session.user.email ?? 'admin'
 
-  // Check monthly quota and split if needed
+  // Check daily quota and split if needed
   const DAILY_LIMIT = parseInt(process.env.RESEND_DAILY_LIMIT ?? '0', 10)
-  const dayStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  const dayStart = new Date(new Date().setHours(0, 0, 0, 0))
   let sendNow = recipients
   let queueLater: typeof recipients = []
 
