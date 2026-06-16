@@ -198,7 +198,7 @@ export default function CYOAHistoryPage() {
     headline: 'Choose Your Own Adventure — History, Books & Series Guide',
     description: 'The complete history of the Choose Your Own Adventure book series, from its 1969 origin to the Chooseco revival.',
     url: `${SITE_URL}/choose-your-own-adventure`,
-    image: OG_IMAGE,
+    image: `${SITE_URL}/opengraph-image`,
     datePublished: '2026-06-14',
     dateModified: '2026-06-14',
     author: { '@type': 'Organization', name: 'StoryQuestor', url: SITE_URL },
