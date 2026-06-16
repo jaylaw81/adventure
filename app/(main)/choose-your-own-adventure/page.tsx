@@ -11,8 +11,6 @@ function amzn(query: string) {
   return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${AMZN_TAG}`
 }
 
-const OG_IMAGE = `${SITE_URL}/choose-your-own-adventure/opengraph-image`
-
 export const metadata: Metadata = {
   title: {
     absolute: 'Choose Your Own Adventure — History, Books & Series Guide',
@@ -32,13 +30,11 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/choose-your-own-adventure`,
     type: 'article',
     siteName: 'StoryQuestor',
-    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: 'Choose Your Own Adventure — History & Series Guide' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Choose Your Own Adventure — History, Books & Series Guide',
     description: '184 books. 250 million copies sold. The complete history of the Choose Your Own Adventure series — and where to find them today.',
-    images: [OG_IMAGE],
   },
 }
 
