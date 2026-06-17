@@ -254,7 +254,7 @@ function LandingPage() {
                 Build branching adventures on a visual canvas. Add AI scene images. Share with readers who shape the outcome.
               </p>
               <p className="text-sm text-violet-300/70 mb-8 max-w-xl">
-                Free for 7 days — then pay what you want, starting at $2/month.
+                Free for 7 days — then pay what you want, starting at $2/week.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link
@@ -401,7 +401,7 @@ function LandingPage() {
               { num: '04', title: 'One-click Publish', desc: 'Share your story with a public link. Built-in validation catches dead ends before your readers do.' },
               { num: '05', title: 'Audience Controls', desc: 'Set age ratings and genre tags. Reach the right readers with the right story.' },
               { num: '06', title: 'Ratings & Reviews', desc: 'Readers rate and review. Build credibility through community feedback across every ending they discover.' },
-              { num: '07', title: 'Pay What You Want', desc: 'Creating and editing stories requires a subscription — starting at just $2/month, you choose the amount. Reading and browsing are always free.' },
+              { num: '07', title: 'Pay What You Want', desc: 'Creating and editing stories requires a subscription — starting at just $2/week, you choose the amount. Reading and browsing are always free.' },
             ].map(({ num, title, desc }) => (
               <div key={num} className="flex items-start gap-6 sm:gap-10 py-6 group">
                 <span className="text-xs font-mono text-violet-300 pt-1.5 w-6 shrink-0">{num}</span>
@@ -430,7 +430,7 @@ function LandingPage() {
             Join creators building branching adventures their readers love.
           </p>
           <p className="text-violet-300/60 text-sm mb-10">
-            7 days free — then pay what you want from $2/month. Cancel anytime.
+            7 days free — then pay what you want from $2/week. Cancel anytime.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link

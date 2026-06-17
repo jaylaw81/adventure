@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { users } from '@/lib/schema'
+import { users, deletedAccounts } from '@/lib/schema'
 
 export async function POST(req: Request) {
   try {
@@ -41,8 +41,18 @@ export async function POST(req: Request) {
       }
     }
 
+    // Check if this email previously had an account
+    const [deletedRecord] = await db
+      .select()
+      .from(deletedAccounts)
+      .where(eq(deletedAccounts.email, normalizedEmail))
+
+    const previousTrialNoPayment = !!(deletedRecord?.trialUsed && !deletedRecord?.hadPaidSubscription)
+    const trialEndsAt = previousTrialNoPayment
+      ? null
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+
     const passwordHash = await bcrypt.hash(password, 12)
-    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     await db.insert(users).values({
       email: normalizedEmail,
       displayName: displayName?.trim() || '',
@@ -50,7 +60,12 @@ export async function POST(req: Request) {
       trialEndsAt,
     })
 
-    return NextResponse.json({ ok: true })
+    // Remove the deleted account record now that they've re-registered
+    if (deletedRecord) {
+      await db.delete(deletedAccounts).where(eq(deletedAccounts.email, normalizedEmail))
+    }
+
+    return NextResponse.json({ ok: true, previousAccount: !!deletedRecord, noTrial: previousTrialNoPayment })
   } catch {
     return NextResponse.json({ error: 'Registration failed' }, { status: 500 })
   }

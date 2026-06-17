@@ -51,6 +51,7 @@ function ProfileContent() {
   interface BillingStatus {
     subscriptionStatus: string | null
     subscriptionAmountCents: number | null
+    subscriptionInterval: 'month' | 'week' | null
     hasStripeAccount: boolean
     trialEndsAt: string | null
     gracePeriodEndsAt: string | null
@@ -326,7 +327,7 @@ function ProfileContent() {
               <p className="text-sm text-gray-500 mb-4">
                 {billing.subscriptionStatus === 'trialing' ? 'Free trial active' : 'Active subscriber'}
                 {billing.subscriptionAmountCents
-                  ? ` · $${(billing.subscriptionAmountCents / 100).toFixed(2)}/month`
+                  ? ` · $${(billing.subscriptionAmountCents / 100).toFixed(2)}/${billing.subscriptionInterval === 'week' ? 'week' : 'month'}`
                   : ''}
               </p>
               <button
@@ -380,7 +381,7 @@ function ProfileContent() {
                 className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-semibold transition-all hover:brightness-110"
                 style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
               >
-                Subscribe from $2/month
+                Subscribe from $2/week
               </Link>
             </>
           )}

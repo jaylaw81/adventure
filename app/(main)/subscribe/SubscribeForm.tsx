@@ -118,7 +118,7 @@ export default function SubscribeForm({ hasTrial, trialEndsAt, gracePeriodEndsAt
 
           {/* Amount picker */}
           <div>
-            <p className="text-sm font-semibold text-gray-800 mb-3">Choose your monthly amount</p>
+            <p className="text-sm font-semibold text-gray-800 mb-3">Choose your weekly amount</p>
             <div className="grid grid-cols-4 gap-2 mb-3">
               {PRESETS.map(({ cents, label, badge }) => (
                 <button
@@ -165,7 +165,7 @@ export default function SubscribeForm({ hasTrial, trialEndsAt, gracePeriodEndsAt
                   autoFocus
                   className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">/month</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">/week</span>
               </div>
             )}
           </div>
@@ -182,8 +182,8 @@ export default function SubscribeForm({ hasTrial, trialEndsAt, gracePeriodEndsAt
             {loading
               ? 'Redirecting…'
               : hasTrial
-                ? `Start 7-day free trial · $${amountDollars}/mo after`
-                : `Subscribe for $${amountDollars}/month`}
+                ? `Start 7-day free trial · $${amountDollars}/wk after`
+                : `Subscribe for $${amountDollars}/week`}
           </button>
 
           <p className="text-center text-xs text-gray-400">

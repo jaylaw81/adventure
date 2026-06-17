@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         {
           price_data: {
             currency: 'usd',
-            recurring: { interval: 'month' },
+            recurring: { interval: 'week' },
             unit_amount: amountCents,
             product_data: { name: 'StoryQuestor Subscription' },
           },

@@ -344,7 +344,7 @@ export default function HowToPage() {
               <div className="flex-1 flex flex-col gap-8">
                 <StepCard number={1} title="Create a new story" accent="amber" id="create-a-new-story">
                   Sign in, then click <Kbd>New Story</Kbd> on the home page. Give your story a title and an optional description — you can always update these later in settings.
-                  <Callout>Creating and editing stories requires a subscription (from $2/month, pay what you want). New accounts include a <strong>7-day free trial</strong> — no payment needed to get started. Reading stories is always free.</Callout>
+                  <Callout>Creating and editing stories requires a subscription (from $2/week, pay what you want). New accounts include a <strong>7-day free trial</strong> — no payment needed to get started. Reading stories is always free.</Callout>
                 </StepCard>
                 <StepCard number={2} title="Set your audience and tags" accent="amber" id="audience-and-tags">
                   Click the <Kbd>Settings</Kbd> button in the editor toolbar to configure:
@@ -546,7 +546,7 @@ export default function HowToPage() {
           <p className="text-gray-500 text-base mb-2 max-w-lg mx-auto">
             Start your 7-day free trial and have your first branching story live in minutes.
           </p>
-          <p className="text-gray-400 text-sm mb-10">After your trial, pay what you want — from $2/month. Cancel anytime.</p>
+          <p className="text-gray-400 text-sm mb-10">After your trial, pay what you want — from $2/week. Cancel anytime.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/sign-up"
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-900 bg-amber-500 hover:bg-amber-600 shadow-lg transition-all hover:scale-105">

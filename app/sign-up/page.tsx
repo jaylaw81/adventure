@@ -22,6 +22,7 @@ function SignUpForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [suggestGoogle, setSuggestGoogle] = useState(false)
+  const [previousAccount, setPreviousAccount] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,10 +67,55 @@ function SignUpForm() {
     if (signInRes?.error) {
       setError('Account created but sign-in failed. Please sign in manually.')
       router.push('/sign-in')
+    } else if (data.noTrial) {
+      setPreviousAccount(true)
     } else {
       router.push(callbackUrl)
       router.refresh()
     }
+  }
+
+  if (previousAccount) {
+    return (
+      <div className="min-h-[calc(100vh+4rem)] -mt-16 flex items-center justify-center px-4 py-10"
+        style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 50%, #0f172a 100%)' }}
+      >
+        <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col gap-5 w-full max-w-sm text-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #7c3aed, #f59e0b)' }}
+            >
+              <Scroll size={22} className="text-white" strokeWidth={2.5} />
+            </div>
+            <h1 className="text-xl font-extrabold" style={{ color: '#1e0a3c' }}>Welcome back</h1>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left">
+            <p className="text-sm font-semibold text-amber-800 mb-1">Previous account detected</p>
+            <p className="text-sm text-amber-700 leading-relaxed">
+              You previously had a StoryQuestor account and used your 7-day free trial. Your new account is ready, but the free trial is not available again.
+            </p>
+          </div>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            Subscribe to unlock full access to the story editor and all features.
+          </p>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => { router.push('/billing'); router.refresh() }}
+              className="w-full py-2.5 text-white font-semibold rounded-lg text-sm transition-all hover:brightness-110"
+              style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
+            >
+              View subscription options
+            </button>
+            <button
+              onClick={() => { router.push(callbackUrl); router.refresh() }}
+              className="w-full py-2 text-gray-500 text-sm hover:text-gray-700 transition-colors"
+            >
+              Continue without subscribing
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

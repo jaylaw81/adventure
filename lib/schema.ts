@@ -19,6 +19,7 @@ export const users = pgTable('users', {
   stripeSubscriptionId: text('stripe_subscription_id'),
   subscriptionStatus: text('subscription_status'), // 'active'|'trialing'|'paused'|'past_due'|'canceled'
   subscriptionAmountCents: integer('subscription_amount_cents'),
+  subscriptionInterval: text('subscription_interval'), // 'month' | 'week' — null for non-subscribers
   trialEndsAt: timestamp('trial_ends_at'),
   gracePeriodEndsAt: timestamp('grace_period_ends_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -342,6 +343,15 @@ export const adminMessages = pgTable('admin_messages', {
   index('admin_messages_user_id_idx').on(t.userId),
 ])
 
+export const deletedAccounts = pgTable('deleted_accounts', {
+  email: text('email').primaryKey(),
+  deletedAt: timestamp('deleted_at').defaultNow().notNull(),
+  trialUsed: boolean('trial_used').notNull().default(false),
+  hadPaidSubscription: boolean('had_paid_subscription').notNull().default(false),
+  reason: text('reason').notNull().default('self_deleted'), // 'self_deleted' | 'admin_deleted'
+})
+
+export type DeletedAccount = typeof deletedAccounts.$inferSelect
 export type EmailSegment = typeof emailSegments.$inferSelect
 export type EmailBlast = typeof emailBlasts.$inferSelect
 export type EmailBlastRecipient = typeof emailBlastRecipients.$inferSelect

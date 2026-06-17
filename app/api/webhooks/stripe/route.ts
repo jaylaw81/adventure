@@ -37,6 +37,7 @@ export async function POST(req: Request) {
           expand: ['items.data.price'],
         })
         const amountCents = subscription.items.data[0]?.price?.unit_amount ?? null
+        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? 'month') as 'month' | 'week'
 
         await db.update(users)
           .set({
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
             stripeSubscriptionId: subscriptionId,
             subscriptionStatus: 'active',
             subscriptionAmountCents: amountCents,
+            subscriptionInterval: interval,
           })
           .where(eq(users.email, email))
         break
@@ -58,11 +60,13 @@ export async function POST(req: Request) {
         if (subscription.pause_collection) status = 'paused'
 
         const amountCents = subscription.items.data[0]?.price?.unit_amount ?? null
+        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? 'month') as 'month' | 'week'
 
         await db.update(users)
           .set({
             subscriptionStatus: status,
             subscriptionAmountCents: amountCents,
+            subscriptionInterval: interval,
             stripeSubscriptionId: subscription.id,
           })
           .where(eq(users.stripeCustomerId, customerId))
