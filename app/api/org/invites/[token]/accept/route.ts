@@ -3,12 +3,16 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { organizationInvites, organizationMembers, organizations, memberGroups, users } from '@/lib/schema'
 import { eq, and } from 'drizzle-orm'
+import { sendConsentDeclined } from '@/lib/email'
 
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) return Response.json({ error: 'Sign in to accept this invitation' }, { status: 401 })
 
   const { token } = await params
+
+  let body: Record<string, unknown> = {}
+  try { body = await req.json() } catch { /* body is optional */ }
 
   const [invite] = await db
     .select()
@@ -22,15 +26,50 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
     return Response.json({ error: 'This invitation has expired' }, { status: 410 })
   }
 
-  // Add to org members using the role from the invite
-  await db
-    .insert(organizationMembers)
-    .values({
-      organizationId: invite.organizationId,
-      userEmail: session.user.email,
-      role: invite.role ?? 'member',
+  // Fetch org consent settings
+  const [org] = await db
+    .select({
+      consentFormEnabled: organizations.consentFormEnabled,
+      adminEmail: organizations.adminEmail,
+      name: organizations.name,
     })
-    .onConflictDoNothing()
+    .from(organizations)
+    .where(eq(organizations.id, invite.organizationId))
+    .limit(1)
+
+  if (org?.consentFormEnabled) {
+    const consent = body.consent
+    if (consent === false) {
+      // Member declined — do NOT insert them. Notify admin.
+      sendConsentDeclined({
+        to: org.adminEmail,
+        orgName: org.name,
+        memberEmail: session.user.email,
+      }).catch(() => {})
+      return Response.json({ declined: true })
+    }
+    // consent === true: insert with consent fields
+    await db
+      .insert(organizationMembers)
+      .values({
+        organizationId: invite.organizationId,
+        userEmail: session.user.email,
+        role: invite.role ?? 'member',
+        consentStatus: 'accepted',
+        consentedAt: new Date(),
+      })
+      .onConflictDoNothing()
+  } else {
+    // No consent form: insert normally
+    await db
+      .insert(organizationMembers)
+      .values({
+        organizationId: invite.organizationId,
+        userEmail: session.user.email,
+        role: invite.role ?? 'member',
+      })
+      .onConflictDoNothing()
+  }
 
   // Elevate the user's tier so they get org-level access immediately
   await db
@@ -67,6 +106,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ token: s
       organizationId: organizationInvites.organizationId,
       groupId: organizationInvites.groupId,
       orgName: organizations.name,
+      adminEmail: organizations.adminEmail,
+      consentFormEnabled: organizations.consentFormEnabled,
+      consentFormTitle: organizations.consentFormTitle,
+      consentFormBody: organizations.consentFormBody,
     })
     .from(organizationInvites)
     .innerJoin(organizations, eq(organizations.id, organizationInvites.organizationId))

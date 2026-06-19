@@ -8,6 +8,7 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ## 2026-06-19
 
+- Org consent form: org admins can now create a custom consent form (title and body text) that members must accept before accessing the platform; the form appears during invite acceptance for new members and can be re-enabled per member from the Members page, blocking access until they agree.
 - Block Builder editor: users can now choose between the Node Graph canvas and a new Block Builder mode when creating a story — Block Builder presents scenes as draggable stacked blocks with inline choice connectors, inspired by Scratch, and can be switched at any time from story settings.
 
 ## 2026-06-11

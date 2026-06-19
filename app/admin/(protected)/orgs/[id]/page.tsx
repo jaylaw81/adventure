@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft, ShieldOff, ShieldCheck, UserMinus, UserPlus,
-  Building2, Calendar, Globe, Users, Copy, Check, X,
+  Building2, Calendar, Globe, Users, Copy, Check, X, EyeOff,
 } from 'lucide-react'
 
 interface Member {
@@ -51,7 +51,7 @@ export default function AdminOrgDetailPage() {
   const [org, setOrg] = useState<OrgDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [acting, setActing] = useState(false)
-  const [removingEmail, setRemovingEmail] = useState<string | null>(null)
+  const [removingId, setRemovingId] = useState<string | null>(null)
 
   // Invite form state
   const [inviteEmail, setInviteEmail] = useState('')
@@ -83,19 +83,19 @@ export default function AdminOrgDetailPage() {
     setActing(false)
   }
 
-  async function removeMember(email: string) {
-    if (!confirm(`Remove ${email} from this organization?`)) return
-    setRemovingEmail(email)
-    const res = await fetch(`/api/admin/orgs/${id}/members/${encodeURIComponent(email)}`, {
+  async function removeMember(memberId: string) {
+    if (!confirm('Remove this member from the organization?')) return
+    setRemovingId(memberId)
+    const res = await fetch(`/api/admin/orgs/${id}/members/${encodeURIComponent(memberId)}`, {
       method: 'DELETE',
     })
     if (res.ok) {
       setOrg(prev => prev
-        ? { ...prev, members: prev.members.filter(m => m.userEmail !== email) }
+        ? { ...prev, members: prev.members.filter(m => m.id !== memberId) }
         : prev
       )
     }
-    setRemovingEmail(null)
+    setRemovingId(null)
   }
 
   async function sendInvite(e: React.FormEvent) {
@@ -202,11 +202,15 @@ export default function AdminOrgDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Members table */}
         <div className="lg:col-span-2">
-          <h2 className="text-base font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <h2 className="text-base font-semibold text-slate-800 mb-1.5 flex items-center gap-2">
             <Users size={16} className="text-slate-400" />
             Members
             <span className="ml-1 text-xs font-normal text-slate-400">({org.members.length})</span>
           </h2>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
+            <EyeOff size={11} />
+            Member names and email addresses are private. Only the email domain is shown.
+          </div>
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
             {org.members.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-sm">No members yet.</div>
@@ -225,8 +229,8 @@ export default function AdminOrgDetailPage() {
                     {org.members.map(member => (
                       <tr key={member.id} className="hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-3">
-                          <p className="font-medium text-slate-900">{member.displayName || '(no name)'}</p>
-                          <p className="text-xs text-slate-400 font-mono mt-0.5">{member.userEmail}</p>
+                          <p className="text-xs text-slate-400 italic">name hidden</p>
+                          <p className="text-xs text-slate-500 font-mono mt-0.5">{member.userEmail}</p>
                         </td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[member.role] ?? 'bg-slate-100 text-slate-600'}`}>
@@ -242,8 +246,8 @@ export default function AdminOrgDetailPage() {
                         <td className="px-4 py-3">
                           {member.role !== 'admin' && (
                             <button
-                              onClick={() => removeMember(member.userEmail)}
-                              disabled={removingEmail === member.userEmail}
+                              onClick={() => removeMember(member.id)}
+                              disabled={removingId === member.id}
                               title="Remove from org"
                               className="p-1.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors disabled:opacity-40"
                             >

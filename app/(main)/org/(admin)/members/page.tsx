@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Copy, Check, Trash2, X, Loader2, Clock, UserX, UserCheck, ChevronDown, Settings2, BookOpen, Eye, Pencil, Ban, RotateCcw, Globe, Lock, Search } from 'lucide-react'
+import { Plus, Copy, Check, Trash2, X, Loader2, Clock, UserX, UserCheck, ChevronDown, Settings2, BookOpen, Eye, Pencil, Ban, RotateCcw, Globe, Lock, Search, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react'
 import Link from 'next/link'
 
 interface Group {
@@ -17,6 +17,8 @@ interface Member {
   role: string
   roleScope: string
   status: string
+  consentStatus: string | null
+  consentedAt: string | null
   groups: { id: string; name: string }[]
   joinedAt: string
   storyCount: number
@@ -576,6 +578,7 @@ export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
   const [groups, setGroups] = useState<Group[]>([])
+  const [consentFormEnabled, setConsentFormEnabled] = useState(false)
   const [loading, setLoading] = useState(true)
   const [newEmail, setNewEmail] = useState('')
   const [newGroupId, setNewGroupId] = useState('')
@@ -589,12 +592,13 @@ export default function MembersPage() {
   const [search, setSearch] = useState('')
 
   const load = useCallback(async () => {
-    const [m, i, g] = await Promise.all([
+    const [mData, i, g] = await Promise.all([
       fetch('/api/org/members').then(r => r.json()),
       fetch('/api/org/invites').then(r => r.json()),
       fetch('/api/org/groups').then(r => r.json()),
     ])
-    setMembers(Array.isArray(m) ? m : [])
+    setMembers(Array.isArray(mData) ? mData : (mData.members ?? []))
+    setConsentFormEnabled(mData.consentFormEnabled ?? false)
     setInvites(Array.isArray(i) ? i : [])
     setGroups(Array.isArray(g) ? g : [])
     setLoading(false)
@@ -650,6 +654,17 @@ export default function MembersPage() {
     const patch: Record<string, unknown> = { role }
     if (role === 'member') patch.roleScope = 'org'
     await updateMember(member.userEmail, patch)
+  }
+
+  async function handleResetConsent(email: string) {
+    setUpdating(email)
+    await fetch(`/api/org/members/${encodeURIComponent(email)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resetConsent: true }),
+    })
+    await load()
+    setUpdating(null)
   }
 
   const pendingInvites = useMemo(() => invites.filter(i => i.status === 'pending'), [invites])
@@ -825,6 +840,7 @@ export default function MembersPage() {
                 <th className="text-left px-4 py-3 font-semibold">Groups</th>
                 <th className="text-left px-4 py-3 font-semibold">Role</th>
                 <th className="text-left px-4 py-3 font-semibold">Status</th>
+                {consentFormEnabled && <th className="text-left px-4 py-3 font-semibold">Consent</th>}
                 <th className="text-left px-4 py-3 font-semibold">Joined</th>
                 <th className="px-4 py-3" />
               </tr>
@@ -832,7 +848,7 @@ export default function MembersPage() {
             <tbody className="divide-y divide-slate-100">
               {filteredMembers.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-10 text-center text-sm text-slate-400">
+                  <td colSpan={consentFormEnabled ? 7 : 6} className="px-5 py-10 text-center text-sm text-slate-400">
                     No members match &ldquo;{search}&rdquo;
                   </td>
                 </tr>
@@ -911,6 +927,44 @@ export default function MembersPage() {
                         </button>
                       )}
                     </td>
+                    {consentFormEnabled && (
+                      <td className="px-4 py-3.5">
+                        {isAdmin ? (
+                          <span className="text-slate-300 text-xs">—</span>
+                        ) : (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {m.consentStatus === 'accepted' && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                <ShieldCheck size={10} /> Consented
+                              </span>
+                            )}
+                            {m.consentStatus === 'pending' && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                <ShieldAlert size={10} /> Pending consent
+                              </span>
+                            )}
+                            {m.consentStatus === 'declined' && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">
+                                <ShieldX size={10} /> Declined
+                              </span>
+                            )}
+                            {(m.consentStatus === null || m.consentStatus === undefined) && (
+                              <span className="text-slate-300 text-xs">—</span>
+                            )}
+                            {m.consentStatus !== null && m.consentStatus !== undefined && (
+                              <button
+                                onClick={() => handleResetConsent(m.userEmail)}
+                                disabled={isUpdating}
+                                title="Reset consent"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-slate-500 bg-slate-100 hover:bg-amber-50 hover:text-amber-700 transition-colors disabled:opacity-40"
+                              >
+                                <RotateCcw size={9} /> Reset
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    )}
                     <td className="px-4 py-3.5 text-xs text-slate-400 whitespace-nowrap">
                       {new Date(m.joinedAt).toLocaleDateString()}
                     </td>

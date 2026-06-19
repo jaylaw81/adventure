@@ -19,7 +19,7 @@ export async function PUT(req: Request) {
   let body: unknown
   try { body = await req.json() } catch { return Response.json({ error: 'Invalid body' }, { status: 400 }) }
 
-  const { name, description, privacyLevel } = body as Record<string, unknown>
+  const { name, description, privacyLevel, consentFormEnabled, consentFormTitle, consentFormBody } = body as Record<string, unknown>
 
   const cleanName = sanitize(name, 200)
   if (!cleanName) return Response.json({ error: 'Organization name is required' }, { status: 400 })
@@ -34,6 +34,9 @@ export async function PUT(req: Request) {
       name: cleanName,
       description: sanitize(description),
       ...(privacyLevel !== undefined && { privacyLevel: privacyLevel as string }),
+      consentFormEnabled: consentFormEnabled === true,
+      consentFormTitle: sanitize(consentFormTitle, 200),
+      consentFormBody: sanitize(consentFormBody, 10000),
       updatedAt: new Date(),
     })
     .where(eq(organizations.id, ctx.org.id))

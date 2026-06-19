@@ -356,6 +356,53 @@ export async function sendWaitlistNotification(opts: {
   })
 }
 
+export async function sendConsentDeclined(opts: {
+  to: string
+  orgName: string
+  memberEmail: string
+}) {
+  const { to, orgName, memberEmail } = opts
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: `A member declined your consent form: ${escapeHtml(orgName)}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <p style="color:#6b7280;font-size:14px;margin-top:0;">Consent Form Declined</p>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            A member of <strong>${escapeHtml(orgName)}</strong> has declined your consent form.
+          </p>
+          <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;">
+            <tr>
+              <td style="padding:10px 12px;font-weight:600;color:#6d28d9;white-space:nowrap;width:120px;">Member</td>
+              <td style="padding:10px 12px;color:#1e0a3c;">${escapeHtml(memberEmail)}</td>
+            </tr>
+          </table>
+          <p style="font-size:14px;color:#374151;line-height:1.6;">
+            This member does not have access to the platform until they accept the consent form.
+            You can reset their consent status from your organization's Members page.
+          </p>
+          <div style="margin:20px 0;">
+            <a href="${SITE_URL}/org/members"
+              style="display:inline-block;padding:10px 22px;background:#7c3aed;color:#fff;font-weight:700;font-size:14px;border-radius:8px;text-decoration:none;">
+              View Members
+            </a>
+          </div>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+          <p style="font-size:12px;color:#9ca3af;">&copy; ${new Date().getFullYear()} StoryQuestor</p>
+        </body>
+      </html>
+    `,
+  })
+}
+
 export function isQuotaError(reason: unknown): boolean {
   return String(reason).toLowerCase().includes('daily email sending quota')
 }

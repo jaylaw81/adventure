@@ -112,6 +112,14 @@ export default function MessagesPage() {
   const [resendingBlast, setResendingBlast] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'compose' | 'history'>('compose')
   const [changelogOpen, setChangelogOpen] = useState(true)
+  const [isLocalhost, setIsLocalhost] = useState(false)
+
+  useEffect(() => {
+    setIsLocalhost(
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1'
+    )
+  }, [])
 
   const editor = useEditor({
     extensions: [
@@ -236,6 +244,21 @@ export default function MessagesPage() {
 
   return (
     <div className="p-4 md:p-8">
+
+      {isLocalhost && (
+        <div className="mb-6 flex items-start gap-4 rounded-2xl border-2 border-red-300 bg-red-50 px-6 py-5">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-red-100 shrink-0 mt-0.5">
+            <AlertCircle size={22} className="text-red-600" />
+          </div>
+          <div>
+            <p className="font-bold text-red-800 text-base">Do not send email blasts from localhost</p>
+            <p className="text-red-700 text-sm mt-1 leading-relaxed">
+              You are running on localhost. Sending a blast here will deliver real emails to real users right now. Use the production admin panel to send blasts.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Email Blast</h1>
         <div className="flex items-center gap-4 mt-1.5 flex-wrap">
@@ -256,64 +279,86 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      {/* Send quota + queue status strip */}
+      {/* Send quota + queue status cards */}
       {stats !== null && (() => {
         const totalQueued = blasts.reduce((sum, b) => sum + (b.delivery?.queued ?? 0), 0)
         const hasLimit = stats.dailyLimit > 0
-        if (!hasLimit && totalQueued === 0) return null
+        const remaining = hasLimit ? Math.max(0, stats.dailyLimit - stats.sentToday) : null
         const pct = hasLimit ? Math.min(100, Math.round((stats.sentToday / stats.dailyLimit) * 100)) : 0
-        const remaining = hasLimit ? Math.max(0, stats.dailyLimit - stats.sentToday) : Infinity
         const atLimit = hasLimit && remaining === 0
         const isWarning = hasLimit && pct > 80 && !atLimit
-        const stripCls = atLimit
-          ? 'bg-red-50 border-red-200'
-          : isWarning
-          ? 'bg-amber-50 border-amber-200'
-          : 'bg-slate-50 border-slate-200'
-        const barCls = atLimit ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-green-500'
-        const labelCls = atLimit ? 'text-red-700' : isWarning ? 'text-amber-700' : 'text-slate-600'
-        const valueCls = atLimit ? 'text-red-600 font-semibold' : isWarning ? 'text-amber-700 font-medium' : 'text-slate-500'
         return (
-          <div className={`mb-6 rounded-xl border px-5 py-3.5 flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-3 ${stripCls}`}>
-            {totalQueued > 0 && (
-              <div className="flex items-center gap-2.5 shrink-0">
-                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-100">
-                  <Clock size={14} className="text-blue-600" />
-                </div>
-                <div className="text-sm leading-tight">
-                  <span className="font-semibold text-slate-800">{totalQueued.toLocaleString()}</span>
-                  <span className="text-slate-600"> email{totalQueued !== 1 ? 's' : ''} queued</span>
-                  <span className="text-slate-400 text-xs ml-1.5">auto-sends after midnight</span>
-                </div>
+          <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+            {/* Queued */}
+            <div className={`rounded-xl border px-5 py-4 flex items-center gap-4 ${
+              totalQueued > 0 ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div className={`flex items-center justify-center w-10 h-10 rounded-xl shrink-0 ${
+                totalQueued > 0 ? 'bg-blue-100' : 'bg-slate-100'
+              }`}>
+                <Clock size={18} className={totalQueued > 0 ? 'text-blue-600' : 'text-slate-400'} />
               </div>
-            )}
-            {totalQueued > 0 && hasLimit && (
-              <div className="hidden sm:block w-px self-stretch bg-slate-200" />
-            )}
-            {hasLimit && (
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className={`font-semibold uppercase tracking-wide ${labelCls}`} style={{ fontSize: '0.7rem' }}>
-                    Today's quota
-                  </span>
-                  <span className={`text-xs ${valueCls}`}>
-                    {atLimit
-                      ? 'Limit reached — resets at midnight'
-                      : `${remaining.toLocaleString()} of ${stats.dailyLimit.toLocaleString()} remaining`}
-                  </span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${barCls}`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs mt-1">
-                  <span className="text-slate-400">{stats.sentToday.toLocaleString()} sent</span>
-                  <span className="text-slate-400">{stats.dailyLimit.toLocaleString()} limit</span>
-                </div>
+              <div>
+                <p className={`text-2xl font-bold tabular-nums ${totalQueued > 0 ? 'text-blue-700' : 'text-slate-400'}`}>
+                  {totalQueued.toLocaleString()}
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {totalQueued > 0 ? 'queued · sends after midnight' : 'none queued'}
+                </p>
               </div>
-            )}
+            </div>
+
+            {/* Sent today */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 flex items-center gap-4">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 shrink-0">
+                <Send size={18} className="text-slate-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-700 tabular-nums">{stats.sentToday.toLocaleString()}</p>
+                <p className="text-xs text-slate-500 mt-0.5">sent today</p>
+              </div>
+            </div>
+
+            {/* Remaining / quota */}
+            <div className={`rounded-xl border px-5 py-4 ${
+              atLimit ? 'bg-red-50 border-red-200' : isWarning ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'
+            }`}>
+              {hasLimit ? (
+                <div className="flex items-center gap-4">
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-xl shrink-0 ${
+                    atLimit ? 'bg-red-100' : isWarning ? 'bg-amber-100' : 'bg-green-100'
+                  }`}>
+                    <SlidersHorizontal size={18} className={atLimit ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-green-600'} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-2xl font-bold tabular-nums ${atLimit ? 'text-red-700' : isWarning ? 'text-amber-700' : 'text-green-700'}`}>
+                      {remaining!.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {atLimit ? 'limit reached · resets midnight' : `of ${stats.dailyLimit.toLocaleString()} remaining today`}
+                    </p>
+                    <div className="mt-2 h-1.5 w-full rounded-full bg-white/60 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${atLimit ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-green-500'}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-green-100 shrink-0">
+                    <CheckCircle2 size={18} className="text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-700">Unlimited</p>
+                    <p className="text-xs text-slate-500 mt-0.5">no daily send limit</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         )
       })()}

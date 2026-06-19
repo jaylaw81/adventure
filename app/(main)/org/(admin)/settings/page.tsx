@@ -5,6 +5,7 @@ import { Check, Loader2, Globe, Lock, EyeOff } from 'lucide-react'
 
 type PrivacyLevel = 'public' | 'org-only' | 'private'
 
+
 const PRIVACY_OPTIONS: { value: PrivacyLevel; label: string; desc: string; icon: React.ReactNode }[] = [
   {
     value: 'public',
@@ -30,6 +31,9 @@ export default function OrgSettingsPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [privacyLevel, setPrivacyLevel] = useState<PrivacyLevel>('org-only')
+  const [consentFormEnabled, setConsentFormEnabled] = useState(false)
+  const [consentFormTitle, setConsentFormTitle] = useState('')
+  const [consentFormBody, setConsentFormBody] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -42,6 +46,9 @@ export default function OrgSettingsPage() {
         setName(data.org?.name ?? '')
         setDescription(data.org?.description ?? '')
         setPrivacyLevel((data.org?.privacyLevel ?? 'org-only') as PrivacyLevel)
+        setConsentFormEnabled(data.org?.consentFormEnabled ?? false)
+        setConsentFormTitle(data.org?.consentFormTitle ?? '')
+        setConsentFormBody(data.org?.consentFormBody ?? '')
         setLoading(false)
       })
   }, [])
@@ -53,7 +60,7 @@ export default function OrgSettingsPage() {
     const res = await fetch('/api/org/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, description, privacyLevel }),
+      body: JSON.stringify({ name, description, privacyLevel, consentFormEnabled, consentFormTitle, consentFormBody }),
     })
     const data = await res.json()
     setSaving(false)
@@ -144,6 +151,59 @@ export default function OrgSettingsPage() {
               </label>
             ))}
           </div>
+        </div>
+
+        {/* Consent Form */}
+        <div className="bg-white rounded-xl border border-slate-200 p-6 flex flex-col gap-4">
+          <div className="border-b border-slate-100 pb-3 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-700">Consent Form</h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Require new members to accept a custom agreement before accessing the platform.
+                You can also re-enable it per member from the Members page.
+              </p>
+            </div>
+            {/* Toggle switch */}
+            <button
+              type="button"
+              onClick={() => setConsentFormEnabled(v => !v)}
+              className={`relative shrink-0 w-10 h-6 rounded-full transition-colors ${consentFormEnabled ? 'bg-amber-500' : 'bg-slate-200'}`}
+              aria-label="Toggle consent form"
+            >
+              <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${consentFormEnabled ? 'translate-x-4' : ''}`} />
+            </button>
+          </div>
+
+          {consentFormEnabled && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Form title</label>
+                <input
+                  type="text"
+                  value={consentFormTitle}
+                  onChange={e => setConsentFormTitle(e.target.value)}
+                  maxLength={200}
+                  placeholder="Acceptable Use Policy"
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Form content <span className="text-red-400">*</span>
+                </label>
+                <textarea
+                  value={consentFormBody}
+                  onChange={e => setConsentFormBody(e.target.value)}
+                  maxLength={10000}
+                  rows={8}
+                  required={consentFormEnabled}
+                  placeholder="Enter the terms, acceptable use policy, or consent statement your members must agree to before accessing the platform..."
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-y font-mono leading-relaxed"
+                />
+                <p className="text-xs text-slate-400 mt-1">{consentFormBody.length}/10000 characters</p>
+              </div>
+            </>
+          )}
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}

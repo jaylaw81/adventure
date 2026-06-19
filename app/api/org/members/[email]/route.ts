@@ -24,8 +24,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ email:
   let body: unknown
   try { body = await req.json() } catch { return Response.json({ error: 'Invalid body' }, { status: 400 }) }
 
-  const { status, groupId, role, roleScope } = body as Record<string, unknown>
+  const { status, groupId, role, roleScope, resetConsent } = body as Record<string, unknown>
   const updates: Record<string, unknown> = {}
+
+  if (resetConsent === true) {
+    updates.consentStatus = 'pending'
+  }
 
   if (status !== undefined) {
     if (status !== 'active' && status !== 'inactive') {

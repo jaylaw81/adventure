@@ -45,7 +45,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     .where(eq(organizationMembers.organizationId, id))
     .orderBy(organizationMembers.joinedAt)
 
-  return NextResponse.json({ ...org, members })
+  // Mask member PII — main admin sees only the email domain, not names or full addresses
+  const maskedMembers = members.map(m => ({
+    id: m.id,
+    userEmail: '@' + (m.userEmail.split('@')[1] ?? 'unknown'),
+    displayName: null as string | null,
+    role: m.role,
+    roleScope: m.roleScope,
+    status: m.status,
+    joinedAt: m.joinedAt,
+  }))
+
+  return NextResponse.json({ ...org, members: maskedMembers })
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {

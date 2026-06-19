@@ -146,6 +146,9 @@ export const organizations = pgTable('organizations', {
   description: text('description'),
   privacyLevel: text('privacy_level').notNull().default('org-only'), // 'public' | 'org-only' | 'private'
   status: text('status').notNull().default('active'), // 'active' | 'suspended'
+  consentFormEnabled: boolean('consent_form_enabled').notNull().default(false),
+  consentFormTitle: text('consent_form_title'),
+  consentFormBody: text('consent_form_body'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (t) => [
@@ -172,6 +175,8 @@ export const organizationMembers = pgTable('organization_members', {
   role: text('role').notNull().default('member'), // 'admin' | 'teacher' | 'reviewer' | 'member'
   roleScope: text('role_scope').notNull().default('org'), // 'org' | 'groups'
   status: text('status').notNull().default('active'), // 'active' | 'inactive'
+  consentStatus: text('consent_status'), // null | 'pending' | 'accepted' | 'declined'
+  consentedAt: timestamp('consented_at'),
   joinedAt: timestamp('joined_at').defaultNow().notNull(),
 }, (t) => [
   uniqueIndex('org_members_org_user_idx').on(t.organizationId, t.userEmail),

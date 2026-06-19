@@ -15,6 +15,8 @@ export async function GET() {
         role: organizationMembers.role,
         roleScope: organizationMembers.roleScope,
         status: organizationMembers.status,
+        consentStatus: organizationMembers.consentStatus,
+        consentedAt: organizationMembers.consentedAt,
         joinedAt: organizationMembers.joinedAt,
         displayName: users.displayName,
         storyCount: sql<number>`(
@@ -45,7 +47,8 @@ export async function GET() {
     groupsByEmail[ga.userEmail].push({ id: ga.groupId, name: ga.groupName! })
   }
 
-  return Response.json(
-    members.map(m => ({ ...m, groups: groupsByEmail[m.userEmail] ?? [] }))
-  )
+  return Response.json({
+    members: members.map(m => ({ ...m, groups: groupsByEmail[m.userEmail] ?? [] })),
+    consentFormEnabled: ctx.org.consentFormEnabled,
+  })
 }
