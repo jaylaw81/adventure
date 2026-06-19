@@ -25,12 +25,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (owned.error) return owned.error
 
     const body = await req.json()
-    const { title, description, audience, tags } = body
+    const { title, description, audience, tags, editorMode } = body
     const updateData: Partial<typeof adventures.$inferInsert> = { updatedAt: new Date() }
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
     if (audience !== undefined) updateData.audience = audience
     if (tags !== undefined) updateData.tags = JSON.stringify(tags)
+    if (editorMode !== undefined) updateData.editorMode = editorMode
     const [updated] = await db
       .update(adventures)
       .set(updateData)

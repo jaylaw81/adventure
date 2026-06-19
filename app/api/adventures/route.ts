@@ -157,11 +157,12 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { title, description, template, chapterCount = 0 } = body as {
+    const { title, description, template, chapterCount = 0, editorMode = 'node' } = body as {
       title: string
       description?: string
       template?: 'small' | 'medium' | 'large'
       chapterCount?: number
+      editorMode?: 'node' | 'block'
     }
 
     if (!title) return NextResponse.json({ error: 'Title required' }, { status: 400 })
@@ -169,26 +170,39 @@ export async function POST(req: Request) {
     // Create the adventure
     const [adventure] = await db
       .insert(adventures)
-      .values({ title, description: description ?? '', userEmail: session.user.email })
+      .values({ title, description: description ?? '', userEmail: session.user.email, editorMode })
       .returning()
 
     const tpl = template ? TEMPLATES[template] : null
 
     if (!tpl) {
-      // Blank story: one chapter + one start node (original behaviour)
-      const [chapter1] = await db
-        .insert(chapters)
-        .values({ adventureId: adventure.id, title: 'Chapter 1', orderIndex: 0 })
-        .returning()
-      await db.insert(nodes).values({
-        adventureId: adventure.id,
-        chapterId: chapter1.id,
-        title: 'Chapter Start',
-        content: '',
-        nodeType: 'start',
-        positionX: 100,
-        positionY: 100,
-      })
+      if (editorMode === 'block') {
+        // Block editor: no chapters, just a bare start node
+        await db.insert(nodes).values({
+          adventureId: adventure.id,
+          chapterId: null,
+          title: 'Story Start',
+          content: '',
+          nodeType: 'start',
+          positionX: 0,
+          positionY: 0,
+        })
+      } else {
+        // Node editor: one chapter + one start node
+        const [chapter1] = await db
+          .insert(chapters)
+          .values({ adventureId: adventure.id, title: 'Chapter 1', orderIndex: 0 })
+          .returning()
+        await db.insert(nodes).values({
+          adventureId: adventure.id,
+          chapterId: chapter1.id,
+          title: 'Chapter Start',
+          content: '',
+          nodeType: 'start',
+          positionX: 100,
+          positionY: 100,
+        })
+      }
       return NextResponse.json(adventure, { status: 201 })
     }
 

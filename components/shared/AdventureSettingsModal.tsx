@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, GitBranch, Layers } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { analytics } from '@/lib/analytics'
 import { STORY_TAGS } from '@/lib/tags'
@@ -25,6 +25,9 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
   const [tags, setTags] = useState<string[]>(() => {
     try { return JSON.parse(adventure.tags ?? '[]') } catch { return [] }
   })
+  const [editorMode, setEditorMode] = useState<'node' | 'block'>(
+    (adventure as { editorMode?: string }).editorMode === 'block' ? 'block' : 'node'
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -40,11 +43,11 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
       const res = await fetch(`/api/adventures/${adventure.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), description: description.trim(), audience, tags }),
+        body: JSON.stringify({ title: title.trim(), description: description.trim(), audience, tags, editorMode }),
       })
       if (!res.ok) throw new Error('Failed to save')
       analytics.adventureSettingsSaved(adventure.id, audience)
-      onSave({ title: title.trim(), description: description.trim(), audience, tags: JSON.stringify(tags) })
+      onSave({ title: title.trim(), description: description.trim(), audience, tags: JSON.stringify(tags), editorMode } as Partial<AdventureWithCounts>)
       onClose()
     } catch {
       setError('Failed to save settings')
@@ -115,6 +118,37 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
             })}
           </div>
           <p className="text-xs text-gray-400">Select all that apply</p>
+        </div>
+
+        {/* Editor Style */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-700">Editor Style</label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: 'node' as const, label: 'Node Graph', description: 'Freeform canvas with drag connectors', icon: GitBranch },
+              { value: 'block' as const, label: 'Block Builder', description: 'Stacked blocks, Scratch-inspired', icon: Layers },
+            ].map(({ value, label, description, icon: Icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setEditorMode(value)}
+                className={`flex items-start gap-2.5 p-3 rounded-lg border text-left transition-colors ${
+                  editorMode === value ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <Icon size={15} className={`mt-0.5 shrink-0 ${editorMode === value ? 'text-amber-600' : 'text-gray-400'}`} />
+                <div>
+                  <p className="text-xs font-semibold text-gray-800">{label}</p>
+                  <p className="text-xs text-gray-500 leading-tight mt-0.5">{description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          {editorMode !== ((adventure as { editorMode?: string }).editorMode === 'block' ? 'block' : 'node') && (
+            <p className="text-xs text-amber-600">
+              Switching editor styles will reload the page after saving. All story data is preserved.
+            </p>
+          )}
         </div>
 
         {/* Audience */}

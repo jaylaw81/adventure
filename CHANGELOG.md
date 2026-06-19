@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-06-19
+
+- Block Builder editor: users can now choose between the Node Graph canvas and a new Block Builder mode when creating a story — Block Builder presents scenes as draggable stacked blocks with inline choice connectors, inspired by Scratch, and can be switched at any time from story settings.
+
 ## 2026-06-11
 
 - Admin Insights page: new admin dashboard showing actionable recommendations based on user behavior — trials expiring soon, unpublished creators, new users who haven't started a story, abandoned stories, social content suggestions with one-click post copy, and optional Google Analytics integration for feature usage and traffic source data.

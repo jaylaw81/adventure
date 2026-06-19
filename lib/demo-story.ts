@@ -12,6 +12,7 @@ export const DEMO_ADVENTURE: Adventure = {
   isPublic: false,
   shareToken: null,
   status: 'active',
+  editorMode: 'node',
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
 }

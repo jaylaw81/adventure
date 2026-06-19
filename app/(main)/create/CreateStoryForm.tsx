@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, BookOpen, LayoutTemplate, AlignLeft, BookMarked, Check } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, LayoutTemplate, AlignLeft, BookMarked, Check, Layers, GitBranch } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 import PageBanner from '@/components/shared/PageBanner'
 
+type EditorMode = 'node' | 'block'
 type Mode = 'template' | 'blank'
 type TemplateSize = 'small' | 'medium' | 'large'
-type Step = 'mode' | 'size' | 'chapters' | 'details'
+type Step = 'editor' | 'mode' | 'size' | 'chapters' | 'details'
 
 const SIZE_INFO = {
   small: {
@@ -36,14 +37,21 @@ const SIZE_INFO = {
 } as const
 
 const STEP_LABELS: Record<Step, string> = {
+  editor: 'Editor',
   mode: 'Start type',
   size: 'Story size',
   chapters: 'Chapters',
   details: 'Details',
 }
 
-function StepDots({ current }: { current: Step }) {
-  const steps: Step[] = ['mode', 'size', 'chapters', 'details']
+function StepDots({ current, editorMode }: { current: Step; editorMode: EditorMode | null }) {
+  // Editor step shows no dots — it's the pre-wizard screen
+  if (current === 'editor') return null
+
+  const steps: Step[] = editorMode === 'block'
+    ? ['mode', 'size', 'details']
+    : ['mode', 'size', 'chapters', 'details']
+
   return (
     <div className="flex items-center gap-2 justify-center mb-8">
       {steps.map((s, i) => (
@@ -73,7 +81,8 @@ function StepDots({ current }: { current: Step }) {
 
 export default function CreateStoryForm() {
   const router = useRouter()
-  const [step, setStep] = useState<Step>('mode')
+  const [step, setStep] = useState<Step>('editor')
+  const [editorMode, setEditorMode] = useState<EditorMode | null>(null)
   const [mode, setMode] = useState<Mode | null>(null)
   const [templateSize, setTemplateSize] = useState<TemplateSize | null>(null)
   const [wantChapters, setWantChapters] = useState(false)
@@ -84,9 +93,14 @@ export default function CreateStoryForm() {
   const [error, setError] = useState('')
 
   function goBack() {
-    if (step === 'size') setStep('mode')
+    if (step === 'mode') setStep('editor')
+    else if (step === 'size') setStep('mode')
     else if (step === 'chapters') setStep('size')
-    else if (step === 'details') setStep(mode === 'template' ? 'chapters' : 'mode')
+    else if (step === 'details') {
+      if (mode === 'blank') setStep('mode')
+      else if (editorMode === 'block') setStep('size')
+      else setStep('chapters')
+    }
   }
 
   async function handleCreate() {
@@ -97,10 +111,11 @@ export default function CreateStoryForm() {
       const body: Record<string, unknown> = {
         title: title.trim(),
         description: description.trim(),
+        editorMode: editorMode ?? 'node',
       }
       if (mode === 'template' && templateSize) {
         body.template = templateSize
-        body.chapterCount = wantChapters ? chapterCount : 0
+        body.chapterCount = (editorMode === 'block' || !wantChapters) ? 0 : chapterCount
       }
       const res = await fetch('/api/adventures', {
         method: 'POST',
@@ -116,26 +131,107 @@ export default function CreateStoryForm() {
     }
   }
 
+  const backAction = step === 'editor' ? (
+    <Link href="/" className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
+      <ArrowLeft size={15} /> Back
+    </Link>
+  ) : (
+    <button onClick={goBack} className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
+      <ArrowLeft size={15} /> Back
+    </button>
+  )
+
   return (
     <>
       <PageBanner
         title="New Story"
         subtitle="Set up your adventure before you start writing"
-        action={
-          step === 'mode' ? (
-            <Link href="/" className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
-              <ArrowLeft size={15} /> Back
-            </Link>
-          ) : (
-            <button onClick={goBack} className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
-              <ArrowLeft size={15} /> Back
-            </button>
-          )
-        }
+        action={backAction}
       />
 
       <div className="max-w-2xl mx-auto px-6 py-10">
-        <StepDots current={step} />
+        <StepDots current={step} editorMode={editorMode} />
+
+        {/* ── Step 0: Editor ── */}
+        {step === 'editor' && (
+          <div>
+            <h2 className="text-xl font-bold text-center mb-1" style={{ color: '#1e0a3c' }}>
+              How would you like to build?
+            </h2>
+            <p className="text-sm text-gray-500 text-center mb-8">
+              Choose your editing experience. You can switch editors later from story settings.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              {/* Node Graph */}
+              <button
+                onClick={() => { setEditorMode('node'); setStep('mode') }}
+                className="group text-left p-6 bg-white rounded-2xl border-2 border-violet-200 hover:border-violet-500 hover:shadow-md transition-all"
+              >
+                <div className="w-full h-28 bg-violet-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 140 90" className="w-full h-full" aria-hidden>
+                    <circle cx="70" cy="16" r="10" fill="#7c3aed" />
+                    <circle cx="36" cy="52" r="8" fill="#6d28d9" />
+                    <circle cx="104" cy="52" r="8" fill="#6d28d9" />
+                    <circle cx="22" cy="80" r="7" fill="#8b5cf6" />
+                    <circle cx="50" cy="80" r="7" fill="#8b5cf6" />
+                    <circle cx="104" cy="80" r="7" fill="#8b5cf6" />
+                    <line x1="62" y1="25" x2="42" y2="45" stroke="#a78bfa" strokeWidth="1.5" />
+                    <line x1="78" y1="25" x2="98" y2="45" stroke="#a78bfa" strokeWidth="1.5" />
+                    <line x1="30" y1="60" x2="24" y2="73" stroke="#c4b5fd" strokeWidth="1.5" />
+                    <line x1="40" y1="60" x2="48" y2="73" stroke="#c4b5fd" strokeWidth="1.5" />
+                    <line x1="104" y1="60" x2="104" y2="73" stroke="#c4b5fd" strokeWidth="1.5" />
+                    <circle cx="70" cy="16" r="3" fill="white" fillOpacity="0.6" />
+                    <circle cx="36" cy="52" r="2.5" fill="white" fillOpacity="0.5" />
+                    <circle cx="104" cy="52" r="2.5" fill="white" fillOpacity="0.5" />
+                  </svg>
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <GitBranch size={15} className="text-violet-500" />
+                  <h3 className="font-bold text-base" style={{ color: '#1e0a3c' }}>Node Graph</h3>
+                </div>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Drag and connect scenes on a freeform canvas. Best for complex branching stories.
+                </p>
+              </button>
+
+              {/* Block Builder */}
+              <button
+                onClick={() => { setEditorMode('block'); setStep('mode') }}
+                className="group text-left p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-indigo-400 hover:shadow-md transition-all"
+              >
+                <div className="w-full h-28 bg-slate-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden px-8 py-3">
+                  <div className="w-full flex flex-col gap-2">
+                    {[
+                      { color: 'bg-green-500', w: 'w-10' },
+                      { color: 'bg-indigo-500', w: 'w-14' },
+                      { color: 'bg-indigo-500', w: 'w-12' },
+                      { color: 'bg-purple-500', w: 'w-8' },
+                    ].map(({ color, w }, i) => (
+                      <div key={i} className="rounded-lg overflow-hidden shadow-sm border border-gray-200/60">
+                        <div className={`h-3 ${color} px-2 flex items-center gap-1`}>
+                          <div className="h-1 w-1 rounded-full bg-white/70" />
+                          <div className={`h-1 ${w} bg-white/40 rounded`} />
+                        </div>
+                        <div className="h-4 bg-white px-2 flex flex-col justify-center gap-0.5">
+                          <div className="h-0.5 bg-gray-200 rounded w-full" />
+                          <div className="h-0.5 bg-gray-100 rounded w-3/4" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Layers size={15} className="text-indigo-500" />
+                  <h3 className="font-bold text-base" style={{ color: '#1e0a3c' }}>Block Builder</h3>
+                </div>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Write scenes as stacked, draggable blocks with inline choices. Inspired by Scratch.
+                </p>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ── Step 1: Mode ── */}
         {step === 'mode' && (
@@ -177,10 +273,11 @@ export default function CreateStoryForm() {
               {(['small', 'medium', 'large'] as TemplateSize[]).map(size => {
                 const info = SIZE_INFO[size]
                 const selected = templateSize === size
+                const nextStep = editorMode === 'block' ? 'details' : 'chapters'
                 return (
                   <button
                     key={size}
-                    onClick={() => { setTemplateSize(size); setStep('chapters') }}
+                    onClick={() => { setTemplateSize(size); setStep(nextStep) }}
                     className={`text-left p-5 bg-white rounded-2xl border-2 transition-all hover:shadow-md ${
                       selected ? 'border-violet-500 shadow-sm' : 'border-gray-200 hover:border-violet-300'
                     }`}
@@ -205,7 +302,7 @@ export default function CreateStoryForm() {
           </div>
         )}
 
-        {/* ── Step 3: Chapters ── */}
+        {/* ── Step 3: Chapters (node mode only) ── */}
         {step === 'chapters' && (
           <div>
             <h2 className="text-xl font-bold text-center mb-1" style={{ color: '#1e0a3c' }}>Would you like chapters?</h2>
@@ -291,20 +388,31 @@ export default function CreateStoryForm() {
             <h2 className="text-xl font-bold text-center mb-1" style={{ color: '#1e0a3c' }}>Name your story</h2>
             <p className="text-sm text-gray-500 text-center mb-8">
               {mode === 'template'
-                ? `A ${templateSize} template${wantChapters ? ` with ${chapterCount} chapters` : ''} will be created for you.`
+                ? `A ${templateSize} template${editorMode === 'node' && wantChapters ? ` with ${chapterCount} chapters` : ''} will be created for you.`
                 : 'You can always change these later in the editor.'}
             </p>
 
-            {mode === 'template' && templateSize && (
-              <div className="flex items-center gap-3 mb-5 px-4 py-3 bg-violet-50 border border-violet-200 rounded-xl text-sm">
-                <LayoutTemplate size={16} className="text-violet-500 shrink-0" />
-                <span className="text-violet-800">
-                  <span className="font-semibold capitalize">{templateSize}</span> template
-                  {' · '}{SIZE_INFO[templateSize].nodes} · {SIZE_INFO[templateSize].choices}
-                  {wantChapters ? ` · ${chapterCount} chapters` : ''}
+            {/* Summary badges */}
+            <div className="flex items-center gap-2 flex-wrap mb-5">
+              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                editorMode === 'block' ? 'bg-indigo-100 text-indigo-700' : 'bg-violet-100 text-violet-700'
+              }`}>
+                {editorMode === 'block' ? <Layers size={11} /> : <GitBranch size={11} />}
+                {editorMode === 'block' ? 'Block Builder' : 'Node Graph'}
+              </span>
+              {mode === 'template' && templateSize && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
+                  <LayoutTemplate size={11} />
+                  {SIZE_INFO[templateSize].label} template · {SIZE_INFO[templateSize].nodes}
                 </span>
-              </div>
-            )}
+              )}
+              {mode === 'blank' && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
+                  <AlignLeft size={11} />
+                  Blank
+                </span>
+              )}
+            </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-violet-100 p-7 flex flex-col gap-5">
               <div>

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { getAdventureWithData } from '@/lib/queries'
 import { canCreateStories } from '@/lib/subscription'
 import Canvas from '@/components/editor/Canvas'
+import BlockCanvas from '@/components/editor/block/BlockCanvas'
 
 export default async function EditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -19,6 +20,16 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   if (!isAdmin) {
     const allowed = await canCreateStories(session.user.email)
     if (!allowed) redirect(`/subscribe?from=/edit/${id}`)
+  }
+
+  if (adventure.editorMode === 'block') {
+    return (
+      <BlockCanvas
+        adventure={adventure}
+        initialNodes={adventure.nodes}
+        initialChoices={adventure.choices}
+      />
+    )
   }
 
   return (
