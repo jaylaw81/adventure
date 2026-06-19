@@ -4,6 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 const FROM = process.env.EMAIL_FROM ?? 'StoryQuestor <noreply@storyquestor.com>'
 const SITE_URL = process.env.NEXTAUTH_URL ?? 'https://www.storyquestor.com'
+const CANONICAL_URL = 'https://www.storyquestor.com'
 
 function escapeHtml(str: string): string {
   return str
@@ -263,7 +264,7 @@ export async function sendEmailBlast(opts: {
 }): Promise<string> {
   const { to, displayName, subject, bodyHtml, unsubscribeToken } = opts
   const greeting = displayName ? escapeHtml(displayName) : 'there'
-  const unsubscribeUrl = `${SITE_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+  const unsubscribeUrl = `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
 
   const { data, error } = await resend.emails.send({
     from: FROM,
@@ -301,6 +302,58 @@ export async function sendEmailBlast(opts: {
   })
   if (error || !data?.id) throw new Error(error?.message ?? 'Resend returned no email ID')
   return data.id
+}
+
+export async function sendWaitlistNotification(opts: {
+  email: string
+  name: string | null
+  school: string | null
+  role: string | null
+}) {
+  const { email, name, school, role } = opts
+
+  const row = (label: string, value: string | null) =>
+    value
+      ? `<tr>
+          <td style="padding:10px 12px;font-weight:600;color:#6d28d9;white-space:nowrap;vertical-align:top;width:140px;">${escapeHtml(label)}</td>
+          <td style="padding:10px 12px;color:#1e0a3c;">${escapeHtml(value)}</td>
+        </tr>`
+      : ''
+
+  await resend.emails.send({
+    from: FROM,
+    to: ['contact@storyquestor.com', 'jaylaw81@gmail.com'],
+    subject: 'New organization waitlist signup — StoryQuestor',
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <p style="color:#6b7280;font-size:14px;margin-top:0;">New Organization Waitlist Signup</p>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr>
+              <td style="padding:10px 12px;font-weight:600;color:#6d28d9;white-space:nowrap;vertical-align:top;width:140px;">Email</td>
+              <td style="padding:10px 12px;color:#1e0a3c;">${escapeHtml(email)}</td>
+            </tr>
+            ${row('Name', name)}
+            ${row('Organization', school)}
+            ${row('Role', role)}
+          </table>
+          <div style="margin:24px 0;">
+            <a href="${SITE_URL}/admin/waitlist"
+              style="display:inline-block;padding:10px 22px;background:#7c3aed;color:#fff;font-weight:700;font-size:14px;border-radius:8px;text-decoration:none;">
+              View in Admin
+            </a>
+          </div>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+          <p style="font-size:12px;color:#9ca3af;">&copy; ${new Date().getFullYear()} StoryQuestor</p>
+        </body>
+      </html>
+    `,
+  })
 }
 
 export function isQuotaError(reason: unknown): boolean {

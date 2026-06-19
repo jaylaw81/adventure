@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { organizationWaitlist } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
+import { sendWaitlistNotification } from '@/lib/email'
 
 const MAX = 200
 
@@ -41,12 +42,20 @@ export async function POST(req: Request) {
     .limit(1)
 
   if (!existing) {
+    const cleanName = sanitize(name)
+    const cleanSchool = sanitize(school)
     await db.insert(organizationWaitlist).values({
       email: cleanEmail,
-      name: sanitize(name),
-      school: sanitize(school),
+      name: cleanName,
+      school: cleanSchool,
       role: cleanRole,
     })
+    sendWaitlistNotification({
+      email: cleanEmail,
+      name: cleanName,
+      school: cleanSchool,
+      role: cleanRole,
+    }).catch(console.error)
   }
 
   return Response.json({ ok: true })
