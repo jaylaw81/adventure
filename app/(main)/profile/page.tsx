@@ -8,6 +8,7 @@ import { Save, Trash2, AlertTriangle, CalendarDays, ShieldCheck, ArrowLeft, Bell
 import Link from 'next/link'
 import PageBanner from '@/components/shared/PageBanner'
 import { calcAge } from '@/lib/age'
+import { analytics } from '@/lib/analytics'
 
 interface ProfileData {
   email: string
@@ -78,6 +79,7 @@ function ProfileContent() {
   }, [])
 
   const handleSubscriptionToggle = async () => {
+    const wasSubscribed = emailSubscribed
     setSubSaving(true)
     try {
       const res = await fetch('/api/profile/email-subscription', {
@@ -85,7 +87,10 @@ function ProfileContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emailSubscribed: !emailSubscribed }),
       })
-      if (res.ok) setEmailSubscribed(v => !v)
+      if (res.ok) {
+        setEmailSubscribed(v => !v)
+        if (wasSubscribed) analytics.emailUnsubscribed('profile_settings')
+      }
     } finally {
       setSubSaving(false)
     }
@@ -136,6 +141,7 @@ function ProfileContent() {
     try {
       const res = await fetch('/api/profile', { method: 'DELETE' })
       if (!res.ok) throw new Error()
+      analytics.accountDeleted()
       await signOut({ callbackUrl: '/' })
     } catch {
       setDeleting(false)

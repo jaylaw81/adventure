@@ -113,4 +113,11 @@ export const analytics = {
     track('user_registered', { method })
     track('close_convert_lead')
   },
+
+  // --- Retention / churn ---
+  emailUnsubscribed: (method: 'email_link' | 'profile_settings') =>
+    track('email_unsubscribed', { method }),
+
+  accountDeleted: () =>
+    track('account_deleted'),
 }

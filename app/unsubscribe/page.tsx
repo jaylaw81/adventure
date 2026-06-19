@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import Link from 'next/link'
 import { CheckCircle2, XCircle } from 'lucide-react'
+import GaFireOnMount from '@/components/analytics/GaFireOnMount'
 
 interface Props {
   searchParams: Promise<{ token?: string }>
@@ -33,7 +34,12 @@ export default async function UnsubscribePage({ searchParams }: Props) {
     .set({ emailSubscribed: false })
     .where(eq(users.unsubscribeToken, token))
 
-  return <Message icon="success" title="Unsubscribed" body="You've been successfully removed from StoryQuestor update emails. You can re-subscribe at any time from your profile settings." />
+  return (
+    <>
+      <GaFireOnMount name="email_unsubscribed" params={{ method: 'email_link' }} />
+      <Message icon="success" title="Unsubscribed" body="You've been successfully removed from StoryQuestor update emails. You can re-subscribe at any time from your profile settings." />
+    </>
+  )
 }
 
 function Message({ icon, title, body }: { icon: 'success' | 'error'; title: string; body: string }) {
