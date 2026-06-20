@@ -36,6 +36,7 @@ export const adventures = pgTable('adventures', {
   shareToken: text('share_token').unique(),
   status: text('status').notNull().default('active'), // 'active' | 'suspended'
   editorMode: text('editor_mode').notNull().default('node'), // 'node' | 'block'
+  createdFrom: text('created_from'), // 'blank' | 'template' — null for stories created before tracking
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (t) => [

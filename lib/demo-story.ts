@@ -13,6 +13,7 @@ export const DEMO_ADVENTURE: Adventure = {
   shareToken: null,
   status: 'active',
   editorMode: 'node',
+  createdFrom: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
 }

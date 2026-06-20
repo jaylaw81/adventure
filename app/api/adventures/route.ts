@@ -170,7 +170,13 @@ export async function POST(req: Request) {
     // Create the adventure
     const [adventure] = await db
       .insert(adventures)
-      .values({ title, description: description ?? '', userEmail: session.user.email, editorMode })
+      .values({
+        title,
+        description: description ?? '',
+        userEmail: session.user.email,
+        editorMode,
+        createdFrom: template ? 'template' : 'blank',
+      })
       .returning()
 
     const tpl = template ? TEMPLATES[template] : null

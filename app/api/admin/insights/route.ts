@@ -31,6 +31,8 @@ export async function GET() {
     [storyCounts],
     recentPublic,
     [paidUsersRow],
+    [editorModeCounts],
+    [createdFromCounts],
   ] = await Promise.all([
 
     // Users who have created stories but zero are public
@@ -132,6 +134,18 @@ export async function GET() {
         eq(users.subscriptionStatus, 'trialing'),
         eq(users.grandfathered, true),
       )),
+
+    // Editor mode split: node graph vs block builder
+    db.select({
+      nodeCount:  sql<number>`count(*) filter (where ${adventures.editorMode} = 'node')::int`,
+      blockCount: sql<number>`count(*) filter (where ${adventures.editorMode} = 'block')::int`,
+    }).from(adventures).where(eq(adventures.status, 'active')),
+
+    // Creation method split: blank canvas vs template (null = pre-tracking)
+    db.select({
+      blankCount:    sql<number>`count(*) filter (where ${adventures.createdFrom} = 'blank')::int`,
+      templateCount: sql<number>`count(*) filter (where ${adventures.createdFrom} = 'template')::int`,
+    }).from(adventures).where(eq(adventures.status, 'active')),
   ])
 
   // ── Google Analytics ──────────────────────────────────────────────────────
@@ -145,13 +159,14 @@ export async function GET() {
     newUsers14d?: number
     topEvents?: { name: string; label: string; count: number }[]
     topSources?: { source: string; sessions: number }[]
+    shareLinkCopies?: number
   } = {}
 
   if (gaClient) {
     try {
       const property = gaProperty()
 
-      const [[overviewRes], [weekRes], [eventsRes], [sourcesRes]] = await Promise.all([
+      const [[overviewRes], [weekRes], [eventsRes], [sourcesRes], [shareEventsRes]] = await Promise.all([
         gaClient.runReport({
           property,
           dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }],
@@ -178,6 +193,18 @@ export async function GET() {
           orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
           limit: 8,
         }),
+        gaClient.runReport({
+          property,
+          dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+          dimensions: [{ name: 'eventName' }],
+          metrics: [{ name: 'eventCount' }],
+          dimensionFilter: {
+            filter: {
+              fieldName: 'eventName',
+              stringFilter: { matchType: 'EXACT', value: 'share_link_copied' },
+            },
+          },
+        }),
       ])
 
       gaData.activeUsers28d = parseInt(overviewRes?.rows?.[0]?.metricValues?.[0]?.value ?? '0')
@@ -199,9 +226,47 @@ export async function GET() {
         }))
         .filter(s => s.sessions > 0)
 
+      gaData.shareLinkCopies = parseInt(shareEventsRes?.rows?.[0]?.metricValues?.[0]?.value ?? '0')
+
     } catch (err) {
       console.error('GA Data API error:', err)
       // Return DB data only; don't crash
+    }
+  }
+
+  // ── Facebook engagement ───────────────────────────────────────────────────
+  // Public endpoint — no auth required, returns share/reaction/comment counts per URL
+
+  type FbEngagement = { shareCount: number; reactionCount: number; commentCount: number }
+  const facebookEngagement: Record<string, FbEngagement> = {}
+
+  const storiesWithTokens = recentPublic.filter(s => s.shareToken)
+  if (storiesWithTokens.length > 0) {
+    try {
+      const results = await Promise.allSettled(
+        storiesWithTokens.map(async s => {
+          const storyUrl = `https://www.storyquestor.com/s/${s.shareToken}`
+          const res = await fetch(
+            `https://graph.facebook.com/?id=${encodeURIComponent(storyUrl)}&fields=engagement`,
+            { signal: AbortSignal.timeout(5000) }
+          )
+          if (!res.ok) return null
+          const data = await res.json()
+          return { shareToken: s.shareToken!, engagement: data.engagement }
+        })
+      )
+      for (const result of results) {
+        if (result.status === 'fulfilled' && result.value) {
+          const { shareToken, engagement } = result.value
+          facebookEngagement[shareToken] = {
+            shareCount:    engagement?.share_count    ?? 0,
+            reactionCount: engagement?.reaction_count ?? 0,
+            commentCount:  engagement?.comment_count  ?? 0,
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Facebook engagement fetch error:', err)
     }
   }
 
@@ -220,6 +285,15 @@ export async function GET() {
       publicStoryCount: storyCounts?.publicCount ?? 0,
       privateStoryCount: storyCounts?.privateCount ?? 0,
       recentPublicStories: recentPublic,
+      facebookEngagement,
+      editorMode: {
+        node:  editorModeCounts?.nodeCount  ?? 0,
+        block: editorModeCounts?.blockCount ?? 0,
+      },
+      createdFrom: {
+        blank:    createdFromCounts?.blankCount    ?? 0,
+        template: createdFromCounts?.templateCount ?? 0,
+      },
       avgStoriesPerActiveUser: (() => {
         const total = (storyCounts?.publicCount ?? 0) + (storyCounts?.privateCount ?? 0)
         const paid = paidUsersRow?.count ?? 0

@@ -6,7 +6,8 @@ import {
   Lightbulb, Users, Clock, TrendingUp, BookOpen,
   Share2, AlertTriangle, CheckCircle2, ExternalLink,
   BarChart3, Globe, Zap, Copy, Check, Settings,
-  UserPlus, CreditCard, GitBranch,
+  UserPlus, CreditCard, GitBranch, Layers, Network,
+  Link2, ThumbsUp, MessageSquare,
 } from 'lucide-react'
 
 interface TrialUser {
@@ -23,6 +24,8 @@ interface RecentStory {
   updatedAt: string
 }
 
+interface FbEngagement { shareCount: number; reactionCount: number; commentCount: number }
+
 interface InsightsData {
   db: {
     unpublishedCreators: number
@@ -34,7 +37,10 @@ interface InsightsData {
     publicStoryCount: number
     privateStoryCount: number
     recentPublicStories: RecentStory[]
+    facebookEngagement: Record<string, FbEngagement>
     avgStoriesPerActiveUser: number
+    editorMode: { node: number; block: number }
+    createdFrom: { blank: number; template: number }
   }
   ga: {
     configured: boolean
@@ -43,6 +49,7 @@ interface InsightsData {
     newUsers14d?: number
     topEvents?: { name: string; label: string; count: number }[]
     topSources?: { source: string; sessions: number }[]
+    shareLinkCopies?: number
   }
 }
 
@@ -115,6 +122,50 @@ function BarRow({ label, value, max, color = 'bg-violet-500' }: { label: string;
   )
 }
 
+// ── Split proportion bar ─────────────────────────────────────────────────────
+
+function SplitBar({
+  leftLabel, leftCount, leftColor,
+  rightLabel, rightCount, rightColor,
+  trackedOf,
+}: {
+  leftLabel: string; leftCount: number; leftColor: string
+  rightLabel: string; rightCount: number; rightColor: string
+  trackedOf?: number
+}) {
+  const tracked = leftCount + rightCount
+  const leftPct  = tracked > 0 ? Math.round((leftCount  / tracked) * 100) : 50
+  const rightPct = 100 - leftPct
+
+  return (
+    <div>
+      <div className="flex h-5 rounded-full overflow-hidden gap-0.5">
+        <div className={`${leftColor} rounded-l-full transition-all`} style={{ width: `${leftPct}%` }} />
+        <div className={`${rightColor} rounded-r-full transition-all`} style={{ width: `${rightPct}%` }} />
+      </div>
+      <div className="flex items-center justify-between mt-2.5">
+        <div className="flex items-center gap-1.5">
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${leftColor}`} />
+          <span className="text-xs text-slate-600">{leftLabel}</span>
+          <span className="text-xs font-bold text-slate-800">{leftCount.toLocaleString()}</span>
+          {tracked > 0 && <span className="text-xs text-slate-400">({leftPct}%)</span>}
+        </div>
+        <div className="flex items-center gap-1.5">
+          {tracked > 0 && <span className="text-xs text-slate-400">({rightPct}%)</span>}
+          <span className="text-xs font-bold text-slate-800">{rightCount.toLocaleString()}</span>
+          <span className="text-xs text-slate-600">{rightLabel}</span>
+          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${rightColor}`} />
+        </div>
+      </div>
+      {trackedOf !== undefined && trackedOf > tracked && (
+        <p className="text-xs text-slate-400 mt-1.5">
+          {tracked.toLocaleString()} of {trackedOf.toLocaleString()} stories tracked — older stories were created before this metric was added
+        </p>
+      )}
+    </div>
+  )
+}
+
 // ── Social copy button ────────────────────────────────────────────────────────
 
 function CopyPostButton({ story }: { story: RecentStory }) {
@@ -161,10 +212,17 @@ export default function AdminInsightsPage() {
   if (loading) return <div className="p-8 text-center text-slate-400 text-sm">Loading insights…</div>
   if (!data) return <div className="p-8 text-center text-slate-400 text-sm">Failed to load.</div>
 
+  const SOCIAL_DOMAINS = ['facebook', 'instagram', 't.co', 'twitter', 'reddit', 'linkedin', 'tiktok', 'pinterest', 'youtube', 'discord', 'threads']
+
   const { db, ga } = data
   const maxEvent = Math.max(...(ga.topEvents?.map(e => e.count) ?? [1]), 1)
   const maxSource = Math.max(...(ga.topSources?.map(s => s.sessions) ?? [1]), 1)
   const totalStories = db.publicStoryCount + db.privateStoryCount
+
+  const socialSources = (ga.topSources ?? []).filter(s =>
+    SOCIAL_DOMAINS.some(d => s.source.toLowerCase().includes(d))
+  )
+  const maxSocial = Math.max(...socialSources.map(s => s.sessions), 1)
 
   return (
     <div className="p-4 md:p-8 space-y-8">
@@ -308,6 +366,159 @@ export default function AdminInsightsPage() {
               <p className="text-xs text-slate-400 mt-0.5">{stat.label}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── Sharing & social ────────────────────────────────────────────────── */}
+      <section>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Sharing & social</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+
+          {/* Share link copies */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-center w-8 h-8 bg-violet-100 rounded-lg mb-2">
+              <Link2 size={15} className="text-violet-600" />
+            </div>
+            <p className="text-2xl font-bold text-slate-900">{(ga.shareLinkCopies ?? 0).toLocaleString()}</p>
+            <p className="text-xs text-slate-400 mt-0.5">Share links copied (30d)</p>
+            {!ga.configured && (
+              <p className="text-xs text-slate-400 mt-1 italic">Connect GA to see this</p>
+            )}
+          </div>
+
+          {/* Social referrer sessions */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg mb-2">
+              <Globe size={15} className="text-blue-600" />
+            </div>
+            <p className="text-2xl font-bold text-slate-900">
+              {socialSources.reduce((n, s) => n + s.sessions, 0).toLocaleString()}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">Sessions from social (30d)</p>
+            {!ga.configured && (
+              <p className="text-xs text-slate-400 mt-1 italic">Connect GA to see this</p>
+            )}
+          </div>
+
+          {/* Facebook total shares */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center justify-center w-8 h-8 bg-blue-50 rounded-lg mb-2">
+              <ThumbsUp size={15} className="text-blue-700" />
+            </div>
+            <p className="text-2xl font-bold text-slate-900">
+              {Object.values(db.facebookEngagement ?? {}).reduce((n, e) => n + e.shareCount, 0).toLocaleString()}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">Facebook shares (recent stories)</p>
+          </div>
+
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-4">
+
+          {/* Social referrers breakdown */}
+          {ga.configured && (
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <Share2 size={15} className="text-slate-500" />
+                <h3 className="text-sm font-semibold text-slate-700">Social referrer traffic</h3>
+                <span className="text-xs text-slate-400">sessions (30d)</span>
+              </div>
+              {socialSources.length === 0 ? (
+                <p className="text-sm text-slate-400">No social referral sessions recorded yet.</p>
+              ) : (
+                <div className="space-y-2.5">
+                  {socialSources.map(s => (
+                    <BarRow key={s.source} label={s.source} value={s.sessions} max={maxSocial} color="bg-blue-500" />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Facebook engagement per story */}
+          {Object.keys(db.facebookEngagement ?? {}).length > 0 && (
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <ThumbsUp size={15} className="text-slate-500" />
+                <h3 className="text-sm font-semibold text-slate-700">Facebook engagement</h3>
+                <span className="text-xs text-slate-400">recent public stories</span>
+              </div>
+              <div className="divide-y divide-slate-50">
+                {db.recentPublicStories
+                  .filter(s => s.shareToken && db.facebookEngagement?.[s.shareToken])
+                  .map(story => {
+                    const fb = db.facebookEngagement![story.shareToken!]
+                    const hasAny = fb.shareCount > 0 || fb.reactionCount > 0 || fb.commentCount > 0
+                    return (
+                      <div key={story.id} className="flex items-center justify-between py-2.5 gap-3">
+                        <p className="text-sm text-slate-700 font-medium truncate min-w-0">{story.title}</p>
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          {hasAny ? (
+                            <>
+                              {fb.shareCount > 0 && (
+                                <span className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                                  <Share2 size={10} /> {fb.shareCount}
+                                </span>
+                              )}
+                              {fb.reactionCount > 0 && (
+                                <span className="inline-flex items-center gap-1 text-xs text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
+                                  <ThumbsUp size={10} /> {fb.reactionCount}
+                                </span>
+                              )}
+                              {fb.commentCount > 0 && (
+                                <span className="inline-flex items-center gap-1 text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                                  <MessageSquare size={10} /> {fb.commentCount}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <span className="text-xs text-slate-300">no activity</span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </section>
+
+      {/* ── Story creation patterns ─────────────────────────────────────────── */}
+      <section>
+        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Story creation patterns</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
+
+          {/* Editor type */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-7 h-7 bg-violet-100 rounded-lg flex items-center justify-center">
+                <Network size={14} className="text-violet-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-700">Editor type</h3>
+            </div>
+            <SplitBar
+              leftLabel="Node graph"  leftCount={db.editorMode.node}  leftColor="bg-violet-500"
+              rightLabel="Block builder" rightCount={db.editorMode.block} rightColor="bg-blue-400"
+            />
+          </div>
+
+          {/* Starting point */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-7 h-7 bg-amber-100 rounded-lg flex items-center justify-center">
+                <Layers size={14} className="text-amber-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-700">Starting point</h3>
+            </div>
+            <SplitBar
+              leftLabel="Blank canvas" leftCount={db.createdFrom.blank}    leftColor="bg-slate-400"
+              rightLabel="Template"    rightCount={db.createdFrom.template} rightColor="bg-amber-400"
+              trackedOf={totalStories}
+            />
+          </div>
+
         </div>
       </section>
 
