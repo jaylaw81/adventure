@@ -16,12 +16,22 @@ export async function PATCH(req: Request, { params }: Params) {
   const { id } = await params
   const { action } = await req.json()
 
-  if (action !== 'suspend' && action !== 'unsuspend') {
+  if (!['suspend', 'unsuspend', 'grant_trial'].includes(action)) {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   }
 
   const [target] = await db.select({ email: users.email }).from(users).where(eq(users.id, id))
   if (!target) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  if (action === 'grant_trial') {
+    const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const [updated] = await db
+      .update(users)
+      .set({ trialEndsAt })
+      .where(eq(users.id, id))
+      .returning({ id: users.id, email: users.email, trialEndsAt: users.trialEndsAt })
+    return NextResponse.json(updated)
+  }
 
   if (action === 'suspend') {
     if (target.email === session.user.email) {

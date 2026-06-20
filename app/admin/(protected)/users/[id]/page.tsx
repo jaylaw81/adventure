@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, Play, ExternalLink, Globe, Lock, ShieldOff,
   Trash2, UserCheck, UserX, BookOpen, PauseCircle, CheckCircle2,
-  Mail, X, Send, MessageSquare, ChevronDown, ChevronUp,
+  Mail, X, Send, MessageSquare, ChevronDown, ChevronUp, Clock,
 } from 'lucide-react'
 
 const AUDIENCE_LABEL: Record<string, string> = {
@@ -29,6 +29,7 @@ interface AdminUser {
   status: string
   createdAt: string
   storyCount: number
+  trialEndsAt: string | null
 }
 
 interface AdminStory {
@@ -232,6 +233,22 @@ export default function AdminUserDetailPage() {
     setMessages(prev => [msg, ...prev])
   }
 
+  async function grantTrial() {
+    if (!user) return
+    if (!confirm(`Grant a fresh 7-day trial to ${user.email}?`)) return
+    setActingUser(true)
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'grant_trial' }),
+    })
+    if (res.ok) {
+      const updated = await res.json()
+      setUser(u => u ? { ...u, trialEndsAt: updated.trialEndsAt } : null)
+    }
+    setActingUser(false)
+  }
+
   async function toggleSuspendUser() {
     if (!user) return
     setActingUser(true)
@@ -325,6 +342,21 @@ export default function AdminUserDetailPage() {
                   <UserCheck size={11} /> Active
                 </span>
               )}
+              {(() => {
+                if (!user.trialEndsAt) return (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
+                    <Clock size={11} /> No trial
+                  </span>
+                )
+                const trialEnd = new Date(user.trialEndsAt)
+                const active = trialEnd > new Date()
+                return (
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${active ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <Clock size={11} />
+                    {active ? `Trial ends ${trialEnd.toLocaleDateString()}` : `Trial expired ${trialEnd.toLocaleDateString()}`}
+                  </span>
+                )
+              })()}
               <span className="text-xs text-slate-400">
                 Joined {new Date(user.createdAt).toLocaleDateString()}
               </span>
@@ -336,6 +368,13 @@ export default function AdminUserDetailPage() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-violet-100 hover:bg-violet-200 text-violet-700 rounded-lg text-sm font-medium transition-colors"
             >
               <Mail size={14} /> Contact User
+            </button>
+            <button
+              onClick={grantTrial}
+              disabled={actingUser}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-40"
+            >
+              <Clock size={14} /> Grant 7-day Trial
             </button>
             <button
               onClick={toggleSuspendUser}

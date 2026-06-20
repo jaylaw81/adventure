@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { eq, and } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { users, organizationMembers } from '@/lib/schema'
+import { users, organizationMembers, deletedAccounts } from '@/lib/schema'
 import { isAdult } from '@/lib/age'
 
 async function resolveEffectiveTier(email: string, storedTier: string): Promise<string> {
@@ -71,10 +71,25 @@ export const authOptions: NextAuthOptions = {
       try {
         const [existing] = await db.select({ status: users.status }).from(users).where(eq(users.email, user.email))
         if (existing?.status === 'suspended') return false
-        await db
-          .insert(users)
-          .values({ email: user.email, displayName: user.name ?? '' })
-          .onConflictDoNothing()
+        if (!existing) {
+          // New Google sign-up — mirror the same trial logic as the credentials register route
+          const [deletedRecord] = await db
+            .select()
+            .from(deletedAccounts)
+            .where(eq(deletedAccounts.email, user.email))
+          const previousTrialNoPayment = !!(deletedRecord?.trialUsed && !deletedRecord?.hadPaidSubscription)
+          const trialEndsAt = previousTrialNoPayment
+            ? null
+            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          await db.insert(users).values({
+            email: user.email,
+            displayName: user.name ?? '',
+            trialEndsAt,
+          })
+          if (deletedRecord) {
+            await db.delete(deletedAccounts).where(eq(deletedAccounts.email, user.email))
+          }
+        }
       } catch {
         // Non-fatal
       }
