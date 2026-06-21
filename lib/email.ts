@@ -403,6 +403,213 @@ export async function sendConsentDeclined(opts: {
   })
 }
 
+export async function sendWelcomeEmail(opts: {
+  to: string
+  displayName: string | null
+  trialEndsAt: Date
+  unsubscribeToken: string
+}) {
+  const { to, displayName, trialEndsAt, unsubscribeToken } = opts
+  const greeting = displayName ? escapeHtml(displayName) : 'there'
+  const trialDate = trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  const unsubscribeUrl = `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: 'Welcome to StoryQuestor — start your first story',
+    headers: {
+      'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">Hi ${greeting},</p>
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            Welcome to StoryQuestor! You can now create branching choose-your-own-adventure stories
+            where every reader choice leads somewhere different.
+          </p>
+
+          <div style="margin:24px 0;padding:18px 22px;background:#fffbeb;border-radius:12px;border:1px solid #fde68a;">
+            <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 4px;">Your 7-day free trial</p>
+            <p style="font-size:13px;color:#78350f;margin:0;">
+              Create and publish as many stories as you like. Your trial ends on <strong>${trialDate}</strong>.
+            </p>
+          </div>
+
+          <p style="font-size:14px;font-weight:700;color:#1e0a3c;margin-bottom:8px;">Here's what you can do:</p>
+          <ul style="font-size:14px;line-height:1.9;color:#374151;padding-left:20px;margin:0 0 24px;">
+            <li>Build stories with a visual node canvas or a linear block editor</li>
+            <li>Add scenes, branching choices, images, and ambient sound</li>
+            <li>Share a link so anyone can read your story for free</li>
+            <li>Publish to the public explore page to reach new readers</li>
+          </ul>
+
+          <a href="${CANONICAL_URL}"
+            style="display:inline-block;padding:13px 30px;background:linear-gradient(135deg,#f59e0b,#f97316);
+                   color:#1a1a1a;font-weight:700;font-size:15px;border-radius:10px;text-decoration:none;">
+            Start Creating
+          </a>
+
+          <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-top:24px;">
+            Questions? Just reply to this email — we read everything.
+          </p>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 12px;" />
+          <p style="font-size:12px;color:#9ca3af;line-height:1.6;">
+            &copy; ${new Date().getFullYear()} StoryQuestor &mdash;
+            <a href="${CANONICAL_URL}" style="color:#9ca3af;">storyquestor.com</a>
+            &nbsp;&middot;&nbsp;
+            <a href="${unsubscribeUrl}" style="color:#9ca3af;">Unsubscribe</a>
+          </p>
+        </body>
+      </html>
+    `,
+  })
+}
+
+export async function sendTrialExpiryReminder(opts: {
+  to: string
+  displayName: string | null
+  trialEndsAt: Date
+  unsubscribeToken: string
+}) {
+  const { to, displayName, trialEndsAt, unsubscribeToken } = opts
+  const greeting = displayName ? escapeHtml(displayName) : 'there'
+  const daysLeft = Math.max(1, Math.ceil((trialEndsAt.getTime() - Date.now()) / 86_400_000))
+  const trialDate = trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  const unsubscribeUrl = `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: `Your StoryQuestor trial ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`,
+    headers: {
+      'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">Hi ${greeting},</p>
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            Your free trial expires on <strong>${trialDate}</strong> — that's
+            ${daysLeft === 1 ? '<strong>tomorrow</strong>' : `<strong>${daysLeft} days away</strong>`}.
+            After that you won't be able to create or edit stories until you subscribe.
+          </p>
+
+          <div style="margin:24px 0;padding:18px 22px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;">
+            <p style="font-size:13px;font-weight:700;color:#991b1b;margin:0 0 4px;">Don't lose your work</p>
+            <p style="font-size:13px;color:#7f1d1d;margin:0;">
+              Subscribe now to keep full access. Plans start at $2/week — cancel any time.
+            </p>
+          </div>
+
+          <a href="${CANONICAL_URL}/subscribe"
+            style="display:inline-block;padding:13px 30px;background:linear-gradient(135deg,#f59e0b,#f97316);
+                   color:#1a1a1a;font-weight:700;font-size:15px;border-radius:10px;text-decoration:none;">
+            Subscribe Now
+          </a>
+
+          <p style="font-size:13px;color:#6b7280;margin-top:20px;line-height:1.6;">
+            Your stories are saved and won't be deleted if your trial ends — you just won't be able
+            to edit them until you subscribe.
+          </p>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 12px;" />
+          <p style="font-size:12px;color:#9ca3af;line-height:1.6;">
+            &copy; ${new Date().getFullYear()} StoryQuestor &mdash;
+            <a href="${CANONICAL_URL}" style="color:#9ca3af;">storyquestor.com</a>
+            &nbsp;&middot;&nbsp;
+            <a href="${unsubscribeUrl}" style="color:#9ca3af;">Unsubscribe</a>
+          </p>
+        </body>
+      </html>
+    `,
+  })
+}
+
+export async function sendReEngagementEmail(opts: {
+  to: string
+  displayName: string | null
+  storyCount: number
+  unsubscribeToken: string
+}) {
+  const { to, displayName, storyCount, unsubscribeToken } = opts
+  const greeting = displayName ? escapeHtml(displayName) : 'there'
+  const storyWord = storyCount === 1 ? 'story' : 'stories'
+  const unsubscribeUrl = `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: `Your ${storyCount === 1 ? 'story is' : 'stories are'} waiting for you`,
+    headers: {
+      'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">Hi ${greeting},</p>
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            It's been a while since you've worked on your ${storyWord}. You have
+            <strong>${storyCount} ${storyWord}</strong> on StoryQuestor waiting to be continued —
+            or shared with the world.
+          </p>
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            Even finishing a single story and publishing it gives readers something to discover.
+            Pick up where you left off.
+          </p>
+
+          <a href="${CANONICAL_URL}"
+            style="display:inline-block;margin:8px 0 24px;padding:13px 30px;
+                   background:linear-gradient(135deg,#f59e0b,#f97316);
+                   color:#1a1a1a;font-weight:700;font-size:15px;border-radius:10px;text-decoration:none;">
+            Continue Creating
+          </a>
+
+          <p style="font-size:13px;color:#6b7280;line-height:1.6;">
+            If you've moved on, no worries — you can
+            <a href="${unsubscribeUrl}" style="color:#6b7280;">unsubscribe</a> and we won't
+            bother you again.
+          </p>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 12px;" />
+          <p style="font-size:12px;color:#9ca3af;line-height:1.6;">
+            &copy; ${new Date().getFullYear()} StoryQuestor &mdash;
+            <a href="${CANONICAL_URL}" style="color:#9ca3af;">storyquestor.com</a>
+            &nbsp;&middot;&nbsp;
+            <a href="${unsubscribeUrl}" style="color:#9ca3af;">Unsubscribe</a>
+          </p>
+        </body>
+      </html>
+    `,
+  })
+}
+
 export function isQuotaError(reason: unknown): boolean {
   return String(reason).toLowerCase().includes('daily email sending quota')
 }

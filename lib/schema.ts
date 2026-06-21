@@ -22,6 +22,9 @@ export const users = pgTable('users', {
   subscriptionInterval: text('subscription_interval'), // 'month' | 'week' — null for non-subscribers
   trialEndsAt: timestamp('trial_ends_at'),
   gracePeriodEndsAt: timestamp('grace_period_ends_at'),
+  welcomeEmailSentAt: timestamp('welcome_email_sent_at'),
+  trialReminderSentAt: timestamp('trial_reminder_sent_at'),
+  reEngagementSentAt: timestamp('re_engagement_sent_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

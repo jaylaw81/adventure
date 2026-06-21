@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { users, deletedAccounts } from '@/lib/schema'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export async function POST(req: Request) {
   try {
@@ -53,16 +54,28 @@ export async function POST(req: Request) {
       : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
     const passwordHash = await bcrypt.hash(password, 12)
-    await db.insert(users).values({
+    const [newUser] = await db.insert(users).values({
       email: normalizedEmail,
       displayName: displayName?.trim() || '',
       passwordHash,
       trialEndsAt,
+    }).returning({
+      unsubscribeToken: users.unsubscribeToken,
+      displayName: users.displayName,
     })
 
     // Remove the deleted account record now that they've re-registered
     if (deletedRecord) {
       await db.delete(deletedAccounts).where(eq(deletedAccounts.email, normalizedEmail))
+    }
+
+    if (trialEndsAt && newUser?.unsubscribeToken) {
+      sendWelcomeEmail({
+        to: normalizedEmail,
+        displayName: newUser.displayName || null,
+        trialEndsAt,
+        unsubscribeToken: newUser.unsubscribeToken,
+      }).catch(console.error)
     }
 
     return NextResponse.json({ ok: true, previousAccount: !!deletedRecord, noTrial: previousTrialNoPayment })

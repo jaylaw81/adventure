@@ -7,6 +7,7 @@ import { eq, and } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { users, organizationMembers, deletedAccounts } from '@/lib/schema'
 import { isAdult } from '@/lib/age'
+import { sendWelcomeEmail } from '@/lib/email'
 
 async function resolveEffectiveTier(email: string, storedTier: string): Promise<string> {
   if (storedTier !== 'free') return storedTier
@@ -81,13 +82,24 @@ export const authOptions: NextAuthOptions = {
           const trialEndsAt = previousTrialNoPayment
             ? null
             : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-          await db.insert(users).values({
+          const [newUser] = await db.insert(users).values({
             email: user.email,
             displayName: user.name ?? '',
             trialEndsAt,
+          }).returning({
+            unsubscribeToken: users.unsubscribeToken,
+            displayName: users.displayName,
           })
           if (deletedRecord) {
             await db.delete(deletedAccounts).where(eq(deletedAccounts.email, user.email))
+          }
+          if (trialEndsAt && newUser?.unsubscribeToken) {
+            sendWelcomeEmail({
+              to: user.email,
+              displayName: newUser.displayName || null,
+              trialEndsAt,
+              unsubscribeToken: newUser.unsubscribeToken,
+            }).catch(console.error)
           }
         }
       } catch {
