@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
-import { Search, X, Download, CheckCircle2, XCircle, Clock, Loader2 } from 'lucide-react'
+import { Search, X, Download, CheckCircle2, XCircle, Clock, Loader2, Send } from 'lucide-react'
 
 const ROLE_LABEL: Record<string, string> = {
   teacher: 'Teacher',
@@ -82,6 +82,87 @@ function ActionButtons({ entry, onUpdated }: { entry: WaitlistEntry; onUpdated: 
   )
 }
 
+function DirectInvitePanel({ onInvited }: { onInvited: (entry: WaitlistEntry) => void }) {
+  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const [state, setState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [errorMsg, setErrorMsg] = useState('')
+
+  const submit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault()
+    setState('loading')
+    setErrorMsg('')
+    try {
+      const res = await fetch('/api/admin/waitlist/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), name: name.trim() || undefined }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setErrorMsg(data.error ?? 'Failed to send invite')
+        setState('error')
+        return
+      }
+      onInvited(data.entry)
+      setEmail('')
+      setName('')
+      setState('success')
+      setTimeout(() => setState('idle'), 3000)
+    } catch {
+      setErrorMsg('Network error — please try again')
+      setState('error')
+    }
+  }, [email, name, onInvited])
+
+  return (
+    <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-6">
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center shrink-0 mt-0.5">
+          <Send size={15} className="text-violet-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-violet-900">Direct invite</p>
+          <p className="text-xs text-violet-600 mt-0.5 mb-3">Send an org sign-up invite to any email, bypassing the waitlist.</p>
+          <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Email address"
+              required
+              className="flex-1 px-3 py-2 text-sm border border-violet-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-400 placeholder:text-slate-400"
+            />
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Name (optional)"
+              className="w-44 px-3 py-2 text-sm border border-violet-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-400 placeholder:text-slate-400"
+            />
+            <button
+              type="submit"
+              disabled={state === 'loading' || !email.trim()}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            >
+              {state === 'loading' ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+              {state === 'loading' ? 'Sending…' : 'Send Invite'}
+            </button>
+          </form>
+          {state === 'success' && (
+            <p className="text-xs text-green-700 mt-2 flex items-center gap-1">
+              <CheckCircle2 size={12} /> Invite sent successfully.
+            </p>
+          )}
+          {state === 'error' && (
+            <p className="text-xs text-red-600 mt-2">{errorMsg}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function WaitlistPage() {
   const [entries, setEntries] = useState<WaitlistEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -96,6 +177,14 @@ export default function WaitlistPage() {
 
   const handleUpdated = useCallback((id: string, status: 'accepted' | 'denied') => {
     setEntries(prev => prev.map(e => e.id === id ? { ...e, status, inviteSentAt: status === 'accepted' ? new Date().toISOString() : e.inviteSentAt } : e))
+  }, [])
+
+  const handleInvited = useCallback((entry: WaitlistEntry) => {
+    setEntries(prev => {
+      const exists = prev.find(e => e.id === entry.id)
+      if (exists) return prev.map(e => e.id === entry.id ? { ...e, ...entry } : e)
+      return [entry, ...prev]
+    })
   }, [])
 
   const filtered = useMemo(() => {
@@ -167,6 +256,8 @@ export default function WaitlistPage() {
           Export CSV
         </button>
       </div>
+
+      <DirectInvitePanel onInvited={handleInvited} />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
