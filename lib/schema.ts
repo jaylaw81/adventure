@@ -361,7 +361,15 @@ export const deletedAccounts = pgTable('deleted_accounts', {
   reason: text('reason').notNull().default('self_deleted'), // 'self_deleted' | 'admin_deleted'
 })
 
+// Tracks when each named cron job last ran successfully — used to enforce global cooldowns
+export const cronLogs = pgTable('cron_logs', {
+  jobName: text('job_name').primaryKey(),
+  lastRunAt: timestamp('last_run_at').notNull(),
+  lastRunResult: text('last_run_result'), // brief JSON summary of the last run
+})
+
 export type DeletedAccount = typeof deletedAccounts.$inferSelect
+export type CronLog = typeof cronLogs.$inferSelect
 export type EmailSegment = typeof emailSegments.$inferSelect
 export type EmailBlast = typeof emailBlasts.$inferSelect
 export type EmailBlastRecipient = typeof emailBlastRecipients.$inferSelect

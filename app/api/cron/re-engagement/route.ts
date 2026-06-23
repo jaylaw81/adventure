@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server'
 import { and, eq, exists, gte, isNull, lt, ne, notExists, or, sql } from 'drizzle-orm'
 import { inArray } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { users, adventures } from '@/lib/schema'
+import { users, adventures, cronLogs } from '@/lib/schema'
 import { sendReEngagementEmail } from '@/lib/email'
 
 export const maxDuration = 120
+
+const JOB_NAME = 're-engagement'
+const PER_USER_COOLDOWN_DAYS = 7
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
@@ -14,10 +17,11 @@ export async function GET(req: Request) {
   }
 
   const now = new Date()
+  const perUserCutoff = new Date(now.getTime() - PER_USER_COOLDOWN_DAYS * 86_400_000)
   const days30ago = new Date(now.getTime() - 30 * 86_400_000)
-  const days60ago = new Date(now.getTime() - 60 * 86_400_000)
 
-  // Users who have stories but none updated in 30+ days, with a 60-day cooldown between emails
+  // Users who have stories but none updated in 30+ days.
+  // Per-user cooldown: skip anyone emailed within the last 7 days.
   const candidates = await db
     .select({
       email: users.email,
@@ -31,7 +35,7 @@ export async function GET(req: Request) {
       ne(users.tier, 'organization'),
       or(
         isNull(users.reEngagementSentAt),
-        lt(users.reEngagementSentAt, days60ago),
+        lt(users.reEngagementSentAt, perUserCutoff),
       ),
       // Has at least one story
       exists(
@@ -52,6 +56,7 @@ export async function GET(req: Request) {
     .limit(50)
 
   if (candidates.length === 0) {
+    await upsertCronLog(JOB_NAME, now, JSON.stringify({ sent: 0, failed: 0, reason: 'no candidates' }))
     return NextResponse.json({ skipped: 'No candidates' })
   }
 
@@ -70,6 +75,7 @@ export async function GET(req: Request) {
 
   let sent = 0
   let failed = 0
+  const sentEmails: string[] = []
 
   for (const u of candidates) {
     if (!u.unsubscribeToken) continue
@@ -83,8 +89,9 @@ export async function GET(req: Request) {
       })
       await db
         .update(users)
-        .set({ reEngagementSentAt: new Date() })
+        .set({ reEngagementSentAt: now })
         .where(eq(users.email, u.email))
+      sentEmails.push(u.email)
       sent++
     } catch (err) {
       console.error(`Re-engagement email failed for ${u.email}:`, err)
@@ -92,5 +99,17 @@ export async function GET(req: Request) {
     }
   }
 
+  await upsertCronLog(JOB_NAME, now, JSON.stringify({ sent, failed, recipients: sentEmails }))
+
   return NextResponse.json({ sent, failed })
+}
+
+async function upsertCronLog(jobName: string, runAt: Date, result: string) {
+  await db
+    .insert(cronLogs)
+    .values({ jobName, lastRunAt: runAt, lastRunResult: result })
+    .onConflictDoUpdate({
+      target: cronLogs.jobName,
+      set: { lastRunAt: runAt, lastRunResult: result },
+    })
 }
