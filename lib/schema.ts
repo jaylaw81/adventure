@@ -25,6 +25,7 @@ export const users = pgTable('users', {
   welcomeEmailSentAt: timestamp('welcome_email_sent_at'),
   trialReminderSentAt: timestamp('trial_reminder_sent_at'),
   reEngagementSentAt: timestamp('re_engagement_sent_at'),
+  lastLoginAt: timestamp('last_login_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

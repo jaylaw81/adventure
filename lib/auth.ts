@@ -101,6 +101,9 @@ export const authOptions: NextAuthOptions = {
               unsubscribeToken: newUser.unsubscribeToken,
             }).catch(console.error)
           }
+        } else {
+          // Returning user — record last login time
+          db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.email, user.email)).catch(console.error)
         }
       } catch {
         // Non-fatal

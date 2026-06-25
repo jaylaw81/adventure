@@ -26,6 +26,7 @@ export async function GET() {
         trialEndsAt: users.trialEndsAt,
         gracePeriodEndsAt: users.gracePeriodEndsAt,
         stripeCustomerId: users.stripeCustomerId,
+        lastLoginAt: users.lastLoginAt,
       })
       .from(users)
       .orderBy(desc(users.createdAt)),

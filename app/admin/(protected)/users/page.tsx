@@ -21,6 +21,7 @@ interface AdminUser {
   trialEndsAt: string | null
   gracePeriodEndsAt: string | null
   stripeCustomerId: string | null
+  lastLoginAt: string | null
 }
 
 // ── Billing classification ────────────────────────────────────────────────
@@ -33,6 +34,19 @@ interface BillingInfo {
   detail: string | null
   chipClass: string
   icon: React.ReactNode
+}
+
+function formatRelative(dateStr: string): string {
+  const ms = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(ms / 60_000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  if (days < 31) return `${Math.floor(days / 7)}w ago`
+  return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function daysLeft(dateStr: string | null): number | null {
@@ -297,6 +311,7 @@ export default function AdminUsersPage() {
                   <th className="text-left px-4 py-3 font-semibold">Account</th>
                   <th className="text-left px-4 py-3 font-semibold">Stories</th>
                   <th className="text-left px-4 py-3 font-semibold">Joined</th>
+                  <th className="text-left px-4 py-3 font-semibold">Last login</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -346,6 +361,15 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-4 text-slate-600 font-medium">{user.storyCount}</td>
                       <td className="px-4 py-4 text-slate-400 text-xs whitespace-nowrap">
                         {new Date(user.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-4 text-xs whitespace-nowrap">
+                        {user.lastLoginAt ? (
+                          <span className="text-slate-500" title={new Date(user.lastLoginAt).toLocaleString()}>
+                            {formatRelative(user.lastLoginAt)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-300">—</span>
+                        )}
                       </td>
 
                       {/* Actions */}
