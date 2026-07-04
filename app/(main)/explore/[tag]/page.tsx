@@ -156,7 +156,7 @@ export default async function TagPage({ params }: Props) {
             Write your own {label} story
           </h2>
           <p className="text-sm text-violet-600 mb-5 max-w-md mx-auto">
-            Build a branching adventure with a visual canvas. Free 7-day trial — no card required.
+            Build a branching adventure with a visual canvas. From $2/week — cancel anytime.
           </p>
           <Link
             href="/sign-up"
@@ -164,7 +164,7 @@ export default async function TagPage({ params }: Props) {
             style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
           >
             <Pencil size={14} />
-            Start writing free
+            Start writing
           </Link>
         </div>
       </div>

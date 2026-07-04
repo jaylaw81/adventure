@@ -73,19 +73,15 @@ export const authOptions: NextAuthOptions = {
         const [existing] = await db.select({ status: users.status }).from(users).where(eq(users.email, user.email))
         if (existing?.status === 'suspended') return false
         if (!existing) {
-          // New Google sign-up — mirror the same trial logic as the credentials register route
+          // New Google sign-up — no trial, subscription required
           const [deletedRecord] = await db
             .select()
             .from(deletedAccounts)
             .where(eq(deletedAccounts.email, user.email))
-          const previousTrialNoPayment = !!(deletedRecord?.trialUsed && !deletedRecord?.hadPaidSubscription)
-          const trialEndsAt = previousTrialNoPayment
-            ? null
-            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
           const [newUser] = await db.insert(users).values({
             email: user.email,
             displayName: user.name ?? '',
-            trialEndsAt,
+            trialEndsAt: null,
           }).returning({
             unsubscribeToken: users.unsubscribeToken,
             displayName: users.displayName,
@@ -93,11 +89,10 @@ export const authOptions: NextAuthOptions = {
           if (deletedRecord) {
             await db.delete(deletedAccounts).where(eq(deletedAccounts.email, user.email))
           }
-          if (trialEndsAt && newUser?.unsubscribeToken) {
+          if (newUser?.unsubscribeToken) {
             sendWelcomeEmail({
               to: user.email,
               displayName: newUser.displayName || null,
-              trialEndsAt,
               unsubscribeToken: newUser.unsubscribeToken,
             }).catch(console.error)
           }

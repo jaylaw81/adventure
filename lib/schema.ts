@@ -26,6 +26,8 @@ export const users = pgTable('users', {
   trialReminderSentAt: timestamp('trial_reminder_sent_at'),
   reEngagementSentAt: timestamp('re_engagement_sent_at'),
   lastLoginAt: timestamp('last_login_at'),
+  invitedByToken: text('invited_by_token'), // friend invite token this user signed up through
+  pendingFriendRewardWeeks: integer('pending_friend_reward_weeks').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
@@ -363,12 +365,32 @@ export const deletedAccounts = pgTable('deleted_accounts', {
 })
 
 // Tracks when each named cron job last ran successfully — used to enforce global cooldowns
+export const friendInvites = pgTable('friend_invites', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  inviterEmail: text('inviter_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  inviteeEmail: text('invitee_email').notNull(),
+  token: text('token').notNull().unique(),
+  // 'pending' → invitee not signed up yet
+  // 'signed_up' → invitee signed up but not subscribed
+  // 'rewarded' → invitee subscribed, inviter rewarded
+  status: text('status').notNull().default('pending'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  signedUpAt: timestamp('signed_up_at'),
+  subscribedAt: timestamp('subscribed_at'),
+  rewardedAt: timestamp('rewarded_at'),
+}, (t) => [
+  index('friend_invites_inviter_idx').on(t.inviterEmail),
+  uniqueIndex('friend_invites_token_idx').on(t.token),
+  index('friend_invites_invitee_idx').on(t.inviteeEmail),
+])
+
 export const cronLogs = pgTable('cron_logs', {
   jobName: text('job_name').primaryKey(),
   lastRunAt: timestamp('last_run_at').notNull(),
   lastRunResult: text('last_run_result'), // brief JSON summary of the last run
 })
 
+export type FriendInvite = typeof friendInvites.$inferSelect
 export type DeletedAccount = typeof deletedAccounts.$inferSelect
 export type CronLog = typeof cronLogs.$inferSelect
 export type EmailSegment = typeof emailSegments.$inferSelect

@@ -254,7 +254,7 @@ function LandingPage() {
                 Build branching adventures on a visual canvas. Add AI scene images. Share with readers who shape the outcome.
               </p>
               <p className="text-sm text-violet-300/70 mb-8 max-w-xl">
-                Free for 7 days — then pay what you want, starting at $2/week.
+                Pay what you want, starting at $2/week. Cancel anytime.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link
@@ -263,7 +263,7 @@ function LandingPage() {
                   className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-white shadow-lg transition-all hover:scale-105 hover:brightness-110"
                   style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
                 >
-                  Try free for 7 days
+                  Start creating
                   <ArrowRight size={16} />
                 </Link>
                 <Link
@@ -430,7 +430,7 @@ function LandingPage() {
             Join creators building branching adventures their readers love.
           </p>
           <p className="text-violet-300/60 text-sm mb-10">
-            7 days free — then pay what you want from $2/week. Cancel anytime.
+            Pay what you want from $2/week. Cancel anytime.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -439,7 +439,7 @@ function LandingPage() {
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-lg font-semibold text-white shadow-xl transition-all hover:scale-105 hover:brightness-110"
               style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
             >
-              Start your free trial
+              Start creating
               <ArrowRight size={18} />
             </Link>
             <Link

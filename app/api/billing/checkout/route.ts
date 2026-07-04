@@ -20,9 +20,15 @@ export async function POST(req: Request) {
 
     const email = session.user.email
     const [user] = await db
-      .select({ stripeCustomerId: users.stripeCustomerId })
+      .select({
+        stripeCustomerId: users.stripeCustomerId,
+        pendingFriendRewardWeeks: users.pendingFriendRewardWeeks,
+      })
       .from(users)
       .where(eq(users.email, email))
+
+    const pendingWeeks = user?.pendingFriendRewardWeeks ?? 0
+    const trialDays = pendingWeeks * 7
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -40,7 +46,11 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
-      metadata: { email },
+      ...(trialDays > 0 ? { subscription_data: { trial_period_days: trialDays } } : {}),
+      metadata: {
+        email,
+        pendingFriendRewardWeeks: String(pendingWeeks),
+      },
       success_url: `${SITE_URL}/?subscribed=1`,
       cancel_url: `${SITE_URL}/subscribe`,
     })

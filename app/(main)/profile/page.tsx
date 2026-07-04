@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Save, Trash2, AlertTriangle, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff, CreditCard, ExternalLink } from 'lucide-react'
+import { Save, Trash2, AlertTriangle, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff, CreditCard, ExternalLink, Gift, Send, CheckCircle, Clock } from 'lucide-react'
 import Link from 'next/link'
 import PageBanner from '@/components/shared/PageBanner'
 import { calcAge } from '@/lib/age'
@@ -48,6 +48,21 @@ function ProfileContent() {
   const [emailSubscribed, setEmailSubscribed] = useState(true)
   const [subSaving, setSubSaving] = useState(false)
 
+  // Invite state
+  interface FriendInvite {
+    id: string
+    inviteeEmail: string
+    status: string
+    createdAt: string
+    rewardedAt: string | null
+  }
+  const [invites, setInvites] = useState<FriendInvite[]>([])
+  const [inviteRemaining, setInviteRemaining] = useState(5)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [sendingInvite, setSendingInvite] = useState(false)
+  const [inviteError, setInviteError] = useState('')
+  const [inviteSuccess, setInviteSuccess] = useState('')
+
   // Billing state
   interface BillingStatus {
     subscriptionStatus: string | null
@@ -76,6 +91,14 @@ function ProfileContent() {
     fetch('/api/billing/status')
       .then(r => r.json())
       .then(data => { if (!data.error) setBilling(data) })
+    fetch('/api/invites')
+      .then(r => r.json())
+      .then(data => {
+        if (!data.error) {
+          setInvites(data.invites ?? [])
+          setInviteRemaining(data.remaining ?? 5)
+        }
+      })
   }, [])
 
   const handleSubscriptionToggle = async () => {
@@ -104,6 +127,32 @@ function ProfileContent() {
       if (data.url) window.location.href = data.url
     } finally {
       setPortalLoading(false)
+    }
+  }
+
+  const sendInvite = async () => {
+    if (!inviteEmail.trim()) return
+    setSendingInvite(true)
+    setInviteError('')
+    setInviteSuccess('')
+    try {
+      const res = await fetch('/api/invites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteeEmail: inviteEmail.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setInviteError(data.error ?? 'Failed to send invite')
+      } else {
+        setInviteSuccess(`Invite sent to ${inviteEmail.trim()}!`)
+        setInviteEmail('')
+        setInvites(prev => [...prev, data.invite])
+        setInviteRemaining(prev => Math.max(0, prev - 1))
+        setTimeout(() => setInviteSuccess(''), 4000)
+      }
+    } finally {
+      setSendingInvite(false)
     }
   }
 
@@ -390,6 +439,79 @@ function ProfileContent() {
                 Subscribe from $2/week
               </Link>
             </>
+          )}
+        </div>
+      )}
+
+      {/* Invite friends — hide during required setup */}
+      {!isRequired && !billing?.isOrgUser && (
+        <div id="invites" className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <Gift size={16} className="text-violet-500" />
+            <h2 className="text-base font-semibold text-gray-900">Invite Friends</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Invite friends to StoryQuestor. When they sign up and subscribe, you&apos;ll receive
+            a <strong>one-week credit</strong> applied to your next billing cycle — up to 5 invites total.
+          </p>
+
+          {/* Send form */}
+          {inviteRemaining > 0 ? (
+            <div className="flex gap-2 mb-4">
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={e => { setInviteEmail(e.target.value); setInviteError('') }}
+                placeholder="friend@example.com"
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+                onKeyDown={e => e.key === 'Enter' && sendInvite()}
+              />
+              <button
+                onClick={sendInvite}
+                disabled={sendingInvite || !inviteEmail.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 text-white rounded-lg text-sm font-medium transition-all hover:brightness-110 disabled:opacity-50 shrink-0"
+                style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
+              >
+                <Send size={13} />
+                {sendingInvite ? 'Sending…' : 'Send Invite'}
+              </button>
+            </div>
+          ) : (
+            <div className="mb-4 text-sm text-gray-500 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
+              You&apos;ve used all 5 invites.
+            </div>
+          )}
+
+          {inviteError && <p className="text-xs text-red-500 mb-3">{inviteError}</p>}
+          {inviteSuccess && <p className="text-xs text-green-600 mb-3">{inviteSuccess}</p>}
+
+          {/* Remaining count */}
+          <p className="text-xs text-gray-400 mb-3">
+            {inviteRemaining} invite{inviteRemaining !== 1 ? 's' : ''} remaining of 5
+          </p>
+
+          {/* Invite list */}
+          {invites.length > 0 && (
+            <div className="flex flex-col gap-2 border-t border-gray-100 pt-3">
+              {invites.map(invite => (
+                <div key={invite.id} className="flex items-center justify-between gap-2 text-sm">
+                  <span className="text-gray-700 truncate">{invite.inviteeEmail}</span>
+                  {invite.status === 'rewarded' ? (
+                    <span className="flex items-center gap-1 text-green-600 text-xs font-medium shrink-0">
+                      <CheckCircle size={12} />
+                      Subscribed — week credited
+                    </span>
+                  ) : invite.status === 'signed_up' ? (
+                    <span className="flex items-center gap-1 text-amber-600 text-xs font-medium shrink-0">
+                      <Clock size={12} />
+                      Signed up
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 text-xs shrink-0">Invite sent</span>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}

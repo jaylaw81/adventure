@@ -96,7 +96,7 @@ export default function PrivacyPage() {
 
         <Section title="Payments and Billing">
           <p>
-            StoryQuestor offers a pay-what-you-want subscription for creators. Creating and editing stories requires an active subscription (minimum $2/month). Reading and browsing stories is always free. New accounts receive a 7-day free trial with no payment required upfront.
+            StoryQuestor offers a pay-what-you-want subscription for creators. Creating and editing stories requires an active subscription (minimum $2/week). Reading and browsing stories is always free. A subscription is required to create an account and start creating stories.
           </p>
           <p>
             Subscription payments are processed securely by Stripe. We store your Stripe customer ID and subscription status to determine your access level. We do not store full card numbers or CVV codes.

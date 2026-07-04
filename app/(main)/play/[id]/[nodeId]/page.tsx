@@ -188,7 +188,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
           <div className="mb-4 flex items-center justify-between gap-4 rounded-xl border border-violet-100 bg-violet-50/70 px-4 py-3">
             <div>
               <p className="text-sm font-semibold text-violet-900">Write your own adventure</p>
-              <p className="text-xs text-violet-500 mt-0.5">Free 7-day trial · from $2/month after</p>
+              <p className="text-xs text-violet-500 mt-0.5">From $2/week · cancel anytime</p>
             </div>
             <Link
               href="/sign-up"

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Scroll, Sparkles, Zap, Heart } from 'lucide-react'
+import { Scroll, Sparkles, Zap, Heart, Gift } from 'lucide-react'
 
 const PRESETS = [
   { cents: 200, label: '$2' },
@@ -12,12 +12,12 @@ const PRESETS = [
 ]
 
 interface Props {
-  hasTrial: boolean
   trialEndsAt: string | null
   gracePeriodEndsAt: string | null
+  pendingFriendRewardWeeks: number
 }
 
-export default function SubscribeForm({ hasTrial, trialEndsAt, gracePeriodEndsAt }: Props) {
+export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingFriendRewardWeeks }: Props) {
   const router = useRouter()
   const [selected, setSelected] = useState<number>(500)
   const [custom, setCustom] = useState('')
@@ -92,6 +92,16 @@ export default function SubscribeForm({ hasTrial, trialEndsAt, gracePeriodEndsAt
         {deadlineLabel && (
           <div className="mb-5 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-sm text-center">
             Your free access ends on <strong>{deadlineLabel}</strong> — subscribe to keep creating.
+          </div>
+        )}
+
+        {/* Friend reward weeks notice */}
+        {pendingFriendRewardWeeks > 0 && (
+          <div className="mb-5 px-4 py-3 rounded-xl border border-green-500/30 bg-green-500/10 text-green-300 text-sm text-center flex items-center justify-center gap-2">
+            <Gift size={14} />
+            <span>
+              You have <strong>{pendingFriendRewardWeeks} free {pendingFriendRewardWeeks === 1 ? 'week' : 'weeks'}</strong> waiting — your friend{pendingFriendRewardWeeks > 1 ? 's' : ''} subscribed!
+            </span>
           </div>
         )}
 
@@ -181,8 +191,8 @@ export default function SubscribeForm({ hasTrial, trialEndsAt, gracePeriodEndsAt
           >
             {loading
               ? 'Redirecting…'
-              : hasTrial
-                ? `Start 7-day free trial · $${amountDollars}/wk after`
+              : pendingFriendRewardWeeks > 0
+                ? `Subscribe · First ${pendingFriendRewardWeeks} ${pendingFriendRewardWeeks === 1 ? 'week' : 'weeks'} free`
                 : `Subscribe for $${amountDollars}/week`}
           </button>
 

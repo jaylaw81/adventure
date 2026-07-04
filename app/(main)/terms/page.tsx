@@ -76,10 +76,10 @@ export default function TermsPage() {
 
         <Section title="Subscription and Billing">
           <p>
-            <strong>Free trial</strong> — new accounts include a 7-day free trial. No payment information is required during the trial. At the end of the trial, a subscription is required to continue creating and editing stories.
+            <strong>Subscription required</strong> — creating and editing stories requires an active subscription. A subscription is required at sign-up; reading stories is always free for anyone.
           </p>
           <p>
-            <strong>Pay what you want</strong> — StoryQuestor uses a pay-what-you-want subscription model. You choose the monthly amount you wish to pay, with a minimum of $2.00 USD per month. The amount you choose does not affect the features available to you.
+            <strong>Pay what you want</strong> — StoryQuestor uses a pay-what-you-want subscription model. You choose the weekly amount you wish to pay, with a minimum of $2.00 USD per week. The amount you choose does not affect the features available to you.
           </p>
           <p>
             <strong>What requires a subscription</strong> — creating new stories and editing existing stories requires an active subscription. Reading and browsing published stories is always free and does not require an account or subscription.

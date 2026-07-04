@@ -406,13 +406,28 @@ export async function sendConsentDeclined(opts: {
 export async function sendWelcomeEmail(opts: {
   to: string
   displayName: string | null
-  trialEndsAt: Date
   unsubscribeToken: string
+  trialEndsAt?: Date // legacy — only set for users who still have a grandfathered trial
 }) {
-  const { to, displayName, trialEndsAt, unsubscribeToken } = opts
+  const { to, displayName, unsubscribeToken, trialEndsAt } = opts
   const greeting = displayName ? escapeHtml(displayName) : 'there'
-  const trialDate = trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
   const unsubscribeUrl = `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+
+  const trialBox = trialEndsAt
+    ? `<div style="margin:24px 0;padding:18px 22px;background:#fffbeb;border-radius:12px;border:1px solid #fde68a;">
+        <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 4px;">Your 7-day free trial</p>
+        <p style="font-size:13px;color:#78350f;margin:0;">
+          Create and publish as many stories as you like. Your trial ends on
+          <strong>${trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</strong>.
+        </p>
+      </div>`
+    : `<div style="margin:24px 0;padding:18px 22px;background:#f5f3ff;border-radius:12px;border:1px solid #ddd6fe;">
+        <p style="font-size:13px;font-weight:700;color:#5b21b6;margin:0 0 4px;">Subscribe to start creating</p>
+        <p style="font-size:13px;color:#4c1d95;margin:0;">
+          Plans start at <strong>$2/week</strong>. Cancel anytime. Know someone who'd love it?
+          Invite them and earn a free week when they subscribe.
+        </p>
+      </div>`
 
   await resend.emails.send({
     from: FROM,
@@ -434,16 +449,11 @@ export async function sendWelcomeEmail(opts: {
 
           <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">Hi ${greeting},</p>
           <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
-            Welcome to StoryQuestor! You can now create branching choose-your-own-adventure stories
+            Welcome to StoryQuestor! You can create branching choose-your-own-adventure stories
             where every reader choice leads somewhere different.
           </p>
 
-          <div style="margin:24px 0;padding:18px 22px;background:#fffbeb;border-radius:12px;border:1px solid #fde68a;">
-            <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 4px;">Your 7-day free trial</p>
-            <p style="font-size:13px;color:#78350f;margin:0;">
-              Create and publish as many stories as you like. Your trial ends on <strong>${trialDate}</strong>.
-            </p>
-          </div>
+          ${trialBox}
 
           <p style="font-size:14px;font-weight:700;color:#1e0a3c;margin-bottom:8px;">Here's what you can do:</p>
           <ul style="font-size:14px;line-height:1.9;color:#374151;padding-left:20px;margin:0 0 24px;">
@@ -453,10 +463,10 @@ export async function sendWelcomeEmail(opts: {
             <li>Publish to the public explore page to reach new readers</li>
           </ul>
 
-          <a href="${CANONICAL_URL}"
+          <a href="${CANONICAL_URL}/subscribe"
             style="display:inline-block;padding:13px 30px;background:linear-gradient(135deg,#f59e0b,#f97316);
                    color:#1a1a1a;font-weight:700;font-size:15px;border-radius:10px;text-decoration:none;">
-            Start Creating
+            Get Started
           </a>
 
           <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-top:24px;">
@@ -470,6 +480,60 @@ export async function sendWelcomeEmail(opts: {
             &nbsp;&middot;&nbsp;
             <a href="${unsubscribeUrl}" style="color:#9ca3af;">Unsubscribe</a>
           </p>
+        </body>
+      </html>
+    `,
+  })
+}
+
+export async function sendFriendInviteEmail(opts: {
+  to: string
+  inviterName: string
+  token: string
+}) {
+  const { to, inviterName, token } = opts
+  const inviteUrl = `${CANONICAL_URL}/invite/${encodeURIComponent(token)}`
+  const safeInviter = escapeHtml(inviterName)
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: `${inviterName} invited you to StoryQuestor`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            <strong>${safeInviter}</strong> thinks you'd love StoryQuestor — a platform for creating
+            branching choose-your-own-adventure stories where every reader choice leads somewhere different.
+          </p>
+
+          <div style="margin:24px 0;padding:20px 24px;background:#f5f3ff;border-radius:12px;border:1px solid #ddd6fe;">
+            <p style="font-size:13px;font-weight:700;color:#5b21b6;margin:0 0 8px;">You're invited</p>
+            <p style="font-size:13px;color:#4c1d95;margin:0;">
+              Build visual node-based stories, add branching choices, images, and ambient sound —
+              then share them with the world. Plans start at just $2/week.
+            </p>
+          </div>
+
+          <a href="${inviteUrl}"
+            style="display:inline-block;padding:13px 30px;background:linear-gradient(135deg,#7c3aed,#6d28d9);
+                   color:#fff;font-weight:700;font-size:15px;border-radius:10px;text-decoration:none;">
+            Accept Invitation
+          </a>
+
+          <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-top:24px;">
+            This invitation was sent by ${safeInviter}. If you weren't expecting it, you can ignore this email.
+          </p>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 12px;" />
+          <p style="font-size:12px;color:#9ca3af;">&copy; ${new Date().getFullYear()} StoryQuestor &mdash; <a href="${CANONICAL_URL}" style="color:#9ca3af;">storyquestor.com</a></p>
         </body>
       </html>
     `,

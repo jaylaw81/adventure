@@ -2,6 +2,7 @@ import Header from '@/components/shared/Header'
 import Footer from '@/components/shared/Footer'
 import SubscriptionNoticeBanner from '@/components/shared/SubscriptionNoticeBanner'
 import ConsentGate from '@/components/org/ConsentGate'
+import InviteFeatureModal from '@/components/shared/InviteFeatureModal'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,6 +10,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <Header />
       <SubscriptionNoticeBanner />
       <ConsentGate />
+      <InviteFeatureModal />
       <main className="flex-1">{children}</main>
       <Footer />
     </div>

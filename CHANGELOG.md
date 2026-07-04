@@ -6,6 +6,13 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-07-04
+
+- Subscription required at signup: new accounts must subscribe (starting at $2/week) — no free trial for new signups; existing trial accounts continue unaffected.
+- Friend invite program: subscribers can send up to 5 invite links to friends; when an invited friend signs up and subscribes, the inviter earns a one-week credit applied to their next billing cycle (or free trial weeks banked for future subscribers).
+- Invite page: a dedicated landing page at `/invite/[token]` explains StoryQuestor and lets the invitee create an account or sign in directly via the invite link.
+- Post-login invite prompt: authenticated users see a one-time modal introducing the invite program and linking directly to their invite section on the profile page.
+
 ## 2026-06-19
 
 - Org consent form: org admins can now create a custom consent form (title and body text) that members must accept before accessing the platform; the form appears during invite acceptance for new members and can be re-enabled per member from the Members page, blocking access until they agree.
