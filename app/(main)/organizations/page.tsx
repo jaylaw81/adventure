@@ -74,16 +74,8 @@ const steps = [
   },
 ]
 
-const freeFeatures = [
-  'Visual branching story editor',
-  'Unlimited personal stories',
-  'Public story sharing',
-  'Explore other stories',
-  'Reader comments & ratings',
-]
-
 const orgFeatures = [
-  'Everything in Free',
+  'Visual branching story editor for all members',
   'Organization admin dashboard',
   'Student invitation & management',
   'Story review & approval workflow',
@@ -205,37 +197,11 @@ export default function OrganizationsPage() {
           <div className="text-center mb-14">
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Simple, transparent pricing</h2>
             <p className="text-gray-400 max-w-md mx-auto">
-              StoryQuestor stays free for individuals. Organizations get a dedicated tier built for education.
+              Organizations get a dedicated tier built for education — separate from individual subscriptions.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            {/* Free tier */}
-            <div
-              className="rounded-2xl p-7 border border-white/10 flex flex-col"
-              style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))' }}
-            >
-              <div className="mb-6">
-                <p className="text-sm font-medium text-gray-400 mb-1">Free</p>
-                <div className="flex items-end gap-1">
-                  <span className="text-4xl font-black text-white">$0</span>
-                  <span className="text-gray-500 text-sm pb-1">/ month</span>
-                </div>
-                <p className="text-gray-500 text-sm mt-2">Personal storytelling, forever free.</p>
-              </div>
-              <ul className="flex flex-col gap-2.5 mb-8 flex-1">
-                {freeFeatures.map(f => (
-                  <li key={f} className="flex items-center gap-2.5 text-sm text-gray-300">
-                    <CheckCircle2 size={15} className="text-gray-500 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <div className="px-4 py-3 rounded-xl text-center text-sm font-semibold text-gray-400 border border-white/10">
-                Your current plan
-              </div>
-            </div>
-
+          <div className="max-w-sm mx-auto">
             {/* Organization tier */}
             <div
               className="rounded-2xl p-7 border border-amber-500/30 flex flex-col relative overflow-hidden"
