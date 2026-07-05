@@ -31,6 +31,58 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Subscribe page delight ── */
+@keyframes forge-breathe {
+  0%, 100% { opacity: 0.08; transform: scale(1); }
+  50%       { opacity: 0.2;  transform: scale(1.12); }
+}
+
+@keyframes icon-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(168,139,250,0.45), 0 0 18px rgba(245,158,11,0.2); }
+  50%       { box-shadow: 0 0 0 12px rgba(168,139,250,0),   0 0 32px rgba(245,158,11,0.38); }
+}
+
+@keyframes benefit-enter {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmer-sweep {
+  0%   { transform: translateX(-220%) skewX(-18deg); }
+  100% { transform: translateX(320%)  skewX(-18deg); }
+}
+
+.subscribe-cta { position: relative; overflow: hidden; transition: transform 120ms, filter 120ms; }
+.subscribe-cta:hover  { transform: translateY(-1px); filter: brightness(1.07); }
+.subscribe-cta:active { transform: translateY(1px);  filter: brightness(0.96); }
+.subscribe-cta .shimmer-strip {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent 10%, rgba(255,255,255,0.22) 50%, transparent 90%);
+  transform: translateX(-220%) skewX(-18deg);
+}
+.subscribe-cta:hover .shimmer-strip {
+  animation: shimmer-sweep 0.65s cubic-bezier(0.25,1,0.5,1) forwards;
+}
+
+.amount-btn { transition: transform 120ms, box-shadow 120ms, border-color 120ms, background-color 120ms; }
+.amount-btn:hover:not(.amount-btn-selected) { transform: translateY(-1px); }
+.amount-btn:active { transform: translateY(0) scale(0.96); }
+.amount-btn-selected {
+  border-color: #f59e0b !important;
+  background-color: #fffbeb !important;
+  color: #92400e !important;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subscribe-cta .shimmer-strip { display: none; }
+  .subscribe-cta, .subscribe-cta:hover, .subscribe-cta:active { transform: none !important; }
+  .amount-btn:hover, .amount-btn:active { transform: none !important; }
+  [data-forge-glow] { animation: none !important; }
+  [data-benefit] { animation: none !important; opacity: 1 !important; }
+}
+/* ── end subscribe page delight ── */
+
 @keyframes sparkle-float {
   0%, 100% { opacity: 0.3; transform: translateY(0) scale(1); }
   50%       { opacity: 0.8; transform: translateY(-6px) scale(1.2); }

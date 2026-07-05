@@ -7,12 +7,19 @@ import { users } from '@/lib/schema'
 import { isOrgUser } from '@/lib/subscription'
 import SubscribeForm from './SubscribeForm'
 
-export default async function SubscribePage() {
+interface Props {
+  searchParams: Promise<Record<string, string>>
+}
+
+export default async function SubscribePage({ searchParams }: Props) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) redirect('/sign-in?next=/subscribe')
 
   const orgUser = await isOrgUser(session.user.email)
   if (orgUser) redirect('/profile')
+
+  const params = await searchParams
+  const onboarding = params.onboarding === '1'
 
   const [user] = await db
     .select({
@@ -25,7 +32,7 @@ export default async function SubscribePage() {
     .where(eq(users.email, session.user.email))
 
   if (user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trialing') {
-    redirect('/profile')
+    redirect(onboarding ? '/' : '/profile')
   }
 
   return (
@@ -33,6 +40,7 @@ export default async function SubscribePage() {
       trialEndsAt={user?.trialEndsAt?.toISOString() ?? null}
       gracePeriodEndsAt={user?.gracePeriodEndsAt?.toISOString() ?? null}
       pendingFriendRewardWeeks={user?.pendingFriendRewardWeeks ?? 0}
+      onboarding={onboarding}
     />
   )
 }

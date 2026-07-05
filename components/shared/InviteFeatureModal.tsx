@@ -13,15 +13,20 @@ export default function InviteFeatureModal() {
   useEffect(() => {
     if (status !== 'authenticated' || !session?.user?.email) return
     const tier = session.user.tier
-    // Don't show to org users or admins
     if (tier === 'organization' || session.user.isAdmin) return
 
     const key = `sq_invite_intro_v1_${session.user.email}`
     if (localStorage.getItem(key)) return
 
-    // Delay so the page settles first
-    const timer = setTimeout(() => setShow(true), 1500)
-    return () => clearTimeout(timer)
+    // Only show to active subscribers — not relevant until they're paying
+    fetch('/api/billing/status')
+      .then(r => r.json())
+      .then(data => {
+        if (data.subscriptionStatus === 'active' || data.subscriptionStatus === 'trialing') {
+          setTimeout(() => setShow(true), 1500)
+        }
+      })
+      .catch(() => {})
   }, [status, session?.user?.email, session?.user?.tier, session?.user?.isAdmin])
 
   const dismiss = () => {

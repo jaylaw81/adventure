@@ -4,9 +4,10 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Save, Trash2, AlertTriangle, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff, CreditCard, ExternalLink, Gift, Send, CheckCircle, Clock } from 'lucide-react'
+import { Save, Trash2, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff, CreditCard, ExternalLink, Gift, Send, CheckCircle, Clock } from 'lucide-react'
 import Link from 'next/link'
 import PageBanner from '@/components/shared/PageBanner'
+import OnboardingProgress from '@/components/shared/OnboardingProgress'
 import { calcAge } from '@/lib/age'
 import { analytics } from '@/lib/analytics'
 
@@ -174,10 +175,10 @@ function ProfileContent() {
       await update({ displayName: displayName.trim(), birthDate })
       setSaveMsg('Saved!')
       setTimeout(() => setSaveMsg(''), 3000)
-      // If this was the required setup flow, hard-navigate home so the
+      // If this was the required setup flow, hard-navigate to subscribe so the
       // freshly-set JWT cookie is sent in the next request and the middleware
       // sees the updated birthDate (SPA push can race with cookie propagation).
-      if (isRequired) window.location.replace('/')
+      if (isRequired) window.location.replace('/subscribe?onboarding=1')
     } catch {
       setSaveMsg('Failed to save')
     } finally {
@@ -210,8 +211,8 @@ function ProfileContent() {
   return (
     <>
       <PageBanner
-        title={isRequired ? 'Complete Your Profile' : 'Profile Settings'}
-        subtitle={isRequired ? 'Finish setup to start creating stories' : 'Manage your account details'}
+        title={isRequired ? 'Set Up Your Account' : 'Profile Settings'}
+        subtitle={isRequired ? 'Step 2 of 3 — tell us a bit about yourself' : 'Manage your account details'}
         action={
           !isRequired && (
             <Link href="/" className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
@@ -224,16 +225,10 @@ function ProfileContent() {
 
     <div className="max-w-lg mx-auto px-6 py-10">
 
-      {/* Required setup notice */}
+      {/* Onboarding step progress */}
       {isRequired && (
-        <div className="mb-6 p-4 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-3">
-          <AlertTriangle size={18} className="text-violet-500 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-violet-800">Complete your profile to continue</p>
-            <p className="text-xs text-violet-700 mt-0.5">
-              Your date of birth is required so we can ensure age-appropriate content. You must be at least 13 years old to use StoryQuestor.
-            </p>
-          </div>
+        <div className="mb-8">
+          <OnboardingProgress step={2} theme="light" />
         </div>
       )}
 

@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-07-05
+
+- Onboarding flow: after completing their profile, new users are guided directly to subscription setup via a 3-step progress indicator (Account → Profile → Subscribe), making the activation sequence feel like a single coherent flow instead of disconnected pages.
+
 ## 2026-07-04
 
 - Subscription required at signup: new accounts must subscribe (starting at $2/week) — no free trial for new signups; existing trial accounts continue unaffected.
