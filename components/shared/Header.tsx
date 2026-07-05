@@ -125,7 +125,9 @@ export default function Header() {
               <NavLink href="/how-to">Guide</NavLink>
             </>
           )}
-          {!session && <NavLink href="/demo">Try Demo</NavLink>}
+          {(!session || (session.user.tier !== 'organization' && session.user.subscriptionStatus !== 'active' && session.user.subscriptionStatus !== 'trialing')) && (
+            <NavLink href="/demo">Try Demo</NavLink>
+          )}
           <NavLink href="/organizations">For Schools</NavLink>
           {(!session || session.user.profileComplete) && (
             <NavLink href="/choose-your-own-adventure">CYOA History</NavLink>
@@ -340,7 +342,7 @@ export default function Header() {
               </Link>
             </>
           )}
-          {!session && (
+          {(!session || (session.user.tier !== 'organization' && session.user.subscriptionStatus !== 'active' && session.user.subscriptionStatus !== 'trialing')) && (
             <Link href="/demo" onClick={() => setMobileOpen(false)}
               className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/demo' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
               Try Demo

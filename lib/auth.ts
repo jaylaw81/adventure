@@ -121,6 +121,7 @@ export const authOptions: NextAuthOptions = {
               token.birthDate = user.birthDate ?? undefined
               token.isAdult = isAdult(user.birthDate)
               token.tier = await resolveEffectiveTier(token.email as string, user.tier)
+              token.subscriptionStatus = user.subscriptionStatus ?? null
             }
           } catch {}
         }
@@ -134,6 +135,7 @@ export const authOptions: NextAuthOptions = {
             token.birthDate = user.birthDate ?? undefined
             token.isAdult = isAdult(user.birthDate)
             token.tier = await resolveEffectiveTier(token.email as string, user.tier)
+            token.subscriptionStatus = user.subscriptionStatus ?? null
           }
         } catch {
           token.displayName = token.displayName || token.name || ''
@@ -150,6 +152,7 @@ export const authOptions: NextAuthOptions = {
         session.user.profileComplete = !!token.birthDate
         session.user.isAdmin = token.isAdmin ?? false
         session.user.tier = token.tier ?? 'free'
+        session.user.subscriptionStatus = token.subscriptionStatus ?? null
       }
       return session
     },

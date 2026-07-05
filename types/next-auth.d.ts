@@ -11,6 +11,7 @@ declare module 'next-auth' {
       profileComplete: boolean
       isAdmin: boolean
       tier: string
+      subscriptionStatus: string | null
     }
   }
 }
@@ -22,5 +23,6 @@ declare module 'next-auth/jwt' {
     isAdult?: boolean
     isAdmin?: boolean
     tier?: string
+    subscriptionStatus?: string | null
   }
 }
