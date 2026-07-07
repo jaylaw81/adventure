@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { BookOpen, Sparkles, Zap, Heart, Gift, ArrowRight, Lock } from 'lucide-react'
 import OnboardingProgress from '@/components/shared/OnboardingProgress'
 
@@ -297,6 +298,14 @@ export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingF
               <Lock size={10} className="shrink-0" />
               Secure checkout via Stripe · Cancel anytime from your profile
             </div>
+
+            {/* Demo escape hatch */}
+            <p className="text-center text-xs text-gray-400">
+              Want to try the editor first?{' '}
+              <Link href="/demo" className="text-violet-500 hover:text-violet-700 underline underline-offset-2 font-medium transition-colors">
+                Open the free demo
+              </Link>
+            </p>
 
           </div>
         </div>

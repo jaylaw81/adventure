@@ -72,10 +72,16 @@ export default function SubscriptionNoticeBanner() {
 
       <div className="flex items-center gap-2 shrink-0">
         <Link
+          href="/demo"
+          className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-medium transition-colors border border-white/20 whitespace-nowrap"
+        >
+          Try the editor
+        </Link>
+        <Link
           href="/subscribe"
           className="px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors border border-white/30 whitespace-nowrap"
         >
-          Subscribe from $2/mo
+          Subscribe from $2/week
         </Link>
         <button
           onClick={dismiss}
