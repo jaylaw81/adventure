@@ -37,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" style={{ colorScheme: 'light' }}>
       <head>
+        <meta property="fb:app_id" content="859715873260802" />
         {/* Google Consent Mode v2 defaults — must run before any GA/Ads scripts */}
         <script dangerouslySetInnerHTML={{ __html: `
 (function(){
