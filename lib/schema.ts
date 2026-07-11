@@ -390,6 +390,28 @@ export const cronLogs = pgTable('cron_logs', {
   lastRunResult: text('last_run_result'), // brief JSON summary of the last run
 })
 
+export const siteSettings = pgTable('site_settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export const priceReductionOffers = pgTable('price_reduction_offers', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userEmail: text('user_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  currentAmountCents: integer('current_amount_cents').notNull(),
+  offeredAmountCents: integer('offered_amount_cents').notNull(),
+  token: text('token').notNull().unique(),
+  status: text('status').notNull().default('pending'), // 'pending' | 'accepted' | 'expired'
+  offeredAt: timestamp('offered_at').defaultNow().notNull(),
+  acceptedAt: timestamp('accepted_at'),
+  expiresAt: timestamp('expires_at').notNull(),
+}, (t) => [
+  index('price_offers_user_email_idx').on(t.userEmail),
+])
+
+export type SiteSetting = typeof siteSettings.$inferSelect
+export type PriceReductionOffer = typeof priceReductionOffers.$inferSelect
 export type FriendInvite = typeof friendInvites.$inferSelect
 export type DeletedAccount = typeof deletedAccounts.$inferSelect
 export type CronLog = typeof cronLogs.$inferSelect

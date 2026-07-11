@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import { isOrgUser } from '@/lib/subscription'
+import { getPricingConfig } from '@/lib/pricing'
 import SubscribeForm from './SubscribeForm'
 
 interface Props {
@@ -21,15 +22,18 @@ export default async function SubscribePage({ searchParams }: Props) {
   const params = await searchParams
   const onboarding = params.onboarding === '1'
 
-  const [user] = await db
-    .select({
-      subscriptionStatus: users.subscriptionStatus,
-      trialEndsAt: users.trialEndsAt,
-      gracePeriodEndsAt: users.gracePeriodEndsAt,
-      pendingFriendRewardWeeks: users.pendingFriendRewardWeeks,
-    })
-    .from(users)
-    .where(eq(users.email, session.user.email))
+  const [[user], pricing] = await Promise.all([
+    db
+      .select({
+        subscriptionStatus: users.subscriptionStatus,
+        trialEndsAt: users.trialEndsAt,
+        gracePeriodEndsAt: users.gracePeriodEndsAt,
+        pendingFriendRewardWeeks: users.pendingFriendRewardWeeks,
+      })
+      .from(users)
+      .where(eq(users.email, session.user.email)),
+    getPricingConfig(),
+  ])
 
   if (user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trialing') {
     redirect(onboarding ? '/' : '/profile')
@@ -41,6 +45,7 @@ export default async function SubscribePage({ searchParams }: Props) {
       gracePeriodEndsAt={user?.gracePeriodEndsAt?.toISOString() ?? null}
       pendingFriendRewardWeeks={user?.pendingFriendRewardWeeks ?? 0}
       onboarding={onboarding}
+      pricing={pricing}
     />
   )
 }

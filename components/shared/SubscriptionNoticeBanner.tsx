@@ -12,6 +12,8 @@ interface BillingStatus {
   trialEndsAt: string | null
   gracePeriodEndsAt: string | null
   canCreate: boolean
+  priceCents?: number
+  defaultInterval?: string
 }
 
 function daysRemaining(dateStr: string): number {
@@ -53,6 +55,10 @@ export default function SubscriptionNoticeBanner() {
 
   const deadline = billing.trialEndsAt ?? billing.gracePeriodEndsAt
   const days = deadline ? daysRemaining(deadline) : null
+  const minCents = billing.priceCents ?? 200
+  const minInterval = billing.defaultInterval ?? 'week'
+  const d = minCents / 100
+  const minPriceText = `${Number.isInteger(d) ? `$${d}` : `$${d.toFixed(2)}`}/${minInterval}`
 
   return (
     <div
@@ -81,7 +87,7 @@ export default function SubscriptionNoticeBanner() {
           href="/subscribe"
           className="px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors border border-white/30 whitespace-nowrap"
         >
-          Subscribe from $2/week
+          Subscribe from {minPriceText}
         </Link>
         <button
           onClick={dismiss}

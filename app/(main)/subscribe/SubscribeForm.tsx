@@ -6,13 +6,8 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { BookOpen, Sparkles, Zap, Heart, Gift, ArrowRight, Lock } from 'lucide-react'
 import OnboardingProgress from '@/components/shared/OnboardingProgress'
-
-const PRESETS = [
-  { cents: 200, label: '$2' },
-  { cents: 500, label: '$5', badge: 'Popular' },
-  { cents: 1000, label: '$10' },
-  { cents: 2000, label: '$20' },
-]
+import { formatCents, getDefaultInterval, getEnabledIntervals, intervalLabel } from '@/lib/pricing'
+import type { PricingConfig, IntervalConfig } from '@/lib/pricing'
 
 const BENEFITS = [
   { icon: Sparkles, label: 'Create unlimited branching stories', iconColor: 'text-amber-500', iconBg: 'bg-amber-50' },
@@ -20,28 +15,26 @@ const BENEFITS = [
   { icon: Heart,    label: 'Support an indie creative platform',     iconColor: 'text-teal-500',  iconBg: 'bg-teal-50' },
 ]
 
+const DEFAULT_IC: IntervalConfig = { interval: 'week', enabled: true, priceCents: 200 }
+
 interface Props {
   trialEndsAt: string | null
   gracePeriodEndsAt: string | null
   pendingFriendRewardWeeks: number
   onboarding?: boolean
+  pricing?: PricingConfig
 }
 
-export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingFriendRewardWeeks, onboarding }: Props) {
+export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingFriendRewardWeeks, onboarding, pricing }: Props) {
   const router = useRouter()
   const { data: session } = useSession()
-  const [selected, setSelected] = useState<number>(500)
-  const [custom, setCustom] = useState('')
-  const [useCustom, setUseCustom] = useState(false)
+
+  const enabledIntervals = pricing ? getEnabledIntervals(pricing) : [DEFAULT_IC]
+  const defaultIC = pricing ? getDefaultInterval(pricing) : DEFAULT_IC
+
+  const [activeInterval, setActiveInterval] = useState<IntervalConfig>(defaultIC)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
-  const amountCents = useCustom
-    ? Math.round(parseFloat(custom || '0') * 100)
-    : selected
-
-  const amountDollars = (amountCents / 100).toFixed(2)
-  const valid = amountCents >= 200
 
   const deadlineDate = trialEndsAt
     ? new Date(trialEndsAt)
@@ -57,15 +50,16 @@ export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingF
     || session?.user?.name
     || ''
 
+  const priceLabel = `${formatCents(activeInterval.priceCents)}/${activeInterval.interval}`
+
   async function handleSubscribe() {
-    if (!valid) { setError('Minimum amount is $2.00'); return }
     setLoading(true)
     setError('')
     try {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amountCents }),
+        body: JSON.stringify({ interval: activeInterval.interval }),
       })
       const data = await res.json()
       if (!res.ok || !data.url) {
@@ -120,7 +114,6 @@ export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingF
 
         {/* Header */}
         <div className="text-center mb-8">
-          {/* Icon orb */}
           <div className="relative inline-flex mb-5">
             <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center"
@@ -154,7 +147,7 @@ export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingF
                 Unlock your story editor
               </h1>
               <p className="text-violet-300/90 text-sm leading-relaxed max-w-xs mx-auto">
-                Build branching interactive stories on a visual canvas. Pay what feels right — everything unlocks from $2/week.
+                Build branching interactive stories on a visual canvas. Subscribe from {formatCents(defaultIC.priceCents)}/{defaultIC.interval}.
               </p>
             </>
           )}
@@ -182,7 +175,7 @@ export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingF
           className="rounded-2xl shadow-2xl overflow-hidden"
           style={{ background: '#ffffff' }}
         >
-          {/* Amber accent top stripe — earned by being the acquisition card */}
+          {/* Amber accent top stripe */}
           <div
             className="h-1 w-full"
             style={{ background: 'linear-gradient(90deg, #f59e0b, #f97316)' }}
@@ -209,67 +202,47 @@ export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingF
 
             <div className="border-t border-gray-100" />
 
-            {/* Amount picker */}
-            <div>
-              <p className="text-sm font-semibold text-gray-800 mb-3">Choose your weekly amount</p>
-              <div className="grid grid-cols-4 gap-2 mb-3">
-                {PRESETS.map(({ cents, label, badge }) => {
-                  const isSelected = !useCustom && selected === cents
-                  return (
+            {/* Billing interval selector */}
+            {enabledIntervals.length > 1 && (
+              <div>
+                <p className="text-sm font-semibold text-gray-800 mb-2">Billing frequency</p>
+                <div className="flex gap-2">
+                  {enabledIntervals.map(ic => (
                     <button
-                      key={cents}
-                      onClick={() => { setSelected(cents); setUseCustom(false); setError('') }}
-                      className={`amount-btn relative py-2.5 rounded-xl border-2 text-sm font-bold ${
-                        isSelected ? 'amount-btn-selected' : 'border-gray-200 text-gray-700 hover:border-amber-300'
+                      key={ic.interval}
+                      onClick={() => { setActiveInterval(ic); setError('') }}
+                      className={`flex-1 py-3 px-2 rounded-xl border-2 transition-colors text-center ${
+                        activeInterval.interval === ic.interval
+                          ? 'border-amber-500 bg-amber-50'
+                          : 'border-gray-200 hover:border-amber-300'
                       }`}
                     >
-                      {badge && (
-                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-wide bg-amber-500 text-white px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                          {badge}
-                        </span>
-                      )}
-                      {label}
+                      <div className={`text-sm font-bold ${activeInterval.interval === ic.interval ? 'text-amber-800' : 'text-gray-700'}`}>
+                        {intervalLabel(ic.interval)}
+                      </div>
+                      <div className={`text-xs mt-0.5 font-semibold ${activeInterval.interval === ic.interval ? 'text-amber-600' : 'text-gray-500'}`}>
+                        {formatCents(ic.priceCents)}/{ic.interval}
+                      </div>
                     </button>
-                  )
-                })}
-              </div>
-
-              {/* Custom amount */}
-              <button
-                onClick={() => { setUseCustom(true); setError('') }}
-                className={`amount-btn w-full text-sm py-2 rounded-xl border-2 font-medium ${
-                  useCustom
-                    ? 'border-amber-500 bg-amber-50 text-amber-800'
-                    : 'border-dashed border-gray-300 text-gray-500 hover:border-amber-300 hover:text-amber-700'
-                }`}
-              >
-                {useCustom ? 'Custom amount' : '+ Enter custom amount'}
-              </button>
-
-              {useCustom && (
-                <div className="relative mt-2">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-sm">$</span>
-                  <input
-                    type="number"
-                    min="2"
-                    step="1"
-                    value={custom}
-                    onChange={e => { setCustom(e.target.value); setError('') }}
-                    placeholder="2"
-                    autoFocus
-                    className="w-full pl-7 pr-12 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">/week</span>
+                  ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Single interval — just show the price */}
+            {enabledIntervals.length === 1 && (
+              <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                <span className="text-sm font-semibold text-gray-700">{intervalLabel(activeInterval.interval)} subscription</span>
+                <span className="text-base font-bold text-amber-700">{priceLabel}</span>
+              </div>
+            )}
 
             {error && <p className="text-xs text-red-500 -mt-2">{error}</p>}
 
             {/* CTA */}
             <button
               onClick={handleSubscribe}
-              disabled={loading || !valid}
+              disabled={loading}
               className="subscribe-cta w-full py-3.5 rounded-xl text-gray-900 font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
             >
@@ -282,12 +255,12 @@ export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingF
                 </span>
               ) : onboarding ? (
                 <>
-                  <span className="relative z-10">Activate · ${amountDollars}/week</span>
+                  <span className="relative z-10">Activate · {priceLabel}</span>
                   <ArrowRight size={15} className="relative z-10 shrink-0" />
                 </>
               ) : (
                 <>
-                  <span className="relative z-10">Start creating · ${amountDollars}/week</span>
+                  <span className="relative z-10">Start creating · {priceLabel}</span>
                   <ArrowRight size={15} className="relative z-10 shrink-0" />
                 </>
               )}

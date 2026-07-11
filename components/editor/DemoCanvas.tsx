@@ -335,6 +335,7 @@ function DemoCanvasInner() {
     })
     setRfEdges(eds => addEdge(toRFEdge(choice, handleLabelChange, handleEdgeDelete), eds))
     setPendingConnection(null)
+    document.dispatchEvent(new CustomEvent('sq:demo-interact'))
   }, [pendingConnection, choiceLabelDraft, handleLabelChange, handleEdgeDelete])
 
   const onEdgesDelete: OnEdgesDelete = useCallback((deletedEdges) => {
@@ -382,6 +383,7 @@ function DemoCanvasInner() {
     setDbNodes(prev => [...prev, node])
     setRfNodes(prev => [...prev, toRFNode(node)])
     setSelectedNodeId(node.id)
+    document.dispatchEvent(new CustomEvent('sq:demo-interact'))
   }
 
   const handleNodeUpdate = (updated: Node) => {

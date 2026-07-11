@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { getPricingConfig, getMinPriceCopy } from '@/lib/pricing'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -413,6 +414,9 @@ export async function sendWelcomeEmail(opts: {
   const greeting = displayName ? escapeHtml(displayName) : 'there'
   const unsubscribeUrl = `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
 
+  const pricing = await getPricingConfig()
+  const minPriceText = getMinPriceCopy(pricing)
+
   const trialBox = trialEndsAt
     ? `<div style="margin:24px 0;padding:18px 22px;background:#fffbeb;border-radius:12px;border:1px solid #fde68a;">
         <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 4px;">Your 7-day free trial</p>
@@ -424,7 +428,7 @@ export async function sendWelcomeEmail(opts: {
     : `<div style="margin:24px 0;padding:18px 22px;background:#f5f3ff;border-radius:12px;border:1px solid #ddd6fe;">
         <p style="font-size:13px;font-weight:700;color:#5b21b6;margin:0 0 4px;">Subscribe to start creating</p>
         <p style="font-size:13px;color:#4c1d95;margin:0;">
-          Plans start at <strong>$2/week</strong>. Cancel anytime. Know someone who'd love it?
+          Plans start at <strong>${minPriceText}/week</strong>. Cancel anytime. Know someone who'd love it?
           Invite them and earn a free week when they subscribe.
         </p>
       </div>`
@@ -494,6 +498,8 @@ export async function sendFriendInviteEmail(opts: {
   const { to, inviterName, token } = opts
   const inviteUrl = `${CANONICAL_URL}/invite/${encodeURIComponent(token)}`
   const safeInviter = escapeHtml(inviterName)
+  const invitePricing = await getPricingConfig()
+  const inviteMinPrice = getMinPriceCopy(invitePricing)
 
   await resend.emails.send({
     from: FROM,
@@ -518,7 +524,7 @@ export async function sendFriendInviteEmail(opts: {
             <p style="font-size:13px;font-weight:700;color:#5b21b6;margin:0 0 8px;">You're invited</p>
             <p style="font-size:13px;color:#4c1d95;margin:0;">
               Build visual node-based stories, add branching choices, images, and ambient sound —
-              then share them with the world. Plans start at just $2/week.
+              then share them with the world. Plans start at just ${inviteMinPrice}/week.
             </p>
           </div>
 
@@ -549,6 +555,8 @@ export async function sendTrialExpiryReminder(opts: {
   const { to, displayName, trialEndsAt, unsubscribeToken } = opts
   const greeting = displayName ? escapeHtml(displayName) : 'there'
   const daysLeft = Math.max(1, Math.ceil((trialEndsAt.getTime() - Date.now()) / 86_400_000))
+  const trialPricing = await getPricingConfig()
+  const trialMinPrice = getMinPriceCopy(trialPricing)
   const trialDate = trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
   const unsubscribeUrl = `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
 
@@ -580,7 +588,7 @@ export async function sendTrialExpiryReminder(opts: {
           <div style="margin:24px 0;padding:18px 22px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;">
             <p style="font-size:13px;font-weight:700;color:#991b1b;margin:0 0 4px;">Don't lose your work</p>
             <p style="font-size:13px;color:#7f1d1d;margin:0;">
-              Subscribe now to keep full access. Plans start at $2/week — cancel any time.
+              Subscribe now to keep full access. Plans start at ${trialMinPrice}/week — cancel any time.
             </p>
           </div>
 
@@ -722,4 +730,115 @@ export async function sendPasswordResetEmail(email: string, token: string) {
       </html>
     `,
   })
+}
+
+export async function sendPriceReductionOffer(opts: {
+  to: string
+  displayName: string | null
+  currentAmountCents: number
+  offeredAmountCents: number
+  acceptUrl: string
+  unsubscribeToken: string
+}) {
+  const { to, displayName, currentAmountCents, offeredAmountCents, acceptUrl, unsubscribeToken } = opts
+  const safeName = escapeHtml(displayName || 'there')
+  const currentPrice = formatCents(currentAmountCents)
+  const newPrice = formatCents(offeredAmountCents)
+  const unsubUrl = `${CANONICAL_URL}/unsubscribe?token=${unsubscribeToken}`
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Great news — you qualify for our lower ${newPrice}/week subscription rate`,
+    headers: {
+      'List-Unsubscribe': `<${unsubUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                     background: #f9fafb; margin: 0; padding: 0;">
+          <div style="max-width: 560px; margin: 32px auto; background: white;
+                      border-radius: 16px; overflow: hidden;
+                      box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+
+            <!-- Header bar -->
+            <div style="height: 4px; background: linear-gradient(90deg, #f59e0b, #f97316);"></div>
+
+            <div style="padding: 36px 40px;">
+              <!-- Icon + heading -->
+              <div style="text-align: center; margin-bottom: 28px;">
+                <div style="display: inline-block; width: 56px; height: 56px; border-radius: 16px;
+                            background: linear-gradient(135deg, #7c3aed, #f59e0b);
+                            line-height: 56px; font-size: 26px; margin-bottom: 16px;">📖</div>
+                <h1 style="font-size: 22px; font-weight: 800; color: #1e0a3c;
+                            margin: 0 0 8px; letter-spacing: -0.02em;">
+                  We've lowered our prices!
+                </h1>
+                <p style="font-size: 15px; color: #6b7280; margin: 0;">
+                  Hi ${safeName} — as a valued subscriber, we're offering you our new lower rate.
+                </p>
+              </div>
+
+              <!-- Price comparison card -->
+              <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;
+                          padding: 24px; margin: 24px 0; display: flex; align-items: center;
+                          justify-content: space-between;">
+                <div style="text-align: center; flex: 1;">
+                  <p style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase;
+                            letter-spacing: 0.08em; margin: 0 0 6px;">Current plan</p>
+                  <p style="font-size: 28px; font-weight: 800; color: #64748b;
+                            margin: 0; letter-spacing: -0.02em;">${currentPrice}</p>
+                  <p style="font-size: 12px; color: #94a3b8; margin: 2px 0 0;">/week</p>
+                </div>
+                <div style="font-size: 20px; color: #a3aec0; padding: 0 16px;">→</div>
+                <div style="text-align: center; flex: 1;
+                            background: white; border-radius: 10px;
+                            border: 2px solid #f59e0b; padding: 12px 8px;">
+                  <p style="font-size: 11px; font-weight: 700; color: #d97706; text-transform: uppercase;
+                            letter-spacing: 0.08em; margin: 0 0 6px;">New offer</p>
+                  <p style="font-size: 28px; font-weight: 800; color: #92400e;
+                            margin: 0; letter-spacing: -0.02em;">${newPrice}</p>
+                  <p style="font-size: 12px; color: #b45309; margin: 2px 0 0;">/week</p>
+                </div>
+              </div>
+
+              <p style="font-size: 14px; color: #4b5563; line-height: 1.6; margin: 0 0 24px;">
+                We've updated our subscription pricing and want to pass the savings on to you.
+                Click below to switch to the new lower rate — your access stays exactly the same.
+              </p>
+
+              <!-- CTA -->
+              <div style="text-align: center; margin: 28px 0;">
+                <a href="${acceptUrl}"
+                  style="display: inline-block; padding: 14px 32px;
+                         background: linear-gradient(135deg, #f59e0b, #f97316);
+                         color: #1c1917; font-weight: 800; font-size: 15px;
+                         border-radius: 12px; text-decoration: none; letter-spacing: -0.01em;">
+                  Accept lower price: ${newPrice}/week →
+                </a>
+              </div>
+
+              <p style="font-size: 13px; color: #9ca3af; text-align: center; margin: 0 0 8px;">
+                This offer expires in 30 days. If you prefer to keep your current plan, you don't need to do anything.
+              </p>
+
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 28px 0 20px;" />
+
+              <p style="font-size: 12px; color: #9ca3af; text-align: center; margin: 0; line-height: 1.6;">
+                &copy; ${new Date().getFullYear()} StoryQuestor &nbsp;·&nbsp;
+                <a href="${unsubUrl}" style="color: #9ca3af;">Unsubscribe from emails</a>
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
+  })
+}
+
+function formatCents(cents: number): string {
+  const d = cents / 100
+  return Number.isInteger(d) ? `$${d}` : `$${d.toFixed(2)}`
 }

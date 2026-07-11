@@ -6,6 +6,15 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-07-11
+
+- Pricing configuration: admin can now set subscription presets, minimums, and billing intervals (daily / weekly / monthly) from /admin/pricing. Changes apply to new subscribers only; existing subscribers are unaffected unless they opt in.
+- Dynamic pricing across the site: all mentions of subscription cost on the homepage, how-to page, subscribe page, banner, and emails now pull from the admin-configured pricing in real time.
+- Price reduction offers: when the admin lowers the minimum, affected subscribers appear in a table. Admin can send each an email offering the lower rate; users click an accept link to switch at their next billing cycle.
+- Multi-interval billing: subscribers can now choose daily, weekly, or monthly billing at checkout. Admin controls which intervals are enabled and their pricing from the dashboard.
+
+- Demo-to-subscribe conversion bar: after 40 seconds in the demo editor (or on first creative action like adding a node or connecting scenes), a sticky bar slides up from the bottom prompting users to subscribe and save their work — dismissed per-session, never shown to already-subscribed users.
+
 ## 2026-07-05
 
 - Onboarding flow: after completing their profile, new users are guided directly to subscription setup via a 3-step progress indicator (Account → Profile → Subscribe), making the activation sequence feel like a single coherent flow instead of disconnected pages.

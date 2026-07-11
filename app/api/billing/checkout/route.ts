@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import { stripe, SITE_URL } from '@/lib/stripe'
+import { getPricingConfig, getIntervalConfig, type BillingInterval } from '@/lib/pricing'
 
 export async function POST(req: Request) {
   try {
@@ -13,10 +14,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { amountCents } = await req.json()
-    if (!amountCents || typeof amountCents !== 'number' || amountCents < 200) {
-      return NextResponse.json({ error: 'Minimum amount is $2.00' }, { status: 400 })
+    const { interval: rawInterval } = await req.json()
+    const pricing = await getPricingConfig()
+
+    const interval: BillingInterval = (['day', 'week', 'month'] as const).includes(rawInterval)
+      ? rawInterval as BillingInterval
+      : pricing.intervals.find(i => i.interval === pricing.defaultInterval && i.enabled)?.interval
+        ?? pricing.intervals.find(i => i.enabled)?.interval
+        ?? 'week'
+
+    const ic = getIntervalConfig(pricing, interval)
+    if (!ic?.enabled) {
+      return NextResponse.json({ error: `${interval} billing is not currently available` }, { status: 400 })
     }
+
+    const amountCents = ic.priceCents
 
     const email = session.user.email
     const [user] = await db
@@ -39,7 +51,7 @@ export async function POST(req: Request) {
         {
           price_data: {
             currency: 'usd',
-            recurring: { interval: 'week' },
+            recurring: { interval },
             unit_amount: amountCents,
             product_data: { name: 'StoryQuestor Subscription' },
           },

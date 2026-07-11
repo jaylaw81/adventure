@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import { canCreateStories, isOrgUser } from '@/lib/subscription'
+import { getPricingConfig, getDefaultInterval, getEnabledIntervals } from '@/lib/pricing'
 
 export async function GET() {
   try {
@@ -28,9 +29,10 @@ export async function GET() {
       .from(users)
       .where(eq(users.email, email))
 
-    const [canCreate, orgUser] = await Promise.all([
+    const [canCreate, orgUser, pricing] = await Promise.all([
       canCreateStories(email),
       isOrgUser(email),
+      getPricingConfig(),
     ])
 
     return NextResponse.json({
@@ -44,6 +46,8 @@ export async function GET() {
       trialEndsAt: user?.trialEndsAt ?? null,
       gracePeriodEndsAt: user?.gracePeriodEndsAt ?? null,
       canCreate,
+      priceCents: getDefaultInterval(pricing).priceCents,
+      defaultInterval: pricing.defaultInterval,
     })
   } catch {
     return NextResponse.json({ error: 'Failed to fetch billing status' }, { status: 500 })

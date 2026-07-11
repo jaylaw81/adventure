@@ -74,12 +74,18 @@ body {
   box-shadow: 0 0 0 3px rgba(245,158,11,0.15);
 }
 
+@keyframes slide-up-bar {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .subscribe-cta .shimmer-strip { display: none; }
   .subscribe-cta, .subscribe-cta:hover, .subscribe-cta:active { transform: none !important; }
   .amount-btn:hover, .amount-btn:active { transform: none !important; }
   [data-forge-glow] { animation: none !important; }
   [data-benefit] { animation: none !important; opacity: 1 !important; }
+  [data-demo-bar] { animation: none !important; }
 }
 /* ── end subscribe page delight ── */
 
