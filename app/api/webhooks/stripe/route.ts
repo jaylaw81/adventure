@@ -36,7 +36,7 @@ export async function POST(req: Request) {
           expand: ['items.data.price'],
         })
         const amountCents = subscription.items.data[0]?.price?.unit_amount ?? null
-        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? 'month') as 'month' | 'week'
+        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? null) as 'day' | 'week' | 'month' | null
 
         // Fetch user to check invite state and pending reward weeks
         const [user] = await db
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
         if (subscription.pause_collection) status = 'paused'
 
         const amountCents = subscription.items.data[0]?.price?.unit_amount ?? null
-        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? 'month') as 'month' | 'week'
+        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? null) as 'day' | 'week' | 'month' | null
 
         await db.update(users)
           .set({

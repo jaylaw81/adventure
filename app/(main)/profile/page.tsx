@@ -4,12 +4,14 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Save, Trash2, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff, CreditCard, ExternalLink, Gift, Send, CheckCircle, Clock } from 'lucide-react'
+import { Save, Trash2, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff, CreditCard, ExternalLink, Gift, Send, CheckCircle, Clock, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import PageBanner from '@/components/shared/PageBanner'
 import OnboardingProgress from '@/components/shared/OnboardingProgress'
 import { calcAge } from '@/lib/age'
 import { analytics } from '@/lib/analytics'
+import { formatCents, getEnabledIntervals } from '@/lib/pricing'
+import type { PricingConfig, BillingInterval } from '@/lib/pricing'
 
 interface ProfileData {
   email: string
@@ -68,7 +70,7 @@ function ProfileContent() {
   interface BillingStatus {
     subscriptionStatus: string | null
     subscriptionAmountCents: number | null
-    subscriptionInterval: 'month' | 'week' | null
+    subscriptionInterval: BillingInterval | null
     hasStripeAccount: boolean
     trialEndsAt: string | null
     gracePeriodEndsAt: string | null
@@ -76,7 +78,11 @@ function ProfileContent() {
     isOrgUser: boolean
   }
   const [billing, setBilling] = useState<BillingStatus | null>(null)
+  const [pricing, setPricing] = useState<PricingConfig | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [pendingInterval, setPendingInterval] = useState<BillingInterval | null>(null)
+  const [intervalChanging, setIntervalChanging] = useState(false)
+  const [intervalMsg, setIntervalMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
 
   useEffect(() => {
     fetch('/api/profile')
@@ -92,6 +98,9 @@ function ProfileContent() {
     fetch('/api/billing/status')
       .then(r => r.json())
       .then(data => { if (!data.error) setBilling(data) })
+    fetch('/api/pricing')
+      .then(r => r.json())
+      .then(data => { if (data?.intervals) setPricing(data) })
     fetch('/api/invites')
       .then(r => r.json())
       .then(data => {
@@ -128,6 +137,29 @@ function ProfileContent() {
       if (data.url) window.location.href = data.url
     } finally {
       setPortalLoading(false)
+    }
+  }
+
+  const changeInterval = async (interval: BillingInterval) => {
+    setIntervalChanging(true)
+    setIntervalMsg(null)
+    try {
+      const res = await fetch('/api/billing/change-interval', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interval }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setIntervalMsg({ type: 'err', text: data.error ?? 'Failed to change interval' })
+      } else {
+        setBilling(prev => prev ? { ...prev, subscriptionInterval: interval, subscriptionAmountCents: data.priceCents } : prev)
+        setPendingInterval(null)
+        setIntervalMsg({ type: 'ok', text: `Switched to ${interval === 'day' ? 'daily' : interval === 'week' ? 'weekly' : 'monthly'} billing.` })
+        setTimeout(() => setIntervalMsg(null), 4000)
+      }
+    } finally {
+      setIntervalChanging(false)
     }
   }
 
@@ -376,10 +408,67 @@ function ProfileContent() {
             <>
               <p className="text-sm text-gray-500 mb-4">
                 {billing.subscriptionStatus === 'trialing' ? 'Free trial active' : 'Active subscriber'}
-                {billing.subscriptionAmountCents
-                  ? ` · $${(billing.subscriptionAmountCents / 100).toFixed(2)}/${billing.subscriptionInterval === 'week' ? 'week' : 'month'}`
+                {billing.subscriptionAmountCents && billing.subscriptionInterval
+                  ? ` · ${formatCents(billing.subscriptionAmountCents)}/${billing.subscriptionInterval}`
                   : ''}
               </p>
+
+              {/* Billing interval changer */}
+              {pricing && getEnabledIntervals(pricing).length > 1 && (
+                <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                  <p className="text-xs font-semibold text-gray-600 mb-2.5">Billing interval</p>
+                  <div className="flex gap-2 mb-3">
+                    {getEnabledIntervals(pricing).map(ic => {
+                      const isCurrent = billing.subscriptionInterval === ic.interval
+                      const isPending = pendingInterval === ic.interval
+                      return (
+                        <button
+                          key={ic.interval}
+                          onClick={() => {
+                            if (isCurrent) return
+                            setPendingInterval(isPending ? null : ic.interval)
+                            setIntervalMsg(null)
+                          }}
+                          className={`flex-1 py-2.5 px-2 rounded-lg border-2 text-center transition-colors ${
+                            isCurrent
+                              ? 'border-violet-500 bg-violet-50 cursor-default'
+                              : isPending
+                                ? 'border-amber-500 bg-amber-50'
+                                : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className={`text-xs font-bold ${isCurrent ? 'text-violet-700' : isPending ? 'text-amber-800' : 'text-gray-700'}`}>
+                            {ic.interval === 'day' ? 'Daily' : ic.interval === 'week' ? 'Weekly' : 'Monthly'}
+                            {isCurrent && <span className="ml-1 text-[9px]">✓</span>}
+                          </div>
+                          <div className={`text-[11px] mt-0.5 font-medium ${isCurrent ? 'text-violet-500' : isPending ? 'text-amber-600' : 'text-gray-400'}`}>
+                            {formatCents(ic.priceCents)}/{ic.interval}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {pendingInterval && (
+                    <button
+                      onClick={() => changeInterval(pendingInterval)}
+                      disabled={intervalChanging}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 w-full justify-center"
+                    >
+                      {intervalChanging
+                        ? <><RefreshCw size={13} className="animate-spin" /> Switching…</>
+                        : `Switch to ${pendingInterval === 'day' ? 'daily' : pendingInterval === 'week' ? 'weekly' : 'monthly'} billing · ${formatCents(pricing.intervals.find(i => i.interval === pendingInterval)?.priceCents ?? 0)}/${pendingInterval}`
+                      }
+                    </button>
+                  )}
+                  {intervalMsg && (
+                    <p className={`text-xs mt-2 font-medium ${intervalMsg.type === 'ok' ? 'text-green-600' : 'text-red-500'}`}>
+                      {intervalMsg.text}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-gray-400 mt-2">Interval changes take effect immediately and reset your billing cycle.</p>
+                </div>
+              )}
+
               <button
                 onClick={openPortal}
                 disabled={portalLoading}
@@ -431,7 +520,9 @@ function ProfileContent() {
                 className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-semibold transition-all hover:brightness-110"
                 style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
               >
-                Subscribe from $2/week
+                {pricing
+                  ? (() => { const ic = pricing.intervals.find(i => i.interval === pricing.defaultInterval && i.enabled) ?? pricing.intervals.find(i => i.enabled); return ic ? `Subscribe from ${formatCents(ic.priceCents)}/${ic.interval}` : 'Subscribe' })()
+                  : 'Subscribe'}
               </Link>
             </>
           )}

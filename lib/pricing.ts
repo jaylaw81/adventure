@@ -11,12 +11,14 @@ export type IntervalConfig = {
 }
 
 export type PricingConfig = {
-  defaultInterval: BillingInterval
+  defaultInterval: BillingInterval   // pre-selected tab on the subscribe page
+  displayInterval: BillingInterval   // interval shown in site copy (homepage, how-to, emails)
   intervals: IntervalConfig[]
 }
 
 export const DEFAULT_PRICING: PricingConfig = {
   defaultInterval: 'week',
+  displayInterval: 'week',
   intervals: [
     { interval: 'day',   enabled: false, priceCents: 50  },
     { interval: 'week',  enabled: true,  priceCents: 200 },
@@ -35,12 +37,20 @@ export function intervalLabel(i: BillingInterval): string {
   return i === 'day' ? 'Daily' : i === 'week' ? 'Weekly' : 'Monthly'
 }
 
-/** Get the effective default interval config */
+/** Get the interval pre-selected on the subscribe page */
 export function getDefaultInterval(config: PricingConfig): IntervalConfig {
   return (
     config.intervals.find(i => i.interval === config.defaultInterval && i.enabled) ??
     config.intervals.find(i => i.enabled) ??
     config.intervals[0]
+  )
+}
+
+/** Get the interval shown in site copy (homepage, how-to, emails) */
+export function getDisplayInterval(config: PricingConfig): IntervalConfig {
+  return (
+    config.intervals.find(i => i.interval === config.displayInterval && i.enabled) ??
+    getDefaultInterval(config)
   )
 }
 
@@ -56,7 +66,7 @@ export function getEnabledIntervals(config: PricingConfig): IntervalConfig[] {
 
 /** "$2/week", "$0.50/day", "$8/month" — for site-wide copy */
 export function getMinPriceCopy(config: PricingConfig): string {
-  const ic = getDefaultInterval(config)
+  const ic = getDisplayInterval(config)
   return `${formatCents(ic.priceCents)}/${ic.interval}`
 }
 
@@ -72,9 +82,11 @@ export async function getPricingConfig(): Promise<PricingConfig> {
       // Current format: { defaultInterval, intervals: [{ interval, enabled, priceCents }] }
       if (Array.isArray(parsed?.intervals) && parsed.intervals.length > 0) {
         // Migrate old preset format: intervals may have minimumCents instead of priceCents
+        // Also backfill displayInterval from defaultInterval if missing
         return {
           ...DEFAULT_PRICING,
           ...parsed,
+          displayInterval: parsed.displayInterval ?? parsed.defaultInterval ?? DEFAULT_PRICING.displayInterval,
           intervals: DEFAULT_PRICING.intervals.map(def => {
             const saved = parsed.intervals.find((x: IntervalConfig & { minimumCents?: number }) => x.interval === def.interval)
             if (!saved) return def

@@ -34,8 +34,10 @@ async function getAffectedSubscribers(config: PricingConfig) {
     .from(users)
     .where(eq(users.subscriptionStatus, 'active'))
 
+  // Only include users where we know their interval — never assume 'week' for null
   const eligible = activeUsers.filter(u => {
-    const interval = (u.subscriptionInterval ?? 'week') as BillingInterval
+    if (!u.subscriptionInterval) return false
+    const interval = u.subscriptionInterval as BillingInterval
     const price = priceByInterval[interval]
     return price !== undefined && (u.subscriptionAmountCents ?? 0) > price
   })
@@ -55,7 +57,7 @@ async function getAffectedSubscribers(config: PricingConfig) {
   for (const o of offers) latestOffer.set(o.userEmail, o)
 
   return eligible.map(u => {
-    const interval = (u.subscriptionInterval ?? 'week') as BillingInterval
+    const interval = u.subscriptionInterval as BillingInterval
     const offeredAmountCents = priceByInterval[interval] ?? 200
     const offer = latestOffer.get(u.email)
     let offerStatus: 'none' | 'pending' | 'accepted' | 'expired' = 'none'
@@ -92,6 +94,9 @@ export async function POST(req: Request) {
   if (!body.defaultInterval) {
     return NextResponse.json({ error: 'defaultInterval is required' }, { status: 400 })
   }
+  if (!body.displayInterval) {
+    return NextResponse.json({ error: 'displayInterval is required' }, { status: 400 })
+  }
   if (!Array.isArray(body.intervals) || body.intervals.length === 0) {
     return NextResponse.json({ error: 'intervals array is required' }, { status: 400 })
   }
@@ -110,6 +115,7 @@ export async function POST(req: Request) {
 
   const config: PricingConfig = {
     defaultInterval: body.defaultInterval,
+    displayInterval: body.displayInterval,
     intervals: body.intervals.map(ic => ({
       interval: ic.interval,
       enabled: ic.enabled,

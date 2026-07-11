@@ -54,6 +54,7 @@ export async function POST(
   // Update the Stripe subscription to the new price
   const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId)
   const itemId = subscription.items.data[0]?.id
+  const currentInterval = subscription.items.data[0]?.price?.recurring?.interval ?? 'week'
   if (!itemId) {
     return NextResponse.json({ error: 'Subscription item not found' }, { status: 500 })
   }
@@ -61,7 +62,7 @@ export async function POST(
   const newPrice = await stripe.prices.create({
     unit_amount: offer.offeredAmountCents,
     currency: 'usd',
-    recurring: { interval: 'week' },
+    recurring: { interval: currentInterval as 'day' | 'week' | 'month' },
     product_data: { name: 'StoryQuestor Subscription' },
   })
 

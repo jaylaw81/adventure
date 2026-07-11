@@ -49,7 +49,11 @@ export async function POST(req: Request) {
         continue
       }
 
-      const userInterval = ((user.subscriptionInterval ?? 'week') as BillingInterval)
+      if (!user.subscriptionInterval) {
+        skipped++
+        continue
+      }
+      const userInterval = user.subscriptionInterval as BillingInterval
       const ic = getIntervalConfig(config, userInterval)
       const offeredAmountCents = ic?.priceCents ?? 200
 
