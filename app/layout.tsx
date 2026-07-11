@@ -20,11 +20,13 @@ export const metadata: Metadata = {
     url: 'https://www.storyquestor.com',
     siteName: 'StoryQuestor',
     type: 'website',
+    images: [{ url: `${SITE_URL}/storyquestor-fb.png`, width: 1200, height: 630, alt: 'StoryQuestor' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'StoryQuestor — Free Choose Your Own Adventure Story Creator',
     description: 'Create free choose-your-own-adventure stories. Build non-linear, branching tales where every reader choice leads somewhere different.',
+    images: [`${SITE_URL}/storyquestor-fb.png`],
   },
   other: {
     'google-adsense-account': 'ca-pub-9068413627358148',

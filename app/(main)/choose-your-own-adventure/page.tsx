@@ -30,11 +30,13 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/choose-your-own-adventure`,
     type: 'article',
     siteName: 'StoryQuestor',
+    images: [{ url: `${SITE_URL}/storyquestor-fb.png`, width: 1200, height: 630, alt: 'StoryQuestor' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Choose Your Own Adventure — History, Books & Series Guide',
     description: '184 books. 250 million copies sold. The complete history of the Choose Your Own Adventure series — and where to find them today.',
+    images: [`${SITE_URL}/storyquestor-fb.png`],
   },
 }
 
