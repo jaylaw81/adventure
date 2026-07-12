@@ -14,6 +14,7 @@ export type PricingConfig = {
   defaultInterval: BillingInterval   // pre-selected tab on the subscribe page
   displayInterval: BillingInterval   // interval shown in site copy (homepage, how-to, emails)
   intervals: IntervalConfig[]
+  trialDays: number                  // free trial days for new subscribers (0 = no trial)
 }
 
 export const DEFAULT_PRICING: PricingConfig = {
@@ -24,6 +25,7 @@ export const DEFAULT_PRICING: PricingConfig = {
     { interval: 'week',  enabled: true,  priceCents: 200 },
     { interval: 'month', enabled: false, priceCents: 800 },
   ],
+  trialDays: 0,
 }
 
 /** Format cents as a dollar string: 200 → "$2", 50 → "$0.50" */
@@ -87,6 +89,7 @@ export async function getPricingConfig(): Promise<PricingConfig> {
           ...DEFAULT_PRICING,
           ...parsed,
           displayInterval: parsed.displayInterval ?? parsed.defaultInterval ?? DEFAULT_PRICING.displayInterval,
+          trialDays: typeof parsed.trialDays === 'number' ? Math.max(0, parsed.trialDays) : DEFAULT_PRICING.trialDays,
           intervals: DEFAULT_PRICING.intervals.map(def => {
             const saved = parsed.intervals.find((x: IntervalConfig & { minimumCents?: number }) => x.interval === def.interval)
             if (!saved) return def

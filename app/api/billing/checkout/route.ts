@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       .where(eq(users.email, email))
 
     const pendingWeeks = user?.pendingFriendRewardWeeks ?? 0
-    const trialDays = pendingWeeks * 7
+    const trialDays = (pricing.trialDays ?? 0) + (pendingWeeks * 7)
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'subscription',

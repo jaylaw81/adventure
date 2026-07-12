@@ -259,7 +259,7 @@ export default function AdminPricingPage() {
         </div>
 
         {/* Site content display */}
-        <div className="px-5 py-3.5">
+        <div className="px-5 py-3.5 border-b border-gray-100">
           <div className="flex items-center gap-4">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-800">Site copy</p>
@@ -290,6 +290,26 @@ export default function AdminPricingPage() {
                 )
               })}
             </div>
+          </div>
+        </div>
+
+        {/* Trial period */}
+        <div className="flex items-center gap-4 px-5 py-3.5">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-800">Trial period</p>
+            <p className="text-xs text-gray-400">Free trial days for new subscribers (0 = no trial)</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <input
+              type="number"
+              min={0}
+              max={90}
+              step={1}
+              value={config.trialDays ?? 0}
+              onChange={e => setConfig({ ...config, trialDays: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+              className="w-16 border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm text-center font-medium text-gray-900 bg-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 [appearance:textfield]"
+            />
+            <span className="text-xs text-gray-400">days</span>
           </div>
         </div>
       </div>

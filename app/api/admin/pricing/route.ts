@@ -116,6 +116,7 @@ export async function POST(req: Request) {
   const config: PricingConfig = {
     defaultInterval: body.defaultInterval,
     displayInterval: body.displayInterval,
+    trialDays: typeof body.trialDays === 'number' ? Math.max(0, Math.floor(body.trialDays)) : 0,
     intervals: body.intervals.map(ic => ({
       interval: ic.interval,
       enabled: ic.enabled,
