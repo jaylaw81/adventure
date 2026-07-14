@@ -111,6 +111,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const siteUrl = process.env.NEXTAUTH_URL ?? ''
+  if (siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1')) {
+    return NextResponse.json({ error: 'Email blasts are disabled on localhost' }, { status: 403 })
+  }
+
   const { subject, bodyHtml, audience = 'all', conditions, resendAudienceId, resendAudienceName } = await req.json() as {
     subject: string
     bodyHtml: string

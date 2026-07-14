@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { users, deletedAccounts, friendInvites } from '@/lib/schema'
 import { sendWelcomeEmail } from '@/lib/email'
+import { getPricingConfig } from '@/lib/pricing'
 
 export async function POST(req: Request) {
   try {
@@ -58,11 +59,15 @@ export async function POST(req: Request) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
+    const pricing = await getPricingConfig()
+    const trialEndsAt = pricing.trialDays > 0
+      ? new Date(Date.now() + pricing.trialDays * 24 * 60 * 60 * 1000)
+      : null
     const [newUser] = await db.insert(users).values({
       email: normalizedEmail,
       displayName: displayName?.trim() || '',
       passwordHash,
-      trialEndsAt: null, // No trial — subscription required
+      trialEndsAt,
       invitedByToken: validInvite ? inviteToken : null,
     }).returning({
       unsubscribeToken: users.unsubscribeToken,

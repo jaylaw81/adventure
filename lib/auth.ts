@@ -8,6 +8,7 @@ import { db } from '@/lib/db'
 import { users, organizationMembers, deletedAccounts } from '@/lib/schema'
 import { isAdult } from '@/lib/age'
 import { sendWelcomeEmail } from '@/lib/email'
+import { getPricingConfig } from '@/lib/pricing'
 
 async function resolveEffectiveTier(email: string, storedTier: string): Promise<string> {
   if (storedTier !== 'free') return storedTier
@@ -73,15 +74,19 @@ export const authOptions: NextAuthOptions = {
         const [existing] = await db.select({ status: users.status }).from(users).where(eq(users.email, user.email))
         if (existing?.status === 'suspended') return false
         if (!existing) {
-          // New Google sign-up — no trial, subscription required
+          // New Google sign-up
           const [deletedRecord] = await db
             .select()
             .from(deletedAccounts)
             .where(eq(deletedAccounts.email, user.email))
+          const pricing = await getPricingConfig()
+          const trialEndsAt = pricing.trialDays > 0
+            ? new Date(Date.now() + pricing.trialDays * 24 * 60 * 60 * 1000)
+            : null
           const [newUser] = await db.insert(users).values({
             email: user.email,
             displayName: user.name ?? '',
-            trialEndsAt: null,
+            trialEndsAt,
           }).returning({
             unsubscribeToken: users.unsubscribeToken,
             displayName: users.displayName,

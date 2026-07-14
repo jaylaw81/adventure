@@ -15,6 +15,11 @@ export async function POST(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const siteUrl = process.env.NEXTAUTH_URL ?? ''
+  if (siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1')) {
+    return NextResponse.json({ error: 'Email blasts are disabled on localhost' }, { status: 403 })
+  }
+
   const { blastId } = await params
 
   const [original] = await db.select().from(emailBlasts).where(eq(emailBlasts.id, blastId))
