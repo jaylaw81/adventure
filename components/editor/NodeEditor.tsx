@@ -23,6 +23,7 @@ interface Props {
 export default function NodeEditor({ node, adventureId, chapters, nodes, onClose, onUpdate, onDelete, onDirtyChange, externalSaveRef }: Props) {
   const { data: session } = useSession()
   const isOrgTier = session?.user?.tier === 'organization'
+  const canUseMedia = isOrgTier || session?.user?.subscriptionInterval === 'month'
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -257,7 +258,12 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
         {/* Scene Image */}
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Scene Image</label>
-          {imageUrl ? (
+          {!canUseMedia ? (
+            <div className="w-full flex items-center gap-2.5 py-3 px-3.5 border border-gray-200 rounded-lg bg-gray-50 text-xs text-gray-400">
+              <Sparkles size={13} className="shrink-0 text-gray-300" />
+              AI image generation is available on the monthly plan
+            </div>
+          ) : imageUrl ? (
             <div className="relative rounded-lg overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -293,25 +299,27 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
               {generatingImage ? 'Generating…' : 'Generate Image with AI'}
             </button>
           )}
-          {!content.trim() && !imageUrl && (
+          {canUseMedia && !content.trim() && !imageUrl && (
             <p className="text-xs text-gray-400 mt-1">Add scene content first to generate an image</p>
           )}
         </div>
 
-        <SoundPicker
-          currentSoundUrl={soundUrl}
-          currentSoundTitle={soundTitle}
-          onSelect={(url, title) => {
-            setSoundUrl(url)
-            setSoundTitle(title)
-            save({ soundUrl: url, soundTitle: title })
-          }}
-          onRemove={() => {
-            setSoundUrl(null)
-            setSoundTitle(null)
-            save({ soundUrl: null, soundTitle: null })
-          }}
-        />
+        {canUseMedia && (
+          <SoundPicker
+            currentSoundUrl={soundUrl}
+            currentSoundTitle={soundTitle}
+            onSelect={(url, title) => {
+              setSoundUrl(url)
+              setSoundTitle(title)
+              save({ soundUrl: url, soundTitle: title })
+            }}
+            onRemove={() => {
+              setSoundUrl(null)
+              setSoundTitle(null)
+              save({ soundUrl: null, soundTitle: null })
+            }}
+          />
+        )}
 
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
@@ -331,7 +339,7 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
                 setStatus('completed')
                 save({ status: 'completed' })
                 analytics.sceneStatusChanged(adventureId, node!.id, 'completed')
-                if (!imageUrl && content.trim()) handleGenerateImage()
+                if (canUseMedia && !imageUrl && content.trim()) handleGenerateImage()
               }}
               className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-colors ${
                 status === 'completed'

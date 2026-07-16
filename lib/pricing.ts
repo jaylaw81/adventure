@@ -21,9 +21,8 @@ export const DEFAULT_PRICING: PricingConfig = {
   defaultInterval: 'week',
   displayInterval: 'week',
   intervals: [
-    { interval: 'day',   enabled: false, priceCents: 50  },
     { interval: 'week',  enabled: true,  priceCents: 200 },
-    { interval: 'month', enabled: false, priceCents: 800 },
+    { interval: 'month', enabled: true,  priceCents: 800 },
   ],
   trialDays: 0,
 }
@@ -98,7 +97,7 @@ export async function getPricingConfig(): Promise<PricingConfig> {
               enabled: saved.enabled ?? def.enabled,
               priceCents: saved.priceCents ?? saved.minimumCents ?? def.priceCents,
             }
-          }),
+          }).filter(ic => ic.interval !== 'day'),
         } as PricingConfig
       }
       // Legacy flat format: { minimumCents, presets }

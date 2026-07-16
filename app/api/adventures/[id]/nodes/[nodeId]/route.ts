@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { nodes } from '@/lib/schema'
 import { requireOwner } from '@/lib/requireOwner'
+import { canGenerateImages } from '@/lib/subscription'
 import { and, eq } from 'drizzle-orm'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string; nodeId: string }> }) {
@@ -21,8 +22,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (body.chapterId !== undefined) updateData.chapterId = body.chapterId
     if (body.nextChapterId !== undefined) updateData.nextChapterId = body.nextChapterId
     if (body.chapterEntryNodeId !== undefined) updateData.chapterEntryNodeId = body.chapterEntryNodeId || null
-    if (body.soundUrl !== undefined) updateData.soundUrl = body.soundUrl || null
-    if (body.soundTitle !== undefined) updateData.soundTitle = body.soundTitle || null
+    if (body.soundUrl !== undefined || body.soundTitle !== undefined) {
+      if (!await canGenerateImages(owned.email)) {
+        return NextResponse.json({ error: 'Scene sounds require a monthly subscription' }, { status: 403 })
+      }
+      if (body.soundUrl !== undefined) updateData.soundUrl = body.soundUrl || null
+      if (body.soundTitle !== undefined) updateData.soundTitle = body.soundTitle || null
+    }
     const [updated] = await db.update(nodes).set(updateData).where(and(eq(nodes.id, nodeId), eq(nodes.adventureId, id))).returning()
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json(updated)

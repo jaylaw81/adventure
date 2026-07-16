@@ -1,5 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { canGenerateImages } from '@/lib/subscription'
 
 const FREESOUND_BASE = 'https://freesound.org/apiv2'
 
@@ -22,6 +23,9 @@ export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  if (!await canGenerateImages(session.user.email)) {
+    return Response.json({ error: 'Scene sounds require a monthly subscription' }, { status: 403 })
   }
 
   const apiKey = process.env.FREESOUND_API_KEY

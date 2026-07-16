@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { adventures, nodes } from '@/lib/schema'
 import type { Adventure } from '@/lib/schema'
 import { generateSceneImage } from '@/lib/generateImage'
+import { canGenerateImages } from '@/lib/subscription'
 
 export const maxDuration = 60
 
@@ -14,6 +15,9 @@ export async function POST() {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (!await canGenerateImages(session.user.email)) {
+      return NextResponse.json({ error: 'AI image generation requires a monthly subscription' }, { status: 403 })
     }
 
     const userAdventures = await db

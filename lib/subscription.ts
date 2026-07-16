@@ -19,6 +19,28 @@ export async function isOrgUser(email: string): Promise<boolean> {
   return !!orgMember
 }
 
+/** True if the user can use AI image generation and scene sounds (monthly plan or org/grandfathered). */
+export async function canGenerateImages(email: string): Promise<boolean> {
+  const [user] = await db
+    .select({
+      tier: users.tier,
+      grandfathered: users.grandfathered,
+      subscriptionStatus: users.subscriptionStatus,
+      subscriptionInterval: users.subscriptionInterval,
+    })
+    .from(users)
+    .where(eq(users.email, email))
+
+  if (!user) return false
+  if (user.grandfathered) return true
+  if (user.tier === 'organization') return true
+  if (await isOrgUser(email)) return true
+  return (
+    (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing') &&
+    user.subscriptionInterval === 'month'
+  )
+}
+
 export async function canCreateStories(email: string): Promise<boolean> {
   const [user] = await db
     .select({

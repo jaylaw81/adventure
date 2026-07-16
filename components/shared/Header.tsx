@@ -82,20 +82,23 @@ export default function Header() {
     analytics.globalSoundToggle(next)
   }
 
+  const forceSolid = pathname.startsWith('/demo')
+  const solidBg = scrolled || forceSolid
+
   return (
     <header
       className={`sticky top-0 z-30 transition-all duration-200 ${
-        scrolled
+        solidBg
           ? 'border-b border-white/10 shadow-sm'
           : 'border-b border-transparent'
       }`}
-      style={scrolled
+      style={solidBg
         ? { background: 'rgba(29,7,80,0.92)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }
         : { background: 'transparent' }
       }
     >
       {/* Top shimmer line — only visible when not scrolled */}
-      {!scrolled && (
+      {!solidBg && (
         <div className="absolute top-0 left-0 right-0 h-px"
           style={{ background: 'linear-gradient(90deg, transparent, #a78bfa88, #f59e0b55, #a78bfa88, transparent)' }}
         />

@@ -12,6 +12,7 @@ declare module 'next-auth' {
       isAdmin: boolean
       tier: string
       subscriptionStatus: string | null
+      subscriptionInterval: string | null
     }
   }
 }
@@ -24,5 +25,6 @@ declare module 'next-auth/jwt' {
     isAdmin?: boolean
     tier?: string
     subscriptionStatus?: string | null
+    subscriptionInterval?: string | null
   }
 }

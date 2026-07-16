@@ -19,7 +19,7 @@ function fmtCents(c: number) {
   return Number.isInteger(d) ? `$${d}` : `$${d.toFixed(2)}`
 }
 
-const INTERVALS: BillingInterval[] = ['day', 'week', 'month']
+const INTERVALS: BillingInterval[] = ['week', 'month']
 const INTERVAL_LABELS: Record<BillingInterval, string> = { day: 'Daily', week: 'Weekly', month: 'Monthly' }
 
 export default function AdminPricingPage() {
