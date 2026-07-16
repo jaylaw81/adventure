@@ -6,6 +6,12 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-07-16
+
+- Pricing page: new public `/pricing` page shows a weekly vs monthly feature comparison table with live pricing from the admin config and CTAs to sign up or manage your subscription.
+- Feature gating by plan: weekly subscribers get the story editor and publishing; monthly subscribers additionally unlock AI scene image generation and scene soundscapes.
+- Interval pre-selection: clicking a plan on the pricing page lands on the subscribe page with that interval already selected.
+
 ## 2026-07-11
 
 - Pricing configuration: admin can now set subscription presets, minimums, and billing intervals (daily / weekly / monthly) from /admin/pricing. Changes apply to new subscribers only; existing subscribers are unaffected unless they opt in.

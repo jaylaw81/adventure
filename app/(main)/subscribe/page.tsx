@@ -14,13 +14,18 @@ interface Props {
 
 export default async function SubscribePage({ searchParams }: Props) {
   const session = await getServerSession(authOptions)
-  if (!session?.user?.email) redirect('/sign-in?next=/subscribe')
+  const params = await searchParams
+  if (!session?.user?.email) {
+    const iv = params.interval
+    const nextUrl = iv ? `/subscribe?interval=${iv}` : '/subscribe'
+    redirect(`/sign-in?next=${encodeURIComponent(nextUrl)}`)
+  }
 
   const orgUser = await isOrgUser(session.user.email)
   if (orgUser) redirect('/profile')
 
-  const params = await searchParams
   const onboarding = params.onboarding === '1'
+  const intervalParam = params.interval ?? ''
 
   const [[user], pricing] = await Promise.all([
     db
@@ -46,6 +51,7 @@ export default async function SubscribePage({ searchParams }: Props) {
       pendingFriendRewardWeeks={user?.pendingFriendRewardWeeks ?? 0}
       onboarding={onboarding}
       pricing={pricing}
+      initialInterval={intervalParam || undefined}
     />
   )
 }

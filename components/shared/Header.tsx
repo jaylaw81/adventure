@@ -131,6 +131,7 @@ export default function Header() {
           {(!session || (session.user.tier !== 'organization' && session.user.subscriptionStatus !== 'active' && session.user.subscriptionStatus !== 'trialing')) && (
             <NavLink href="/demo">Try Demo</NavLink>
           )}
+          <NavLink href="/pricing">Pricing</NavLink>
           <NavLink href="/organizations">For Schools</NavLink>
           {(!session || session.user.profileComplete) && (
             <NavLink href="/choose-your-own-adventure">CYOA History</NavLink>
@@ -351,6 +352,10 @@ export default function Header() {
               Try Demo
             </Link>
           )}
+          <Link href="/pricing" onClick={() => setMobileOpen(false)}
+            className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/pricing' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+            Pricing
+          </Link>
           <Link href="/organizations" onClick={() => setMobileOpen(false)}
             className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/organizations' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
             For Schools

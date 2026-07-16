@@ -23,16 +23,22 @@ interface Props {
   pendingFriendRewardWeeks: number
   onboarding?: boolean
   pricing?: PricingConfig
+  initialInterval?: string
 }
 
-export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingFriendRewardWeeks, onboarding, pricing }: Props) {
+export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingFriendRewardWeeks, onboarding, pricing, initialInterval }: Props) {
   const router = useRouter()
   const { data: session } = useSession()
 
   const enabledIntervals = pricing ? getEnabledIntervals(pricing) : [DEFAULT_IC]
   const defaultIC = pricing ? getDefaultInterval(pricing) : DEFAULT_IC
 
-  const [activeInterval, setActiveInterval] = useState<IntervalConfig>(defaultIC)
+  const [activeInterval, setActiveInterval] = useState<IntervalConfig>(() => {
+    if (initialInterval) {
+      return enabledIntervals.find(i => i.interval === initialInterval) ?? defaultIC
+    }
+    return defaultIC
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
