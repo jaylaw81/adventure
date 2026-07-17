@@ -63,13 +63,15 @@ export function demoDeleteNode(nodeId: string) {
   save(state)
 }
 
-export function demoCreateChoice(fields: Omit<Choice, 'id' | 'adventureId' | 'orderIndex'>): Choice {
+export function demoCreateChoice(fields: Pick<Choice, 'sourceNodeId' | 'targetNodeId' | 'label'>): Choice {
   const state = load()
   const choice: Choice = {
     ...fields,
     id: `demo-choice-${Date.now()}`,
     adventureId: DEMO_ADVENTURE_ID,
     orderIndex: state.choices.filter(c => c.sourceNodeId === fields.sourceNodeId).length,
+    characterEffects: null,
+    conditions: null,
   }
   state.choices = [...state.choices, choice]
   save(state)

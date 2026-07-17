@@ -43,6 +43,7 @@ export const adventures = pgTable('adventures', {
   shareToken: text('share_token').unique(),
   status: text('status').notNull().default('active'), // 'active' | 'suspended'
   editorMode: text('editor_mode').notNull().default('node'), // 'node' | 'block'
+  storyType: text('story_type'), // 'path' | 'world' — null treated as 'path'
   createdFrom: text('created_from'), // 'blank' | 'template' — null for stories created before tracking
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -77,6 +78,11 @@ export const nodes = pgTable('nodes', {
   positionY: doublePrecision('position_y').notNull().default(0),
   // For chapter_end nodes: specific entry scene in the next chapter (overrides getChapterStartNode)
   chapterEntryNodeId: uuid('chapter_entry_node_id'),
+  // World Builder: items findable in this scene
+  sceneItems: json('scene_items').$type<import('./worldBuilder').SceneItemPickup[]>(),
+  // World Builder: foe assigned to this scene
+  sceneFoeId: text('scene_foe_id'),
+  foeRunAwayNodeId: text('foe_run_away_node_id'),
 }, (t) => [
   index('nodes_adventure_id_idx').on(t.adventureId),
   index('nodes_chapter_id_idx').on(t.chapterId),
@@ -89,9 +95,50 @@ export const choices = pgTable('choices', {
   targetNodeId: uuid('target_node_id').notNull().references(() => nodes.id, { onDelete: 'cascade' }),
   label: text('label').notNull().default('Continue'),
   orderIndex: integer('order_index').notNull().default(0),
+  characterEffects: json('character_effects').$type<import('./worldBuilder').CharacterEffect[]>(),
+  conditions: json('conditions').$type<import('./worldBuilder').ChoiceCondition[]>(),
 }, (t) => [
   index('choices_adventure_id_idx').on(t.adventureId),
   index('choices_source_node_id_idx').on(t.sourceNodeId),
+])
+
+export const worldCharacters = pgTable('world_characters', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  adventureId: uuid('adventure_id').notNull().references(() => adventures.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  attributes: json('attributes').notNull().$type<import('./worldBuilder').CharacterAttribute[]>().default([]),
+  inventoryCapacity: integer('inventory_capacity'), // null = unlimited (heroes only)
+  characterType: text('character_type').notNull().default('hero'), // 'hero' | 'foe'
+  foeHp: integer('foe_hp'), // total HP a foe has; null for heroes
+  foeDamage: integer('foe_damage'), // damage per round the foe deals; null for heroes
+  foeDefeatText: text('foe_defeat_text'), // narrative shown when foe is conquered
+  emoji: text('emoji'), // optional icon (used for foes)
+  avatarUrl: text('avatar_url'), // AI-generated portrait image
+  healthAttributeId: text('health_attribute_id'), // which attribute is the primary HP
+  armorAttributeId: text('armor_attribute_id'),   // which attribute absorbs damage before HP
+  orderIndex: integer('order_index').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('world_chars_adventure_id_idx').on(t.adventureId),
+])
+
+export const worldItems = pgTable('world_items', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  adventureId: uuid('adventure_id').notNull().references(() => adventures.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description'),
+  itemType: text('item_type').notNull().default('item'), // 'item'|'weapon'|'armor'|'ability'|'consumable'|'key'
+  effects: json('effects').notNull().$type<import('./worldBuilder').CharacterEffect[]>().default([]),
+  emoji: text('emoji'),
+  damage: integer('damage'), // damage dealt per use (weapons/abilities); null = no combat damage
+  durabilityMax: integer('durability_max'), // max uses before broken; null = unlimited
+  durabilityLoss: integer('durability_loss'), // durability points lost per use; null defaults to 1
+  reviveAmount: integer('revive_amount'), // if set, item can revive a fallen character with this much HP restored
+  orderIndex: integer('order_index').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('world_items_adventure_id_idx').on(t.adventureId),
 ])
 
 export const passwordResetTokens = pgTable('password_reset_tokens', {
@@ -429,6 +476,8 @@ export type OrganizationGroup = typeof organizationGroups.$inferSelect
 export type MemberGroupPermission = typeof memberGroupPermissions.$inferSelect
 export type OrganizationMember = typeof organizationMembers.$inferSelect
 export type OrganizationInvite = typeof organizationInvites.$inferSelect
+export type WorldCharacter = typeof worldCharacters.$inferSelect
+export type WorldItem = typeof worldItems.$inferSelect
 export type Adventure = typeof adventures.$inferSelect
 export type Chapter = typeof chapters.$inferSelect
 export type Node = typeof nodes.$inferSelect

@@ -15,6 +15,7 @@ interface EditableEdgeData {
   adventureId: string
   onLabelChange: (edgeId: string, label: string) => void
   onDelete: (edgeId: string) => void
+  onChoiceClick?: (edgeId: string) => void
 }
 
 export default function EditableEdge({
@@ -44,9 +45,18 @@ export default function EditableEdge({
     targetPosition,
   })
 
+  const hasModal = !!edgeData?.onChoiceClick
+
   const handleDoubleClick = () => {
+    if (hasModal) return
     setEditing(true)
     setTimeout(() => inputRef.current?.select(), 0)
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!hasModal) return
+    e.stopPropagation()
+    edgeData.onChoiceClick!(id)
   }
 
   const commit = useCallback(() => {
@@ -91,11 +101,16 @@ export default function EditableEdge({
               autoFocus
             />
           ) : (
-            <div className={`px-2 py-0.5 text-xs rounded shadow-sm cursor-pointer select-none font-medium transition-colors border ${
-              selected
-                ? 'bg-amber-100 border-amber-500 text-amber-800'
-                : 'bg-amber-50 border-amber-300 text-gray-700 hover:bg-amber-100'
-            }`}>
+            <div
+              className={`px-2 py-0.5 text-xs rounded shadow-sm select-none font-medium transition-colors border ${
+                hasModal ? 'cursor-pointer' : 'cursor-pointer'
+              } ${
+                selected
+                  ? 'bg-amber-100 border-amber-500 text-amber-800'
+                  : 'bg-amber-50 border-amber-300 text-gray-700 hover:bg-amber-100'
+              }`}
+              onClick={handleClick}
+            >
               {value || 'Continue'}
             </div>
           )}

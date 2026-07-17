@@ -29,6 +29,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       if (body.soundUrl !== undefined) updateData.soundUrl = body.soundUrl || null
       if (body.soundTitle !== undefined) updateData.soundTitle = body.soundTitle || null
     }
+    if (body.sceneItems !== undefined) updateData.sceneItems = body.sceneItems ?? null
+    if (body.sceneFoeId !== undefined) updateData.sceneFoeId = body.sceneFoeId || null
+    if (body.foeRunAwayNodeId !== undefined) updateData.foeRunAwayNodeId = body.foeRunAwayNodeId || null
     const [updated] = await db.update(nodes).set(updateData).where(and(eq(nodes.id, nodeId), eq(nodes.adventureId, id))).returning()
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json(updated)

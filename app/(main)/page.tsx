@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Plus, BookOpen, GitBranch,
-  Sparkles, ArrowRight, Check, Play, ChevronRight, Globe, BookMarked
+  Sparkles, ArrowRight, Check, Play, ChevronRight, Globe, BookMarked, Sword
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/lib/analytics'
@@ -273,7 +273,7 @@ function LandingPage() {
                 <span className="text-amber-400">Every Choice Matters</span>
               </h1>
               <p className="text-lg sm:text-xl text-white/60 mb-4 max-w-xl">
-                Build branching adventures on a visual canvas. Add AI scene images. Share with readers who shape the outcome.
+                Build classic branching stories or full RPG-style worlds with characters, items, and foe combat — all on a visual canvas with AI illustrations.
               </p>
               <p className="text-sm text-violet-300/70 mb-8 max-w-xl">
                 From {minPrice}/{minInterval}. Cancel anytime.
@@ -389,6 +389,8 @@ function LandingPage() {
                   'Clean, distraction-free reading layout',
                   'Tap choices to navigate branches',
                   'AI-generated scene illustrations',
+                  'Live character stats sidebar in World Builder stories',
+                  'Turn-based foe combat with items and abilities',
                   'Rate and review stories at the end',
                   'Works on any device — phone, tablet, desktop',
                 ].map(item => (
@@ -418,12 +420,13 @@ function LandingPage() {
           <div className="flex flex-col divide-y divide-violet-100">
             {[
               { num: '01', title: 'Visual Canvas', desc: 'Map your full story structure with drag-and-drop scene nodes on an infinite canvas. See every branch at a glance.' },
-              { num: '02', title: 'Chapters', desc: 'Break long stories into chapters — each with its own scenes, branches, and a smooth "Next Chapter" transition.' },
-              { num: '03', title: 'AI Scene Images', desc: 'Auto-generate cinematic illustrations for every scene. No art skills required — just write the content and let the model paint the moment.' },
-              { num: '04', title: 'One-click Publish', desc: 'Share your story with a public link. Built-in validation catches dead ends before your readers do.' },
-              { num: '05', title: 'Audience Controls', desc: 'Set age ratings and genre tags. Reach the right readers with the right story.' },
-              { num: '06', title: 'Ratings & Reviews', desc: 'Readers rate and review. Build credibility through community feedback across every ending they discover.' },
-              { num: '07', title: 'Simple Pricing', desc: `Creating and editing stories requires a subscription — starting at just ${minPrice}/${minInterval}. Reading and browsing are always free.` },
+              { num: '02', title: 'World Builder', desc: 'Create RPG-style adventures with a custom cast of heroes and foes. Characters have attributes like HP, Gold, and Strength that shift with every choice — and foe encounters add real stakes with turn-based combat.' },
+              { num: '03', title: 'Chapters', desc: 'Break long stories into chapters — each with its own scenes, branches, and a smooth "Next Chapter" transition.' },
+              { num: '04', title: 'AI Scene Images', desc: 'Auto-generate cinematic illustrations for every scene. No art skills required — just write the content and let the model paint the moment.' },
+              { num: '05', title: 'One-click Publish', desc: 'Share your story with a public link. Built-in validation catches dead ends before your readers do.' },
+              { num: '06', title: 'Audience Controls', desc: 'Set age ratings and genre tags. Reach the right readers with the right story.' },
+              { num: '07', title: 'Ratings & Reviews', desc: 'Readers rate and review. Build credibility through community feedback across every ending they discover.' },
+              { num: '08', title: 'Simple Pricing', desc: `Creating and editing stories requires a subscription — starting at just ${minPrice}/${minInterval}. Reading and browsing are always free.` },
             ].map(({ num, title, desc }) => (
               <div key={num} className="flex items-start gap-6 sm:gap-10 py-6 group">
                 <span className="text-xs font-mono text-violet-300 pt-1.5 w-6 shrink-0">{num}</span>

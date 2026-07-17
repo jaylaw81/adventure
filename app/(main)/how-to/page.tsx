@@ -6,6 +6,7 @@ import {
   Plus, GitBranch, Share2, Sparkles, Play,
   BookOpen, ChevronRight, CheckCircle2, Pencil,
   ArrowRight, MousePointerClick, Settings, Lightbulb, BookMarked, Music,
+  Users, Sword, Package, Shield, Heart, Zap,
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -275,6 +276,19 @@ const howToSchema = {
         { '@type': 'HowToStep', position: 6, name: 'Rate and review', text: 'At the end of a story you can leave a star rating and written review.' },
       ],
     },
+    {
+      '@type': 'HowToSection',
+      name: 'World Builder',
+      itemListElement: [
+        { '@type': 'HowToStep', position: 1, name: 'Choose World Builder', text: 'Select World Builder when creating a new story to unlock characters, items, and foe combat.' },
+        { '@type': 'HowToStep', position: 2, name: 'Create hero characters', text: 'Add party members with custom attributes like HP, Gold, and Strength.' },
+        { '@type': 'HowToStep', position: 3, name: 'Create foes', text: 'Add foe characters with HP, damage-per-round, defeat text, and an emoji icon.' },
+        { '@type': 'HowToStep', position: 4, name: 'Create items', text: 'Add weapons, potions, and revival items. Set damage values, stat effects, and durability.' },
+        { '@type': 'HowToStep', position: 5, name: 'Place items and foes in scenes', text: 'Assign foes to scenes and place item pickups that readers collect as they explore.' },
+        { '@type': 'HowToStep', position: 6, name: 'Configure choice paths', text: 'Add stat effects and conditions to choices — e.g. HP −10, or show only if Strength ≥ 15.' },
+        { '@type': 'HowToStep', position: 7, name: 'Set health and armor', text: 'Designate which attribute is health and which is armor for each hero. Armor absorbs damage first.' },
+      ],
+    },
   ],
 }
 
@@ -318,6 +332,10 @@ export default async function HowToPage() {
           <a href="#playing" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
             <Play size={13} />
             Playing Stories
+          </a>
+          <a href="#world-builder" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
+            <Sword size={13} />
+            World Builder
           </a>
           <a href="#tips" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
             <Lightbulb size={13} />
@@ -506,6 +524,161 @@ export default async function HowToPage() {
         </div>
       </section>
 
+      {/* ── World Builder ── */}
+      <section id="world-builder" className="px-6 py-20" style={{ background: 'linear-gradient(180deg, #140d2a 0%, #0f0e17 100%)' }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
+              <Sword size={18} className="text-violet-400" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Part 3</p>
+              <h2 id="world-builder-heading" className="text-2xl sm:text-3xl font-extrabold text-white">World Builder</h2>
+            </div>
+          </div>
+          <p className="text-gray-400 mb-3 ml-[52px]">
+            Create RPG-style adventures with a living party of heroes, collectible items, and enemy combat. Choose World Builder as your story type when creating a new story.
+          </p>
+          <div className="ml-[52px] mb-12 flex items-start gap-2.5 bg-violet-500/10 border border-violet-500/20 rounded-xl px-4 py-3 max-w-2xl">
+            <Lightbulb size={14} className="text-violet-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-violet-300 leading-relaxed">World Builder stories use the same node canvas editor as Story Path, with three additional panels in the left sidebar: <strong className="text-white">Characters</strong>, <strong className="text-white">Items</strong>, and <strong className="text-white">Chapters</strong>.</p>
+          </div>
+
+          <div className="flex flex-col gap-16">
+
+            {/* Characters */}
+            <div className="flex flex-col lg:flex-row gap-10 items-start">
+              <div className="flex-1 flex flex-col gap-8">
+                <StepCard number={1} title="Create hero characters" accent="amber" id="wb-heroes">
+                  In the <strong className="text-white">Characters</strong> panel, click <Kbd>Add character</Kbd> and set the type to <strong className="text-white">Hero / Party Member</strong>. Heroes have:
+                  <ul className="mt-3 flex flex-col gap-2">
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Custom attributes</strong> — add any mix of number, boolean, or text attributes (HP, Gold, Strength, etc.)</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Set a <strong className="text-white">default value</strong> and optional min/max for each attribute</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>The party sidebar shown to readers updates live as stats change throughout the story</span></li>
+                  </ul>
+                </StepCard>
+                <StepCard number={2} title="Create foes" accent="amber" id="wb-foes">
+                  Add a character and set the type to <strong className="text-white">Foe / Villain</strong>. Foes have dedicated combat stats instead of the attribute system:
+                  <ul className="mt-3 flex flex-col gap-2">
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">HP</strong> — the foe&apos;s total health in combat</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Damage per round</strong> — how hard they hit back each turn</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Defeat description</strong> — flavor text shown when the party wins</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Emoji icon</strong> — used in the dramatic foe-reveal screen</span></li>
+                  </ul>
+                  <Callout>Assign a foe to any scene using the <strong>Assign foe</strong> field in the scene editor. Set a <strong>Run Away</strong> destination so readers who flee have somewhere to go.</Callout>
+                </StepCard>
+              </div>
+              <div className="flex-1 w-full max-w-sm">
+                <WorldBuilderCharactersMockup />
+              </div>
+            </div>
+
+            {/* Items & scene placement */}
+            <div className="flex flex-col lg:flex-row-reverse gap-10 items-start">
+              <div className="flex-1 flex flex-col gap-8">
+                <StepCard number={3} title="Create items" accent="amber" id="wb-items">
+                  Switch to the <strong className="text-white">Items</strong> panel and click <Kbd>Add item</Kbd>. Items can serve different roles:
+                  <ul className="mt-3 flex flex-col gap-2">
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Weapons &amp; abilities</strong> — set a damage value; these appear in the combat action picker</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Potions &amp; buffs</strong> — add stat effects (e.g. +20 HP) that apply when the item is picked up</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Durability</strong> — set a use limit; items become spent when exhausted</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Revival items</strong> — toggle <em>Can revive</em> and set how much HP is restored; readers can use these mid-combat to revive a fallen hero</span></li>
+                  </ul>
+                </StepCard>
+                <StepCard number={4} title="Place items in scenes" accent="amber" id="wb-scene-items">
+                  Open any scene in the editor. Use <Kbd>Place item</Kbd> to drop a findable pickup into the scene. Readers who arrive see a pickup prompt — claiming the item adds it to that hero&apos;s inventory. Items and inventory persist across all scenes via the reader&apos;s session.
+                  <Callout>You can place the same item in multiple scenes — great for giving different party members a chance to find it on different paths.</Callout>
+                </StepCard>
+              </div>
+              <div className="flex-1 w-full max-w-sm">
+                <WorldBuilderItemsMockup />
+              </div>
+            </div>
+
+            {/* Choice paths & health */}
+            <div className="flex flex-col lg:flex-row gap-10 items-start">
+              <div className="flex-1 flex flex-col gap-8">
+                <StepCard number={5} title="Configure choice paths" accent="amber" id="wb-choice-paths">
+                  Click any choice arrow on the canvas to open the <strong className="text-white">Choice Editor</strong>. Each choice can have:
+                  <ul className="mt-3 flex flex-col gap-2">
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Stat effects</strong> — modify any attribute when a reader takes this path (e.g. &ldquo;HP −10 on the dangerous route&rdquo;)</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Conditions</strong> — hide the choice unless an attribute meets a threshold (e.g. &ldquo;show only if Strength ≥ 15&rdquo;)</span></li>
+                  </ul>
+                  <Callout>Readers who don&apos;t meet a condition simply never see that choice — creating naturally different paths based on how their stats developed.</Callout>
+                </StepCard>
+                <StepCard number={6} title="Set health and armor attributes" accent="amber" id="wb-health-armor">
+                  In the character editor, scroll to the <strong className="text-white">Combat health</strong> panel (visible when the hero has at least one number attribute). Designate:
+                  <ul className="mt-3 flex flex-col gap-2">
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Health attribute</strong> — the attribute that drains when the hero takes damage</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Armor attribute</strong> (optional) — absorbs foe damage first; overflow goes to health</span></li>
+                  </ul>
+                  When the health attribute reaches its minimum, the hero <strong className="text-white">falls</strong> and is shown with a Fallen badge in the party sidebar.
+                </StepCard>
+                <StepCard number={7} title="Generate AI character portraits" accent="amber" id="wb-avatars">
+                  Open any character in the editor and click <Kbd><Sparkles size={11} className="inline" /> Generate avatar</Kbd> (requires a monthly subscription). The AI creates a portrait-style image based on the character&apos;s name and description.
+                  <ul className="mt-3 flex flex-col gap-2">
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Hero portraits appear in the party sidebar as readers play</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Foe portraits replace the emoji icon in the dramatic encounter reveal</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Save the character first — the generate button is available once a character has been saved</span></li>
+                  </ul>
+                </StepCard>
+              </div>
+              <div className="flex-1 w-full max-w-sm sticky top-24">
+                <WorldBuilderCombatMockup />
+              </div>
+            </div>
+
+          </div>
+
+          {/* ── Playing a World Builder Story ── */}
+          <div className="mt-20 pt-16 border-t border-white/8">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
+                <Play size={18} className="text-violet-400" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Reader Experience</p>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-white">Playing a World Builder Story</h3>
+              </div>
+            </div>
+            <p className="text-gray-400 mb-10 ml-[52px]">What readers experience when they play a World Builder adventure.</p>
+            <div className="flex flex-col gap-5">
+              {[
+                {
+                  n: 1, title: 'Party sidebar', id: 'wb-play-sidebar',
+                  body: <>A live stats sidebar appears alongside the story showing every hero&apos;s current attributes — HP, Gold, Strength, and any others you defined. Stats update in real time as readers make choices that have stat effects attached.</>
+                },
+                {
+                  n: 2, title: 'Collecting items', id: 'wb-play-items',
+                  body: <>When a reader arrives at a scene with a placed item, a pickup prompt appears at the top of the scene. Clicking it adds the item to that hero&apos;s inventory. Items with on-pickup effects (like &ldquo;+20 HP&rdquo;) apply immediately. Inventory persists across all scenes in the session.</>
+                },
+                {
+                  n: 3, title: 'Foe encounters', id: 'wb-play-foes',
+                  body: <>Scenes assigned a foe open with a dramatic reveal — the foe&apos;s icon or portrait, name, and lore. Readers choose to fight or flee. In combat:<br /><br />
+                    <strong className="text-white">1.</strong> Select a party member to fight.<br />
+                    <strong className="text-white">2.</strong> Select a weapon or ability from their inventory.<br />
+                    <strong className="text-white">3.</strong> Attack — the hero deals damage, then the foe counterattacks.<br />
+                    <strong className="text-white">4.</strong> Repeat until the foe is defeated or the reader flees to the Run Away scene.
+                  </>
+                },
+                {
+                  n: 4, title: 'Fallen heroes and revival', id: 'wb-play-fallen',
+                  body: <>When a hero&apos;s health hits its minimum they fall — shown with a red <strong className="text-white">Fallen</strong> badge in the party sidebar. Fallen heroes can&apos;t be selected to attack. If any party member holds a revival item, a <strong className="text-white">Revive</strong> tab appears in the combat action picker to bring them back with a configurable amount of HP restored.</>
+                },
+                {
+                  n: 5, title: 'Game over', id: 'wb-play-gameover',
+                  body: <>If all heroes fall simultaneously, the story ends with a full-screen game-over screen showing each fallen hero and an encouraging message. Readers click <strong className="text-white">Try Again</strong> to reset all stats and inventory and return to the very first scene — or <strong className="text-white">Back to home</strong> to exit.</>
+                },
+              ].map(({ n, title, id, body }) => (
+                <StepCard key={n} number={n} title={title} accent="amber" id={id}>
+                  {body}
+                </StepCard>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Tips ── */}
       <section id="tips" className="px-6 py-20"
         style={{ background: 'linear-gradient(135deg, #1a1025 0%, #0f172a 100%)' }}>
@@ -530,6 +703,10 @@ export default async function HowToPage() {
               { icon: BookOpen, tip: 'The home page shows reachable ending count — a useful measure of story depth.' },
               { icon: Music, tip: 'Scene sounds autoplay when readers arrive. Use ambient tracks to set the mood — readers can pause, adjust volume, or mute globally from the header.' },
               { icon: BookMarked, tip: 'On Next Chapter scenes, set an Entry scene to drop readers into a specific scene in the next chapter based on where their path leads — not just the default Start.' },
+              { icon: Shield, tip: 'World Builder: give every hero both a Health and an Armor attribute. Armor absorbs foe damage first — readers feel tanky until it runs out, then the tension spikes.' },
+              { icon: Sword, tip: 'World Builder: add at least one weapon or ability to every scene path so readers always have something to fight with when they hit a foe encounter.' },
+              { icon: Heart, tip: 'World Builder: place a revival item somewhere early in the story so readers who lose a hero can still recover — an unwinnable combat feels unfair, a narrow escape feels epic.' },
+              { icon: Zap, tip: 'World Builder: use stat conditions on choices (e.g. "show only if Strength ≥ 15") to reward readers who took difficult earlier paths — it makes replays feel meaningfully different.' },
             ].map(({ icon: Icon, tip }) => (
               <div key={tip} className="flex items-start gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 hover:bg-white/8 transition-colors">
                 <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center shrink-0">
@@ -678,6 +855,145 @@ function ChaptersMockup() {
               </marker>
             </defs>
           </svg>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function WorldBuilderCharactersMockup() {
+  return (
+    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+      <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
+        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Characters Panel</p>
+      </div>
+      <div className="p-4 flex flex-col gap-3">
+        {/* Hero card */}
+        <div className="rounded-xl border border-violet-500/30 bg-violet-500/8 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-full bg-violet-500/30 text-violet-300 text-xs font-bold flex items-center justify-center shrink-0">A</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-violet-200">Aldric</p>
+              <p className="text-[10px] text-violet-400/60">Hero · Party Member</p>
+            </div>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-400 border border-violet-500/20">Hero</span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            <span className="text-[9px] bg-white/5 border border-white/8 text-white/50 px-1.5 py-0.5 rounded-full">❤ HP 100/100</span>
+            <span className="text-[9px] bg-white/5 border border-white/8 text-white/50 px-1.5 py-0.5 rounded-full">🛡 Armor 40</span>
+            <span className="text-[9px] bg-white/5 border border-white/8 text-white/50 px-1.5 py-0.5 rounded-full">⚡ STR 12</span>
+          </div>
+        </div>
+        {/* Foe card */}
+        <div className="rounded-xl border border-red-500/30 bg-red-500/8 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-full bg-red-500/20 text-lg flex items-center justify-center shrink-0">🐉</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-red-200">Cave Drake</p>
+              <p className="text-[10px] text-red-400/60">Foe / Villain</p>
+            </div>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/20">Foe</span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            <span className="text-[9px] bg-white/5 border border-white/8 text-white/50 px-1.5 py-0.5 rounded-full">❤ HP 80</span>
+            <span className="text-[9px] bg-white/5 border border-white/8 text-white/50 px-1.5 py-0.5 rounded-full">⚔ 15 dmg/rd</span>
+          </div>
+        </div>
+        {/* Add button */}
+        <div className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/20 text-xs text-violet-400">
+          <Plus size={11} /> Add character
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function WorldBuilderItemsMockup() {
+  return (
+    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+      <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
+        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Items Panel</p>
+      </div>
+      <div className="p-4 flex flex-col gap-3">
+        {/* Weapon */}
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/8 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-base shrink-0">⚔️</div>
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-amber-200">Iron Sword</p>
+              <p className="text-[10px] text-amber-400/60">Weapon</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            <span className="text-[9px] bg-white/5 border border-white/8 text-white/50 px-1.5 py-0.5 rounded-full">⚔ 25 damage</span>
+            <span className="text-[9px] bg-white/5 border border-white/8 text-white/50 px-1.5 py-0.5 rounded-full">∞ uses</span>
+          </div>
+        </div>
+        {/* Potion */}
+        <div className="rounded-xl border border-green-500/30 bg-green-500/8 p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-lg bg-green-500/20 flex items-center justify-center text-base shrink-0">🧪</div>
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-green-200">Healing Potion</p>
+              <p className="text-[10px] text-green-400/60">Consumable · Can revive</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            <span className="text-[9px] bg-white/5 border border-white/8 text-white/50 px-1.5 py-0.5 rounded-full">❤ +30 HP on pickup</span>
+            <span className="text-[9px] bg-white/5 border border-white/8 text-white/50 px-1.5 py-0.5 rounded-full">3 uses</span>
+            <span className="text-[9px] bg-green-500/15 border border-green-500/20 text-green-400 px-1.5 py-0.5 rounded-full">✦ Revives</span>
+          </div>
+        </div>
+        {/* Add button */}
+        <div className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-400">
+          <Plus size={11} /> Add item
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function WorldBuilderCombatMockup() {
+  return (
+    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+      <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
+        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Foe Encounter</p>
+      </div>
+      <div className="p-4">
+        {/* Foe reveal */}
+        <div className="text-center mb-4 pb-4 border-b border-white/5">
+          <div className="text-4xl mb-2">🐉</div>
+          <p className="text-sm font-bold text-red-300">Cave Drake</p>
+          <p className="text-[10px] text-white/40 mt-0.5 leading-snug max-w-[180px] mx-auto">A fire-breathing drake guards the ancient tomb…</p>
+          {/* HP bar */}
+          <div className="mt-3 mx-auto max-w-[160px]">
+            <div className="flex justify-between text-[10px] text-white/40 mb-1"><span>HP</span><span>60 / 80</span></div>
+            <div className="w-full h-2 rounded-full bg-white/8">
+              <div className="h-full rounded-full bg-red-500" style={{ width: '75%' }} />
+            </div>
+          </div>
+        </div>
+        {/* Combat controls */}
+        <div className="flex flex-col gap-2.5">
+          <div>
+            <p className="text-[10px] text-white/30 mb-1">Select hero</p>
+            <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-violet-500/15 border border-violet-500/25">
+              <div className="w-5 h-5 rounded-full bg-violet-500/30 text-violet-300 text-[9px] font-bold flex items-center justify-center">A</div>
+              <span className="text-xs text-violet-200 font-medium">Aldric</span>
+              <span className="ml-auto text-[9px] text-violet-400/60">HP 85/100</span>
+            </div>
+          </div>
+          <div>
+            <p className="text-[10px] text-white/30 mb-1">Select weapon / ability</p>
+            <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-amber-500/12 border border-amber-500/25">
+              <span className="text-sm">⚔️</span>
+              <span className="text-xs text-amber-200 font-medium">Iron Sword</span>
+              <span className="ml-auto text-[9px] text-amber-400/70">25 dmg</span>
+            </div>
+          </div>
+          <button className="w-full py-2 rounded-lg text-xs font-bold text-white bg-red-600/80 border border-red-500/40 mt-1">
+            ⚔ Attack
+          </button>
         </div>
       </div>
     </div>

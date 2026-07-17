@@ -1,6 +1,6 @@
 import { eq, sql, and, inArray, isNotNull, desc } from 'drizzle-orm'
 import { db } from './db'
-import { adventures, nodes, choices, chapters, storyReviews } from './schema'
+import { adventures, nodes, choices, chapters, storyReviews, worldCharacters, worldItems } from './schema'
 
 export type AdventureWithCounts = Awaited<ReturnType<typeof getAdventures>>[number]
 
@@ -115,12 +115,29 @@ export async function getAdventureByToken(token: string) {
 export async function getAdventureWithData(id: string) {
   const [adventure] = await db.select().from(adventures).where(eq(adventures.id, id))
   if (!adventure) return null
-  const [adventureNodes, adventureChoices, adventureChapters] = await Promise.all([
+  const [adventureNodes, adventureChoices, adventureChapters, adventureCharacters, adventureItems] = await Promise.all([
     db.select().from(nodes).where(eq(nodes.adventureId, id)),
     db.select().from(choices).where(eq(choices.adventureId, id)),
     db.select().from(chapters).where(eq(chapters.adventureId, id)).orderBy(chapters.orderIndex),
+    db.select().from(worldCharacters).where(eq(worldCharacters.adventureId, id)).orderBy(worldCharacters.orderIndex),
+    db.select().from(worldItems).where(eq(worldItems.adventureId, id)).orderBy(worldItems.orderIndex),
   ])
-  return { ...adventure, nodes: adventureNodes, choices: adventureChoices, chapters: adventureChapters }
+  return {
+    ...adventure,
+    nodes: adventureNodes,
+    choices: adventureChoices,
+    chapters: adventureChapters,
+    characters: adventureCharacters,
+    items: adventureItems,
+  }
+}
+
+export async function getAdventureItems(adventureId: string) {
+  return db.select().from(worldItems).where(eq(worldItems.adventureId, adventureId)).orderBy(worldItems.orderIndex)
+}
+
+export async function getAdventureCharacters(adventureId: string) {
+  return db.select().from(worldCharacters).where(eq(worldCharacters.adventureId, adventureId)).orderBy(worldCharacters.orderIndex)
 }
 
 export async function getNode(nodeId: string) {

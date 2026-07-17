@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 import { authOptions } from '@/lib/auth'
-import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter } from '@/lib/queries'
+import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter, getAdventureCharacters, getAdventureItems, getStartNode } from '@/lib/queries'
 import { canViewMemberStory, getAuthorOrgPrivacy } from '@/lib/orgAccess'
 import SceneView from '@/components/reader/SceneView'
 import ChoiceButton from '@/components/reader/ChoiceButton'
@@ -18,6 +18,8 @@ import RestartButton from '@/components/reader/RestartButton'
 import ReportButton from '@/components/reader/ReportButton'
 import EndingView from '@/components/reader/EndingView'
 import SceneEntrance from '@/components/reader/SceneEntrance'
+import WorldBuilderSceneWrapper from '@/components/reader/WorldBuilderSceneWrapper'
+import type { WBCharacter, WorldItem, SceneItemPickup } from '@/lib/worldBuilder'
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string; nodeId: string }> }) {
   const { id, nodeId } = await params
@@ -53,27 +55,178 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
   const isChapterEnd = node.nodeType === 'chapter_end'
 
   // For chapter_end nodes: resolve the next chapter and the specific entry node.
-  // Priority: chapterEntryNodeId field → chapter_end's own choices → getChapterStartNode fallback.
   const nextChapter = isChapterEnd && node.nextChapterId ? await getChapter(node.nextChapterId) : null
 
   let nextEntryNodeId: string | null = null
   let nextEntryNodeTitle: string | null = null
   if (isChapterEnd) {
     if (node.chapterEntryNodeId) {
-      // Explicit single entry scene stored on the node
       nextEntryNodeId = node.chapterEntryNodeId
     } else if (choices.length === 1) {
-      // Single choice on this chapter_end → treat as the entry
       nextEntryNodeId = choices[0].targetNodeId
     } else if (choices.length === 0 && node.nextChapterId) {
-      // Fallback: find the chapter's start-type node
       const fallback = await getChapterStartNode(id, node.nextChapterId)
       nextEntryNodeId = fallback?.id ?? null
       nextEntryNodeTitle = fallback?.title ?? null
     }
-    // choices.length > 1: reader will render them as selection buttons below
   }
 
+  const isWorldBuilder = adventure?.storyType === 'world'
+  const [characters, worldItems, startNode] = isWorldBuilder
+    ? await Promise.all([
+        getAdventureCharacters(id) as Promise<WBCharacter[]>,
+        getAdventureItems(id) as Promise<WorldItem[]>,
+        getStartNode(id),
+      ])
+    : [[], [], null] as [WBCharacter[], WorldItem[], null]
+
+  const sceneItemPickups = (node.sceneItems as SceneItemPickup[] | null) ?? []
+
+  // World Builder foe for this scene
+  const sceneFoeId = (node as Record<string, unknown>).sceneFoeId as string | null ?? null
+  const foeRunAwayNodeId = (node as Record<string, unknown>).foeRunAwayNodeId as string | null ?? null
+  const sceneFoe = sceneFoeId
+    ? ((characters as WBCharacter[]).find(c => c.id === sceneFoeId) ?? null)
+    : null
+
+  // ── World Builder path ─────────────────────────────────────────────────────
+  if (isWorldBuilder) {
+    const sceneHeader = (
+      <>
+        <SceneTracker
+          adventureId={id}
+          adventureTitle={adventure?.title ?? ''}
+          nodeId={nodeId}
+          nodeType={node.nodeType}
+        />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            {!isStart && <BackButton />}
+            <Link href="/" className="text-xs text-white/40 hover:text-white/70">Home</Link>
+          </div>
+          <div className="flex items-center gap-3">
+            {canShare && <CopySceneButton content={node.content} choices={choices} adventureId={id} />}
+            {isOwner && (
+              <Link href={`/edit/${id}`} className="text-xs text-white/40 hover:text-white/70">Edit</Link>
+            )}
+          </div>
+        </div>
+      </>
+    )
+
+    const sceneFooter = (
+      <div className="mt-10 pt-6 border-t border-white/10">
+        {!isOwner && (
+          <div className="mb-4 flex items-center justify-between gap-4 rounded-xl border border-violet-400/20 bg-violet-500/10 px-4 py-3">
+            <div>
+              <p className="text-sm font-semibold text-white/80">Write your own adventure</p>
+              <p className="text-xs text-violet-300/70 mt-0.5">From $2/week · cancel anytime</p>
+            </div>
+            <Link
+              href="/sign-up"
+              className="shrink-0 px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white text-xs font-semibold rounded-lg transition-colors"
+            >
+              Start writing →
+            </Link>
+          </div>
+        )}
+        <div className="flex justify-end">
+          <ReportButton adventureId={id} />
+        </div>
+      </div>
+    )
+
+    // Chapter end and ending are rendered as children (no character effects on chapter transitions)
+    const chapterEndContent = isChapterEnd ? (
+      <div className="mt-10">
+        <div className="text-center py-10">
+          <div className="inline-flex items-center gap-3 px-6 py-3 bg-teal-900/40 border border-teal-500/30 rounded-2xl mb-6">
+            <span className="text-teal-400 text-lg">✦</span>
+            <p className="text-teal-200 font-semibold text-lg">End of Chapter</p>
+            <span className="text-teal-400 text-lg">✦</span>
+          </div>
+          {choices.length > 1 && !node.chapterEntryNodeId ? (
+            <div>
+              <p className="text-white/50 mb-6">
+                Continue to: <span className="font-medium text-white/70">{nextChapter?.title ?? 'Next Chapter'}</span>
+              </p>
+              <div className="flex flex-col gap-3 max-w-sm mx-auto">
+                {choices.map((choice, index) => (
+                  <Link
+                    key={choice.id}
+                    href={`/play/${id}/${choice.targetNodeId}`}
+                    className="flex items-center gap-3 px-6 py-3 bg-teal-900/30 border-2 border-teal-500/30 hover:border-teal-400 hover:bg-teal-500/20 text-teal-200 font-semibold rounded-xl transition-all"
+                  >
+                    <span className="w-6 h-6 rounded-full bg-teal-500/20 text-teal-300 text-xs font-bold flex items-center justify-center shrink-0">
+                      {index + 1}
+                    </span>
+                    {choice.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : nextEntryNodeId ? (
+            <div>
+              <p className="text-white/50 mb-6">
+                Continue to: <span className="font-medium text-white/70">{nextChapter?.title ?? 'Next Chapter'}</span>
+                {nextEntryNodeTitle && <span className="text-white/30"> — {nextEntryNodeTitle}</span>}
+              </p>
+              <Link
+                href={`/play/${id}/${nextEntryNodeId}`}
+                className="inline-flex items-center gap-2 px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors shadow-md"
+              >
+                Continue →
+              </Link>
+            </div>
+          ) : (
+            <div>
+              <p className="text-white/40 mb-4">No next chapter has been set.</p>
+              <RestartButton href={`/play/${id}`} adventureId={id} />
+            </div>
+          )}
+        </div>
+      </div>
+    ) : null
+
+    const endingContent = isEnding ? (
+      <div className="mt-10">
+        <EndingView adventureId={id} restartHref={`/play/${id}`} />
+      </div>
+    ) : null
+
+    return (
+      <>
+        <div className="-mt-16 h-16 w-full"
+          style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 60%, #0f172a 100%)' }}
+        />
+        <SceneEntrance>
+          <WorldBuilderSceneWrapper
+            adventureId={id}
+            nodeId={nodeId}
+            characters={characters}
+            worldItems={worldItems}
+            sceneItemPickups={sceneItemPickups}
+            choices={isChapterEnd || isEnding ? [] : choices}
+            isChapterEnd={isChapterEnd}
+            isEnding={isEnding}
+            sceneFoe={sceneFoe}
+            foeRunAwayNodeId={foeRunAwayNodeId}
+            startNodeId={startNode?.id ?? null}
+            footer={sceneFooter}
+          >
+            <div className="py-10 px-6 max-w-2xl">
+              {sceneHeader}
+              <SceneView node={node} dark />
+              {chapterEndContent}
+              {endingContent}
+            </div>
+          </WorldBuilderSceneWrapper>
+        </SceneEntrance>
+      </>
+    )
+  }
+
+  // ── Standard story path ────────────────────────────────────────────────────
   return (
     <>
     <div className="-mt-16 h-16 w-full"
@@ -115,7 +268,6 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
               <span className="text-teal-600 text-lg">✦</span>
             </div>
 
-            {/* Multiple choices: branching chapter end — reader picks which path enters next chapter */}
             {choices.length > 1 && !node.chapterEntryNodeId ? (
               <div>
                 <p className="text-gray-500 mb-6">

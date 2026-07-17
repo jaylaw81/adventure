@@ -130,6 +130,11 @@ export const authOptions: NextAuthOptions = {
               token.subscriptionInterval = user.subscriptionInterval ?? null
             }
           } catch {}
+          if (token.email === ADMIN_EMAIL) {
+            token.tier = 'organization'
+            token.subscriptionStatus = 'active'
+            token.subscriptionInterval = 'month'
+          }
         }
       }
       // On first JWT creation or when missing, fetch from DB
@@ -148,6 +153,12 @@ export const authOptions: NextAuthOptions = {
           token.displayName = token.displayName || token.name || ''
           token.isAdult = false
         }
+      }
+      // Admin always gets full organization access regardless of DB record
+      if (token.email === ADMIN_EMAIL) {
+        token.tier = 'organization'
+        token.subscriptionStatus = 'active'
+        token.subscriptionInterval = 'month'
       }
       return token
     },

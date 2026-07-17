@@ -3,9 +3,10 @@ import SceneAudioPlayer from './SceneAudioPlayer'
 
 interface Props {
   node: Node
+  dark?: boolean
 }
 
-export default function SceneView({ node }: Props) {
+export default function SceneView({ node, dark }: Props) {
   return (
     <div className="max-w-2xl mx-auto">
       {node.soundUrl && node.soundTitle && (
@@ -38,17 +39,17 @@ export default function SceneView({ node }: Props) {
       {!node.imageUrl && (node.nodeType === 'start' || node.nodeType === 'ending') && (
         <div className="mb-4 flex items-center gap-2">
           {node.nodeType === 'start' && (
-            <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs rounded-full font-semibold">Start</span>
+            <span className={`px-2.5 py-1 text-xs rounded-full font-semibold ${dark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'}`}>Start</span>
           )}
           {node.nodeType === 'ending' && (
-            <span className="px-2.5 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-semibold">Ending</span>
+            <span className={`px-2.5 py-1 text-xs rounded-full font-semibold ${dark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>Ending</span>
           )}
         </div>
       )}
 
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">{node.title || 'Untitled Scene'}</h1>
-      <div className="prose prose-lg text-gray-700 leading-relaxed whitespace-pre-wrap">
-        {node.content || <em className="text-gray-400">No content written yet.</em>}
+      <h1 className={`text-3xl font-bold mb-6 ${dark ? 'text-white' : 'text-gray-900'}`}>{node.title || 'Untitled Scene'}</h1>
+      <div className={`prose prose-lg leading-relaxed whitespace-pre-wrap ${dark ? 'text-white/85 prose-invert' : 'text-gray-700'}`}>
+        {node.content || <em className={dark ? 'text-white/40' : 'text-gray-400'}>No content written yet.</em>}
       </div>
     </div>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, GitBranch, Layers } from 'lucide-react'
+import { X, GitBranch, Layers, Swords, MapPin } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { analytics } from '@/lib/analytics'
 import { STORY_TAGS } from '@/lib/tags'
@@ -28,12 +28,18 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
   const [editorMode, setEditorMode] = useState<'node' | 'block'>(
     (adventure as { editorMode?: string }).editorMode === 'block' ? 'block' : 'node'
   )
+  const [storyType, setStoryType] = useState<'path' | 'world'>(
+    (adventure as { storyType?: string | null }).storyType === 'world' ? 'world' : 'path'
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const toggleTag = (tag: string) => {
     setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
   }
+
+  const originalStoryType = (adventure as { storyType?: string | null }).storyType === 'world' ? 'world' : 'path'
+  const storyTypeChanged = storyType !== originalStoryType
 
   const handleSave = async () => {
     if (!title.trim()) { setError('Title is required'); return }
@@ -43,12 +49,16 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
       const res = await fetch(`/api/adventures/${adventure.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), description: description.trim(), audience, tags, editorMode }),
+        body: JSON.stringify({ title: title.trim(), description: description.trim(), audience, tags, editorMode, storyType }),
       })
       if (!res.ok) throw new Error('Failed to save')
       analytics.adventureSettingsSaved(adventure.id, audience)
       onSave({ title: title.trim(), description: description.trim(), audience, tags: JSON.stringify(tags), editorMode } as Partial<AdventureWithCounts>)
-      onClose()
+      if (storyTypeChanged) {
+        window.location.reload()
+      } else {
+        onClose()
+      }
     } catch {
       setError('Failed to save settings')
     } finally {
@@ -118,6 +128,37 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
             })}
           </div>
           <p className="text-xs text-gray-400">Select all that apply</p>
+        </div>
+
+        {/* Story Mode */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-700">Story Mode</label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: 'path' as const, label: 'Story Path', description: 'Linear or branching narrative with choices', icon: MapPin },
+              { value: 'world' as const, label: 'World Builder', description: 'Tracks character stats that change with choices', icon: Swords },
+            ].map(({ value, label, description, icon: Icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setStoryType(value)}
+                className={`flex items-start gap-2.5 p-3 rounded-lg border text-left transition-colors ${
+                  storyType === value ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <Icon size={15} className={`mt-0.5 shrink-0 ${storyType === value ? 'text-amber-600' : 'text-gray-400'}`} />
+                <div>
+                  <p className="text-xs font-semibold text-gray-800">{label}</p>
+                  <p className="text-xs text-gray-500 leading-tight mt-0.5">{description}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          {storyTypeChanged && (
+            <p className="text-xs text-amber-600">
+              Changing story mode will reload the page after saving. All story data is preserved.
+            </p>
+          )}
         </div>
 
         {/* Editor Style */}

@@ -157,12 +157,13 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { title, description, template, chapterCount = 0, editorMode = 'node' } = body as {
+    const { title, description, template, chapterCount = 0, editorMode = 'node', storyType } = body as {
       title: string
       description?: string
       template?: 'small' | 'medium' | 'large'
       chapterCount?: number
       editorMode?: 'node' | 'block'
+      storyType?: 'path' | 'world'
     }
 
     if (!title) return NextResponse.json({ error: 'Title required' }, { status: 400 })
@@ -175,6 +176,7 @@ export async function POST(req: Request) {
         description: description ?? '',
         userEmail: session.user.email,
         editorMode,
+        storyType: storyType ?? null,
         createdFrom: template ? 'template' : 'blank',
       })
       .returning()

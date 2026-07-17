@@ -28,9 +28,12 @@ import Toolbar from './Toolbar'
 import AdventureSettingsModal from '@/components/shared/AdventureSettingsModal'
 import ConfirmModal from '@/components/shared/ConfirmModal'
 import InputModal from './InputModal'
+import WorldBuilderPanel from './WorldBuilder/WorldBuilderPanel'
+import ChoicePathModal from './WorldBuilder/ChoicePathModal'
 import type { Node, Choice, Adventure, Chapter } from '@/lib/schema'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { analytics } from '@/lib/analytics'
+import type { WBCharacter, WorldItem } from '@/lib/worldBuilder'
 
 const nodeTypes = { storyNode: StoryNode }
 const edgeTypes = { editableEdge: EditableEdge }
@@ -53,6 +56,7 @@ function toRFEdge(
   choice: Choice,
   onLabelChange: (edgeId: string, label: string) => void,
   onDelete: (edgeId: string) => void,
+  onChoiceClick?: (edgeId: string) => void,
 ): Edge {
   return {
     id: choice.id,
@@ -66,6 +70,7 @@ function toRFEdge(
       adventureId: choice.adventureId,
       onLabelChange,
       onDelete,
+      onChoiceClick,
     },
   }
 }
@@ -75,6 +80,8 @@ interface Props {
   initialNodes: Node[]
   initialChoices: Choice[]
   initialChapters: Chapter[]
+  initialCharacters?: WBCharacter[]
+  initialItems?: WorldItem[]
 }
 
 /* ── Chapter sidebar ──────────────────────────────────────────────── */
@@ -213,7 +220,7 @@ function ChapterSidebar({ chapters, activeChapterId, onSelect, onAdd, onRename, 
 
 /* ── Canvas inner ─────────────────────────────────────────────────── */
 
-function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters }: Props) {
+function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters, initialCharacters = [], initialItems = [] }: Props) {
   const { screenToFlowPosition } = useReactFlow()
   const [dbNodes, setDbNodes] = useState<Node[]>(initialNodes)
   const [dbChapters, setDbChapters] = useState<Chapter[]>(initialChapters)
@@ -237,6 +244,7 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
   const [showChapterModal, setShowChapterModal] = useState(false)
   const [chapterNameDraft, setChapterNameDraft] = useState('')
   const [chapterDeleteTarget, setChapterDeleteTarget] = useState<{ id: string; title: string } | null>(null)
+  const [choiceModalId, setChoiceModalId] = useState<string | null>(null)
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -270,13 +278,23 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
 
   const handleEdgeDelete = useCallback(async (edgeId: string) => {
     setRfEdges(prev => prev.filter(e => e.id !== edgeId))
+    setDbChoices(prev => prev.filter(c => c.id !== edgeId))
     await fetch(`/api/adventures/${adventure.id}/choices/${edgeId}`, { method: 'DELETE' })
     analytics.choiceDeleted(adventure.id)
   }, [adventure.id])
 
+  const handleChoiceClick = useCallback((choiceId: string) => {
+    setChoiceModalId(choiceId)
+  }, [])
+
+  const [dbChoices, setDbChoices] = useState<Choice[]>(initialChoices)
+  const [dbCharacters, setDbCharacters] = useState<WBCharacter[]>(initialCharacters)
+  const [dbItems, setDbItems] = useState<WorldItem[]>(initialItems)
   const [rfNodes, setRfNodes, onNodesChange] = useNodesState(initialNodes.map(toRFNode))
+
+  const isWorldBuilder = adventure.storyType === 'world'
   const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState(
-    initialChoices.map(c => toRFEdge(c, handleLabelChange, handleEdgeDelete))
+    initialChoices.map(c => toRFEdge(c, handleLabelChange, handleEdgeDelete, isWorldBuilder ? handleChoiceClick : undefined))
   )
 
   // Filter visible nodes/edges by active chapter
@@ -313,7 +331,8 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
     })
     const choice: Choice = await res.json()
     analytics.choiceCreated(adventure.id)
-    setRfEdges(eds => addEdge(toRFEdge(choice, handleLabelChange, handleEdgeDelete), eds))
+    setDbChoices(prev => [...prev, choice])
+    setRfEdges(eds => addEdge(toRFEdge(choice, handleLabelChange, handleEdgeDelete, isWorldBuilder ? handleChoiceClick : undefined), eds))
     setCreatingChoice(false)
     setPendingConnection(null)
   }
@@ -322,6 +341,7 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
     async (deletedEdges) => {
       for (const edge of deletedEdges) {
         await fetch(`/api/adventures/${adventure.id}/choices/${edge.id}`, { method: 'DELETE' })
+        setDbChoices(prev => prev.filter(c => c.id !== edge.id))
       }
     },
     [adventure.id]
@@ -532,15 +552,31 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
       />
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Chapter sidebar — always visible for discoverability */}
-        <ChapterSidebar
-          chapters={dbChapters}
-          activeChapterId={activeChapterId}
-          onSelect={handleSelectChapter}
-          onAdd={handleAddChapter}
-          onRename={handleRenameChapter}
-          onDelete={handleDeleteChapter}
-        />
+        {/* Left sidebar: WorldBuilder panel (with chapters) or Chapter-only panel */}
+        {adventure.storyType === 'world' ? (
+          <WorldBuilderPanel
+            adventureId={adventure.id}
+            characters={dbCharacters}
+            items={dbItems}
+            onCharactersChange={setDbCharacters}
+            onItemsChange={setDbItems}
+            chapters={dbChapters}
+            activeChapterId={activeChapterId}
+            onChapterSelect={handleSelectChapter}
+            onChapterAdd={handleAddChapter}
+            onChapterRename={handleRenameChapter}
+            onChapterDelete={handleDeleteChapter}
+          />
+        ) : (
+          <ChapterSidebar
+            chapters={dbChapters}
+            activeChapterId={activeChapterId}
+            onSelect={handleSelectChapter}
+            onAdd={handleAddChapter}
+            onRename={handleRenameChapter}
+            onDelete={handleDeleteChapter}
+          />
+        )}
 
         {/* Canvas */}
         <div
@@ -621,9 +657,27 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters 
             onDelete={handleNodeDelete}
             onDirtyChange={setNodeEditorDirty}
             externalSaveRef={externalSaveRef}
+            storyType={adventure.storyType}
+            worldItems={dbItems}
+            characters={dbCharacters}
           />
         )}
       </div>
+
+      {choiceModalId && (() => {
+        const choice = dbChoices.find(c => c.id === choiceModalId)
+        if (!choice) return null
+        return (
+          <ChoicePathModal
+            choice={choice}
+            characters={dbCharacters}
+            adventureId={adventure.id}
+            onClose={() => setChoiceModalId(null)}
+            onLabelChange={label => handleLabelChange(choice.id, label)}
+            onChoiceUpdate={updated => setDbChoices(prev => prev.map(c => c.id === updated.id ? updated : c))}
+          />
+        )
+      })()}
 
       {showSettings && (
         <AdventureSettingsModal

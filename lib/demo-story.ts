@@ -13,6 +13,7 @@ export const DEMO_ADVENTURE: Adventure = {
   shareToken: null,
   status: 'active',
   editorMode: 'node',
+  storyType: null,
   createdFrom: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
@@ -40,6 +41,7 @@ Your lantern flickers. Whatever you decide, you must choose quickly before darkn
     soundTitle: null,
     positionX: 380,
     positionY: 60,
+    sceneItems: null, sceneFoeId: null, foeRunAwayNodeId: null,
   },
   {
     id: 'demo-node-2',
@@ -60,6 +62,7 @@ A moment later, a small creature emerges from the shadows. It has wide amber eye
     soundTitle: null,
     positionX: 80,
     positionY: 300,
+    sceneItems: null, sceneFoeId: null, foeRunAwayNodeId: null,
   },
   {
     id: 'demo-node-3',
@@ -80,6 +83,7 @@ Beyond it, through a gap in the trees, you glimpse the warm glow of lanterns and
     soundTitle: null,
     positionX: 680,
     positionY: 300,
+    sceneItems: null, sceneFoeId: null, foeRunAwayNodeId: null,
   },
   {
     id: 'demo-node-4',
@@ -100,6 +104,7 @@ It holds the key out to you. Somewhere in this forest, there is a lock that fits
     soundTitle: null,
     positionX: 80,
     positionY: 540,
+    sceneItems: null, sceneFoeId: null, foeRunAwayNodeId: null,
   },
   {
     id: 'demo-node-5',
@@ -120,56 +125,15 @@ Every evening it flows backwards for exactly one hour. Step in during that time 
     soundTitle: null,
     positionX: 680,
     positionY: 540,
+    sceneItems: null, sceneFoeId: null, foeRunAwayNodeId: null,
   },
 ]
 
 export const DEMO_CHOICES: Choice[] = [
-  {
-    id: 'demo-choice-1',
-    adventureId: DEMO_ADVENTURE_ID,
-    sourceNodeId: 'demo-node-1',
-    targetNodeId: 'demo-node-2',
-    label: 'Enter the glowing cave',
-    orderIndex: 0,
-  },
-  {
-    id: 'demo-choice-2',
-    adventureId: DEMO_ADVENTURE_ID,
-    sourceNodeId: 'demo-node-1',
-    targetNodeId: 'demo-node-3',
-    label: 'Follow the silver stream',
-    orderIndex: 1,
-  },
-  {
-    id: 'demo-choice-3',
-    adventureId: DEMO_ADVENTURE_ID,
-    sourceNodeId: 'demo-node-2',
-    targetNodeId: 'demo-node-4',
-    label: 'Approach the creature',
-    orderIndex: 0,
-  },
-  {
-    id: 'demo-choice-4',
-    adventureId: DEMO_ADVENTURE_ID,
-    sourceNodeId: 'demo-node-2',
-    targetNodeId: 'demo-node-1',
-    label: 'Back to the path',
-    orderIndex: 1,
-  },
-  {
-    id: 'demo-choice-5',
-    adventureId: DEMO_ADVENTURE_ID,
-    sourceNodeId: 'demo-node-3',
-    targetNodeId: 'demo-node-5',
-    label: 'Walk toward the lanterns',
-    orderIndex: 0,
-  },
-  {
-    id: 'demo-choice-6',
-    adventureId: DEMO_ADVENTURE_ID,
-    sourceNodeId: 'demo-node-3',
-    targetNodeId: 'demo-node-1',
-    label: 'Return to the path',
-    orderIndex: 1,
-  },
+  { id: 'demo-choice-1', adventureId: DEMO_ADVENTURE_ID, sourceNodeId: 'demo-node-1', targetNodeId: 'demo-node-2', label: 'Enter the glowing cave', orderIndex: 0, characterEffects: null, conditions: null },
+  { id: 'demo-choice-2', adventureId: DEMO_ADVENTURE_ID, sourceNodeId: 'demo-node-1', targetNodeId: 'demo-node-3', label: 'Follow the silver stream', orderIndex: 1, characterEffects: null, conditions: null },
+  { id: 'demo-choice-3', adventureId: DEMO_ADVENTURE_ID, sourceNodeId: 'demo-node-2', targetNodeId: 'demo-node-4', label: 'Approach the creature', orderIndex: 0, characterEffects: null, conditions: null },
+  { id: 'demo-choice-4', adventureId: DEMO_ADVENTURE_ID, sourceNodeId: 'demo-node-2', targetNodeId: 'demo-node-1', label: 'Back to the path', orderIndex: 1, characterEffects: null, conditions: null },
+  { id: 'demo-choice-5', adventureId: DEMO_ADVENTURE_ID, sourceNodeId: 'demo-node-3', targetNodeId: 'demo-node-5', label: 'Walk toward the lanterns', orderIndex: 0, characterEffects: null, conditions: null },
+  { id: 'demo-choice-6', adventureId: DEMO_ADVENTURE_ID, sourceNodeId: 'demo-node-3', targetNodeId: 'demo-node-1', label: 'Return to the path', orderIndex: 1, characterEffects: null, conditions: null },
 ]

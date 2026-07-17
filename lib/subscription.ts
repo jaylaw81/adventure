@@ -2,6 +2,8 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { users, organizations, organizationMembers } from '@/lib/schema'
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'jaylaw81@gmail.com'
+
 /** True if the user is an org admin or member — their access is covered by the organization. */
 export async function isOrgUser(email: string): Promise<boolean> {
   const [orgAdmin] = await db
@@ -21,6 +23,7 @@ export async function isOrgUser(email: string): Promise<boolean> {
 
 /** True if the user can use AI image generation and scene sounds (monthly plan or org/grandfathered). */
 export async function canGenerateImages(email: string): Promise<boolean> {
+  if (email === ADMIN_EMAIL) return true
   const [user] = await db
     .select({
       tier: users.tier,
@@ -42,6 +45,7 @@ export async function canGenerateImages(email: string): Promise<boolean> {
 }
 
 export async function canCreateStories(email: string): Promise<boolean> {
+  if (email === ADMIN_EMAIL) return true
   const [user] = await db
     .select({
       tier: users.tier,

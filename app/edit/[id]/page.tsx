@@ -5,6 +5,7 @@ import { getAdventureWithData } from '@/lib/queries'
 import { canCreateStories } from '@/lib/subscription'
 import Canvas from '@/components/editor/Canvas'
 import BlockCanvas from '@/components/editor/block/BlockCanvas'
+import type { WorldItem, WBCharacter } from '@/lib/worldBuilder'
 
 export default async function EditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -38,6 +39,8 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
       initialNodes={adventure.nodes}
       initialChoices={adventure.choices}
       initialChapters={adventure.chapters}
+      initialCharacters={adventure.characters as WBCharacter[]}
+      initialItems={adventure.items as WorldItem[]}
     />
   )
 }

@@ -379,6 +379,9 @@ function DemoCanvasInner() {
       chapterEntryNodeId: null,
       positionX: position.x,
       positionY: position.y,
+      sceneItems: null,
+      sceneFoeId: null,
+      foeRunAwayNodeId: null,
     })
     setDbNodes(prev => [...prev, node])
     setRfNodes(prev => [...prev, toRFNode(node)])

@@ -8,6 +8,31 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ## 2026-07-17
 
+- **Character health, armor, and death system**: hero characters can now have a designated Health attribute and an optional Armor attribute. In combat, foe counterattacks drain armor first and then overflow into health. When health reaches its minimum the character falls — shown with a "Fallen" badge in the party sidebar. If all party members fall, the story ends with a game-over screen and an encouraging "Try Again" message that resets progress and returns to the start. Fallen characters can be revived mid-combat if a party member carries a revival item.
+- **Revival items**: the item editor now has a "Can revive" toggle. When enabled and the item is in a party member's inventory during combat, a "Revive" tab appears alongside "Attack" in the combat action picker — letting the player bring a fallen hero back with a configurable amount of health restored.
+
+## 2026-07-17
+
+- **AI character avatars**: editors can generate a portrait-style AI image for any character or foe using the "Generate avatar" button in the character editor (monthly subscription required). Avatars appear alongside character stats in the reader's party sidebar and replace the emoji icon in foe encounter panels for a more immersive dramatic reveal.
+
+## 2026-07-17
+
+- **World Builder foe system**: editors can create Foe / Villain characters with HP, per-round damage, and a defeat description, then assign them to any scene. Readers arriving at a foe scene see a dramatic full-screen reveal with the foe's icon, name, and lore; they can choose to fight (selecting a party member and a weapon from their inventory) or run away to an editor-defined escape route. Combat tracks foe HP and item durability across rounds, with a victory screen shown when the foe is conquered.
+- **Item combat stats**: items now carry optional damage-per-use and durability fields. Weapons show their damage value in the combat picker; items with limited durability track uses and become spent when exhausted — both persisted in session storage.
+- **Character type selector**: the character editor now lets editors define characters as Party Members (existing behavior) or Foes/Villains. Foes get dedicated combat stats (HP, damage/round, defeat text, icon emoji) instead of the attribute/inventory system. The left sidebar in the World Builder editor shows heroes and foes in visually distinct sections.
+- **Sidebar nav icon rail**: the World Builder editor's left panel tabs (Characters, Items, Chapters) are now an icon rail replacing the cramped horizontal tab strip — each tab is a 40×40px icon button with a color-coded active indicator, making sections easy to switch between.
+
+## 2026-07-17 (3)
+
+- World Builder choice path modal: clicking a choice arrow on the canvas now opens a full modal where editors can edit the choice label and configure character stat effects and conditions for that path — replacing the previous inline sidebar panel.
+- World Builder items system: editors can define a library of items (weapons, potions, armor, abilities, etc.) in the left panel's new Items tab, then place "findable item" pickups inside individual scenes. Readers encounter item pickup buttons while playing, acquiring items that are stored in their inventory and can apply character stat effects when picked up. Items and inventory persist across scenes via session storage.
+
+## 2026-07-17 (2)
+
+- World Builder story type: a new story creation option alongside the classic Story Path. World Builder stories let authors create characters with fully custom attributes (HP, Gold, Strength, etc.), apply stat effects to each choice (e.g. "−10 HP when the player fights"), and gate choices behind stat conditions (e.g. "only show 'Climb the wall' if Strength ≥ 15"). Readers see a persistent character sidebar showing their party's live stats as they play. Available during the trial period.
+
+## 2026-07-17
+
 - Acquisition source tracking: new users are asked "How did you find StoryQuestor?" during onboarding profile setup (Google, Facebook, friend, Reddit, YouTube, TikTok, Instagram, Other). Responses are saved to their account.
 - Acquisition insights: admin insights page shows a breakdown of acquisition sources with percentage bars.
 - Acquisition email segmentation: custom email blast segments can now filter by "Found us via" to target users from a specific source (e.g. send a campaign only to users who came from Facebook).

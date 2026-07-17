@@ -135,6 +135,98 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── World Builder Loot Cards ── */
+@keyframes loot-entrance {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes loot-glow-pulse {
+  0%, 100% { box-shadow: 0 0 12px 0px rgba(251,191,36,0.14); }
+  50%       { box-shadow: 0 0 28px 8px rgba(251,191,36,0.34); }
+}
+@keyframes loot-shimmer-sweep {
+  0%   { transform: translateX(-200%) skewX(-18deg); }
+  13%  { transform: translateX(320%)  skewX(-18deg); }
+  100% { transform: translateX(320%)  skewX(-18deg); }
+}
+@keyframes loot-burst-ring {
+  0%   { transform: translate(-50%, -50%) scale(0.35); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(3.4);  opacity: 0; }
+}
+@keyframes loot-stamp-in {
+  0%   { transform: scale(1.9) rotate(-10deg); opacity: 0; }
+  65%  { transform: scale(0.92) rotate(2deg);  opacity: 1; }
+  100% { transform: scale(1) rotate(0deg);     opacity: 1; }
+}
+.loot-card {
+  animation: loot-entrance 0.4s cubic-bezier(0.2, 0, 0, 1) both;
+}
+.loot-glow-ring {
+  animation: loot-glow-pulse 3.5s ease-in-out infinite;
+}
+.loot-shimmer-strip {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent 20%, rgba(255,210,80,0.09) 50%, transparent 80%);
+  animation: loot-shimmer-sweep 4.5s linear infinite;
+}
+.loot-burst-ring {
+  position: absolute; top: 50%; left: 50%;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: 2px solid rgba(251,191,36,0.85);
+  pointer-events: none;
+  animation: loot-burst-ring 0.55s cubic-bezier(0.2, 0, 1, 1) forwards;
+}
+.loot-stamp-in {
+  animation: loot-stamp-in 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .loot-card         { animation: none !important; opacity: 1 !important; }
+  .loot-glow-ring    { animation: none !important; }
+  .loot-shimmer-strip{ display: none; }
+  .loot-burst-ring   { animation: none !important; display: none; }
+  .loot-stamp-in     { animation: none !important; }
+}
+/* ── end Loot Cards ── */
+
+/* ── Foe Encounter ── */
+@keyframes foe-bg-pulse {
+  0%, 100% { opacity: 0.12; }
+  50%       { opacity: 0.22; }
+}
+@keyframes foe-icon-entrance {
+  0%   { opacity: 0; transform: scale(0.4) rotate(-8deg); filter: blur(4px); }
+  60%  { opacity: 1; transform: scale(1.12) rotate(2deg); filter: blur(0); }
+  100% { transform: scale(1) rotate(0deg); filter: blur(0); }
+}
+@keyframes foe-victory-in {
+  0%   { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.foe-reveal {
+  animation: foe-victory-in 0.45s cubic-bezier(0.2, 0, 0, 1) both;
+}
+.foe-bg-pulse {
+  background: radial-gradient(ellipse at 50% 50%, rgba(220,38,38,0.18) 0%, transparent 70%);
+  animation: foe-bg-pulse 2.5s ease-in-out infinite;
+}
+.foe-icon-entrance {
+  display: inline-block;
+  animation: foe-icon-entrance 0.6s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+  animation-delay: 0.15s;
+}
+.foe-victory {
+  animation: foe-victory-in 0.5s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foe-reveal, .foe-victory { animation: none !important; }
+  .foe-bg-pulse             { animation: none !important; opacity: 0.14; }
+  .foe-icon-entrance        { animation: none !important; }
+}
+/* ── end Foe Encounter ── */
+
 /* Scene entrance: hidden until WAAPI animation fires after hydration.
    The opacity:0 here prevents FOUC on SSR. */
 .scene-entrance {

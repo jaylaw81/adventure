@@ -7,6 +7,8 @@ import type { Node, Chapter } from '@/lib/schema'
 import { analytics } from '@/lib/analytics'
 import type { AnalyzeResult } from '@/app/api/adventures/[id]/nodes/[nodeId]/analyze/route'
 import SoundPicker from './SoundPicker'
+import SceneItemsEditor from './WorldBuilder/SceneItemsEditor'
+import type { WBCharacter, WorldItem, SceneItemPickup } from '@/lib/worldBuilder'
 
 interface Props {
   node: Node | null
@@ -18,9 +20,13 @@ interface Props {
   onDelete: (nodeId: string) => void
   onDirtyChange: (dirty: boolean) => void
   externalSaveRef: React.MutableRefObject<(() => Promise<boolean>) | null>
+  // World Builder extras
+  storyType?: string | null
+  worldItems?: WorldItem[]
+  characters?: WBCharacter[]
 }
 
-export default function NodeEditor({ node, adventureId, chapters, nodes, onClose, onUpdate, onDelete, onDirtyChange, externalSaveRef }: Props) {
+export default function NodeEditor({ node, adventureId, chapters, nodes, onClose, onUpdate, onDelete, onDirtyChange, externalSaveRef, storyType, worldItems = [], characters = [] }: Props) {
   const { data: session } = useSession()
   const isOrgTier = session?.user?.tier === 'organization'
   const canUseMedia = isOrgTier || session?.user?.subscriptionInterval === 'month'
@@ -46,6 +52,9 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
   const [analyzing, setAnalyzing] = useState(false)
   const [analysis, setAnalysis] = useState<AnalyzeResult | null>(null)
   const [analyzeError, setAnalyzeError] = useState<string | null>(null)
+  const [sceneItems, setSceneItems] = useState<SceneItemPickup[]>([])
+  const [sceneFoeId, setSceneFoeId] = useState<string | null>(null)
+  const [foeRunAwayNodeId, setFoeRunAwayNodeId] = useState<string | null>(null)
 
   const isDirty = title !== savedTitle || content !== savedContent
 
@@ -67,6 +76,9 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
       setChapterEntryNodeId(node.chapterEntryNodeId ?? null)
       setSoundUrl(node.soundUrl ?? null)
       setSoundTitle(node.soundTitle ?? null)
+      setSceneItems((node.sceneItems as SceneItemPickup[]) ?? [])
+      setSceneFoeId((node as Record<string, unknown>).sceneFoeId as string ?? null)
+      setFoeRunAwayNodeId((node as Record<string, unknown>).foeRunAwayNodeId as string ?? null)
       setRegenCount(0)
       setSaveError(null)
       setShowDeleteConfirm(false)
@@ -457,6 +469,97 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
           </div>
         )}
 
+        {/* Scene Items — World Builder only */}
+        {storyType === 'world' && (
+          <div className="rounded-xl overflow-hidden border border-amber-300 shrink-0">
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-amber-500">
+              <span className="text-white text-sm shrink-0">📦</span>
+              <span className="text-xs font-semibold text-white">Items in this Scene</span>
+            </div>
+            <div className="p-3 bg-amber-50">
+              <SceneItemsEditor
+                worldItems={worldItems}
+                characters={characters}
+                sceneItems={sceneItems}
+                onChange={updated => {
+                  setSceneItems(updated)
+                  save({ sceneItems: updated.length > 0 ? updated : null })
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Scene Foe — World Builder only */}
+        {storyType === 'world' && (() => {
+          const foes = characters.filter(c => c.characterType === 'foe')
+          const sceneFoe = foes.find(f => f.id === sceneFoeId)
+          const otherNodes = nodes.filter(n => n.id !== node?.id)
+          return (
+            <div className="rounded-xl overflow-hidden border border-red-300 shrink-0">
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-red-700">
+                <span className="text-white text-sm shrink-0">💀</span>
+                <span className="text-xs font-semibold text-white">Foe in this Scene</span>
+              </div>
+              <div className="p-3 bg-red-50 flex flex-col gap-3">
+                <div>
+                  <label className="block text-[11px] font-medium text-red-800 mb-1">Foe</label>
+                  <select
+                    value={sceneFoeId ?? ''}
+                    onChange={e => {
+                      const val = e.target.value || null
+                      setSceneFoeId(val)
+                      if (!val) setFoeRunAwayNodeId(null)
+                      save({ sceneFoeId: val, foeRunAwayNodeId: val ? foeRunAwayNodeId : null })
+                    }}
+                    className="w-full text-sm border border-red-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-red-400"
+                  >
+                    <option value="">— No foe in this scene —</option>
+                    {foes.length === 0
+                      ? <option disabled value="">Create a foe in the Characters panel first</option>
+                      : foes.map(f => <option key={f.id} value={f.id}>{f.emoji ? `${f.emoji} ` : ''}{f.name} (HP: {f.foeHp ?? '?'})</option>)
+                    }
+                  </select>
+                </div>
+
+                {sceneFoeId && (
+                  <>
+                    {sceneFoe && (
+                      <div className="text-[11px] text-red-700 bg-red-100/60 rounded-lg px-2.5 py-2 leading-relaxed">
+                        <span className="font-semibold">{sceneFoe.name}</span>
+                        {sceneFoe.description && ` — ${sceneFoe.description}`}
+                        <span className="block mt-0.5 text-red-500">
+                          HP: {sceneFoe.foeHp} · Damage/round: {sceneFoe.foeDamage ?? 0}
+                        </span>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-red-800 mb-1">
+                        Run Away path <span className="font-normal text-red-400">(scene the reader escapes to)</span>
+                      </label>
+                      <select
+                        value={foeRunAwayNodeId ?? ''}
+                        onChange={e => {
+                          const val = e.target.value || null
+                          setFoeRunAwayNodeId(val)
+                          save({ sceneFoeId, foeRunAwayNodeId: val })
+                        }}
+                        className="w-full text-sm border border-red-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-red-400"
+                      >
+                        <option value="">— No escape route (fight only) —</option>
+                        {otherNodes.map(n => (
+                          <option key={n.id} value={n.id}>{n.title || '(untitled scene)'}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )
+        })()}
+
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
           <input
@@ -468,7 +571,7 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
           />
         </div>
 
-        <div className="flex-1">
+        <div>
           <div className="flex items-center justify-between mb-1">
             <label className="block text-xs font-medium text-gray-600">Content</label>
             {content.trim() && (

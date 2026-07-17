@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, BookOpen, LayoutTemplate, AlignLeft, BookMarked, Check, Layers, GitBranch } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, LayoutTemplate, AlignLeft, BookMarked, Check, Layers, GitBranch, Globe, Map } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 import PageBanner from '@/components/shared/PageBanner'
 
+type StoryType = 'path' | 'world'
 type EditorMode = 'node' | 'block'
 type Mode = 'template' | 'blank'
 type TemplateSize = 'small' | 'medium' | 'large'
-type Step = 'editor' | 'mode' | 'size' | 'chapters' | 'details'
+type Step = 'storyType' | 'editor' | 'mode' | 'size' | 'chapters' | 'details'
 
 const SIZE_INFO = {
   small: {
@@ -37,6 +38,7 @@ const SIZE_INFO = {
 } as const
 
 const STEP_LABELS: Record<Step, string> = {
+  storyType: 'Story type',
   editor: 'Editor',
   mode: 'Start type',
   size: 'Story size',
@@ -44,13 +46,15 @@ const STEP_LABELS: Record<Step, string> = {
   details: 'Details',
 }
 
-function StepDots({ current, editorMode }: { current: Step; editorMode: EditorMode | null }) {
-  // Editor step shows no dots — it's the pre-wizard screen
-  if (current === 'editor') return null
+function StepDots({ current, editorMode, storyType }: { current: Step; editorMode: EditorMode | null; storyType: StoryType | null }) {
+  // storyType step is the entry — no dots yet
+  if (current === 'storyType') return null
 
-  const steps: Step[] = editorMode === 'block'
+  const steps: Step[] = storyType === 'world'
     ? ['mode', 'size', 'details']
-    : ['mode', 'size', 'chapters', 'details']
+    : editorMode === 'block'
+      ? ['mode', 'size', 'details']
+      : ['mode', 'size', 'chapters', 'details']
 
   return (
     <div className="flex items-center gap-2 justify-center mb-8">
@@ -81,7 +85,8 @@ function StepDots({ current, editorMode }: { current: Step; editorMode: EditorMo
 
 export default function CreateStoryForm() {
   const router = useRouter()
-  const [step, setStep] = useState<Step>('editor')
+  const [step, setStep] = useState<Step>('storyType')
+  const [storyType, setStoryType] = useState<StoryType | null>(null)
   const [editorMode, setEditorMode] = useState<EditorMode | null>(null)
   const [mode, setMode] = useState<Mode | null>(null)
   const [templateSize, setTemplateSize] = useState<TemplateSize | null>(null)
@@ -93,12 +98,16 @@ export default function CreateStoryForm() {
   const [error, setError] = useState('')
 
   function goBack() {
-    if (step === 'mode') setStep('editor')
+    if (step === 'editor') setStep('storyType')
+    else if (step === 'mode') {
+      if (storyType === 'world') setStep('storyType')
+      else setStep('editor')
+    }
     else if (step === 'size') setStep('mode')
     else if (step === 'chapters') setStep('size')
     else if (step === 'details') {
       if (mode === 'blank') setStep('mode')
-      else if (editorMode === 'block') setStep('size')
+      else if (storyType === 'world' || editorMode === 'block') setStep('size')
       else setStep('chapters')
     }
   }
@@ -111,7 +120,8 @@ export default function CreateStoryForm() {
       const body: Record<string, unknown> = {
         title: title.trim(),
         description: description.trim(),
-        editorMode: editorMode ?? 'node',
+        editorMode: storyType === 'world' ? 'node' : (editorMode ?? 'node'),
+        storyType: storyType ?? 'path',
       }
       if (mode === 'template' && templateSize) {
         body.template = templateSize
@@ -131,7 +141,7 @@ export default function CreateStoryForm() {
     }
   }
 
-  const backAction = step === 'editor' ? (
+  const backAction = step === 'storyType' ? (
     <Link href="/" className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
       <ArrowLeft size={15} /> Back
     </Link>
@@ -150,9 +160,88 @@ export default function CreateStoryForm() {
       />
 
       <div className="max-w-2xl mx-auto px-6 py-10">
-        <StepDots current={step} editorMode={editorMode} />
+        <StepDots current={step} editorMode={editorMode} storyType={storyType} />
 
-        {/* ── Step 0: Editor ── */}
+        {/* ── Step 0: Story type ── */}
+        {step === 'storyType' && (
+          <div>
+            <h2 className="text-xl font-bold text-center mb-1" style={{ color: '#1e0a3c' }}>
+              What kind of story are you building?
+            </h2>
+            <p className="text-sm text-gray-500 text-center mb-8">
+              Choose the experience your readers will have. You can always start simple.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              {/* Story Path */}
+              <button
+                onClick={() => { setStoryType('path'); setStep('editor') }}
+                className="group text-left p-6 bg-white rounded-2xl border-2 border-violet-200 hover:border-violet-500 hover:shadow-md transition-all"
+              >
+                <div className="w-full h-28 bg-violet-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 140 90" className="w-full h-full" aria-hidden>
+                    <circle cx="70" cy="16" r="10" fill="#7c3aed" />
+                    <circle cx="36" cy="52" r="8" fill="#6d28d9" />
+                    <circle cx="104" cy="52" r="8" fill="#6d28d9" />
+                    <circle cx="22" cy="80" r="7" fill="#8b5cf6" />
+                    <circle cx="50" cy="80" r="7" fill="#8b5cf6" />
+                    <circle cx="104" cy="80" r="7" fill="#8b5cf6" />
+                    <line x1="62" y1="25" x2="42" y2="45" stroke="#a78bfa" strokeWidth="1.5" />
+                    <line x1="78" y1="25" x2="98" y2="45" stroke="#a78bfa" strokeWidth="1.5" />
+                    <line x1="30" y1="60" x2="24" y2="73" stroke="#c4b5fd" strokeWidth="1.5" />
+                    <line x1="40" y1="60" x2="48" y2="73" stroke="#c4b5fd" strokeWidth="1.5" />
+                    <line x1="104" y1="60" x2="104" y2="73" stroke="#c4b5fd" strokeWidth="1.5" />
+                  </svg>
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Map size={15} className="text-violet-500" />
+                  <h3 className="font-bold text-base" style={{ color: '#1e0a3c' }}>Story Path</h3>
+                </div>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  A classic choose-your-own-adventure. Readers navigate branching scenes by making choices.
+                </p>
+              </button>
+
+              {/* World Builder */}
+              <button
+                onClick={() => { setStoryType('world'); setEditorMode('node'); setStep('mode') }}
+                className="group text-left p-6 bg-white rounded-2xl border-2 border-amber-200 hover:border-amber-500 hover:shadow-md transition-all"
+              >
+                <div className="w-full h-28 bg-amber-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden relative">
+                  <svg viewBox="0 0 140 90" className="w-full h-full" aria-hidden>
+                    {/* Character silhouettes */}
+                    <circle cx="40" cy="30" r="8" fill="#f59e0b" />
+                    <rect x="33" y="40" width="14" height="18" rx="4" fill="#f59e0b" />
+                    <circle cx="100" cy="30" r="8" fill="#d97706" />
+                    <rect x="93" y="40" width="14" height="18" rx="4" fill="#d97706" />
+                    {/* Stats bars */}
+                    <rect x="20" y="65" width="40" height="4" rx="2" fill="#fde68a" />
+                    <rect x="20" y="65" width="28" height="4" rx="2" fill="#f59e0b" />
+                    <rect x="80" y="65" width="40" height="4" rx="2" fill="#fde68a" />
+                    <rect x="80" y="65" width="35" height="4" rx="2" fill="#d97706" />
+                    {/* Path arrow */}
+                    <path d="M58 50 L82 50" stroke="#9ca3af" strokeWidth="2" strokeDasharray="3,2" markerEnd="url(#arrowhead)" />
+                    <defs>
+                      <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto">
+                        <polygon points="0 0, 6 2, 0 4" fill="#9ca3af" />
+                      </marker>
+                    </defs>
+                  </svg>
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Globe size={15} className="text-amber-500" />
+                  <h3 className="font-bold text-base" style={{ color: '#1e0a3c' }}>World Builder</h3>
+                  <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">New</span>
+                </div>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Create characters with stats and attributes. Choices can affect them — readers see their party status as the story unfolds.
+                </p>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 1: Editor ── */}
         {step === 'editor' && (
           <div>
             <h2 className="text-xl font-bold text-center mb-1" style={{ color: '#1e0a3c' }}>
@@ -240,7 +329,7 @@ export default function CreateStoryForm() {
             <p className="text-sm text-gray-500 text-center mb-8">Templates give you a ready-made story structure to fill in.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
-                onClick={() => { setMode('template'); setStep('size') }}
+                onClick={() => { setMode('template'); setStep('size'); }}
                 className="group text-left p-6 bg-white rounded-2xl border-2 border-violet-200 hover:border-violet-500 hover:shadow-md transition-all"
               >
                 <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center mb-4 group-hover:bg-violet-200 transition-colors">
@@ -273,7 +362,7 @@ export default function CreateStoryForm() {
               {(['small', 'medium', 'large'] as TemplateSize[]).map(size => {
                 const info = SIZE_INFO[size]
                 const selected = templateSize === size
-                const nextStep = editorMode === 'block' ? 'details' : 'chapters'
+                const nextStep = (storyType === 'world' || editorMode === 'block') ? 'details' : 'chapters'
                 return (
                   <button
                     key={size}
@@ -394,12 +483,19 @@ export default function CreateStoryForm() {
 
             {/* Summary badges */}
             <div className="flex items-center gap-2 flex-wrap mb-5">
-              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${
-                editorMode === 'block' ? 'bg-indigo-100 text-indigo-700' : 'bg-violet-100 text-violet-700'
-              }`}>
-                {editorMode === 'block' ? <Layers size={11} /> : <GitBranch size={11} />}
-                {editorMode === 'block' ? 'Block Builder' : 'Node Graph'}
-              </span>
+              {storyType === 'world' ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
+                  <Globe size={11} />
+                  World Builder
+                </span>
+              ) : (
+                <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                  editorMode === 'block' ? 'bg-indigo-100 text-indigo-700' : 'bg-violet-100 text-violet-700'
+                }`}>
+                  {editorMode === 'block' ? <Layers size={11} /> : <GitBranch size={11} />}
+                  {editorMode === 'block' ? 'Block Builder' : 'Node Graph'}
+                </span>
+              )}
               {mode === 'template' && templateSize && (
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
                   <LayoutTemplate size={11} />

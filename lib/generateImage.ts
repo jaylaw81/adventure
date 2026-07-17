@@ -17,6 +17,29 @@ const audienceConfig: Record<string, { suffix: string; negativePrompt: string }>
   },
 }
 
+export async function generateCharacterAvatar(
+  name: string,
+  description: string | null,
+  characterType: 'hero' | 'foe',
+  audience: string = 'all'
+): Promise<string> {
+  const config = audienceConfig[audience] ?? audienceConfig.all
+  const desc = description?.trim().slice(0, 120) || ''
+  const prompt = characterType === 'foe'
+    ? `villain portrait, ${name}, ${desc}, menacing fantasy antagonist, dramatic lighting, detailed face and upper body, dark atmosphere, professional fantasy character art${config.suffix}`
+    : `character portrait, ${name}, ${desc}, RPG hero, fantasy adventure, soft dramatic lighting, detailed face and upper body, professional character illustration${config.suffix}`
+
+  const result = await hf.textToImage({
+    model: 'stabilityai/stable-diffusion-xl-base-1.0',
+    inputs: prompt,
+    parameters: { width: 1024, height: 1024, negative_prompt: config.negativePrompt },
+  })
+
+  const arrayBuf = await (result as unknown as Blob).arrayBuffer()
+  const buffer = Buffer.from(arrayBuf)
+  return `data:image/jpeg;base64,${buffer.toString('base64')}`
+}
+
 export async function generateSceneImage(
   title: string,
   content: string,

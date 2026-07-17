@@ -6,7 +6,7 @@ import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import { getPricingConfig, formatCents } from '@/lib/pricing'
 import Link from 'next/link'
-import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock } from 'lucide-react'
+import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock, Sword, Users } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Pricing',
@@ -19,17 +19,20 @@ const FEATURES: {
   weekly: boolean
   monthly: boolean
 }[] = [
-  { label: 'Visual story canvas',        icon: BookOpen, weekly: true,  monthly: true  },
-  { label: 'Unlimited scenes & branches', icon: Sparkles, weekly: true,  monthly: true  },
-  { label: 'Publish stories publicly',    icon: Globe,    weekly: true,  monthly: true  },
-  { label: 'Tags & audience controls',    icon: Tag,      weekly: true,  monthly: true  },
-  { label: 'Story ratings & reviews',     icon: Star,     weekly: true,  monthly: true  },
-  { label: 'AI scene image generation',   icon: Sparkles, weekly: false, monthly: true  },
-  { label: 'Scene soundscapes',           icon: Music,    weekly: false, monthly: true  },
+  { label: 'Visual story canvas',              icon: BookOpen, weekly: true,  monthly: true  },
+  { label: 'Unlimited scenes & branches',       icon: Sparkles, weekly: true,  monthly: true  },
+  { label: 'World Builder RPG system',          icon: Sword,    weekly: true,  monthly: true  },
+  { label: 'Characters, items & foe combat',    icon: Users,    weekly: true,  monthly: true  },
+  { label: 'Publish stories publicly',          icon: Globe,    weekly: true,  monthly: true  },
+  { label: 'Tags & audience controls',          icon: Tag,      weekly: true,  monthly: true  },
+  { label: 'Story ratings & reviews',           icon: Star,     weekly: true,  monthly: true  },
+  { label: 'AI scene image generation',         icon: Sparkles, weekly: false, monthly: true  },
+  { label: 'AI character portraits',            icon: Sparkles, weekly: false, monthly: true  },
+  { label: 'Scene soundscapes',                 icon: Music,    weekly: false, monthly: true  },
 ]
 
 // Index after which the "monthly-only" features start
-const PREMIUM_START = 5
+const PREMIUM_START = 7
 
 export default async function PricingPage() {
   const [session, pricing] = await Promise.all([
@@ -161,7 +164,7 @@ export default async function PricingPage() {
             </div>
             <p className="text-sm text-white/35 mb-6">per month</p>
             <p className="text-xs text-white/40 mb-6 leading-relaxed flex-1">
-              Everything in Weekly, plus AI image generation and scene soundscapes
+              Everything in Weekly, plus AI scene images, AI character portraits, and scene soundscapes
             </p>
             <Link
               href={ctaHref('month')}
