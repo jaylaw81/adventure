@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { and, eq, exists, gt, lt, ne, notExists, or, isNull, sql } from 'drizzle-orm'
+import { and, eq, exists, gt, isNotNull, lt, ne, notExists, or, isNull, sql } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures, nodes, choices } from '@/lib/schema'
@@ -33,6 +33,7 @@ export async function GET() {
     [paidUsersRow],
     [editorModeCounts],
     [createdFromCounts],
+    acquisitionSourceRows,
   ] = await Promise.all([
 
     // Users who have created stories but zero are public
@@ -146,6 +147,16 @@ export async function GET() {
       blankCount:    sql<number>`count(*) filter (where ${adventures.createdFrom} = 'blank')::int`,
       templateCount: sql<number>`count(*) filter (where ${adventures.createdFrom} = 'template')::int`,
     }).from(adventures).where(eq(adventures.status, 'active')),
+
+    // Acquisition source breakdown
+    db.select({
+      source: users.acquisitionSource,
+      count:  sql<number>`count(*)::int`,
+    })
+      .from(users)
+      .where(isNotNull(users.acquisitionSource))
+      .groupBy(users.acquisitionSource)
+      .orderBy(sql`count(*) desc`),
   ])
 
   // ── Google Analytics ──────────────────────────────────────────────────────
@@ -294,6 +305,10 @@ export async function GET() {
         blank:    createdFromCounts?.blankCount    ?? 0,
         template: createdFromCounts?.templateCount ?? 0,
       },
+      acquisitionSources: acquisitionSourceRows.map(r => ({
+        source: r.source ?? 'unknown',
+        count:  r.count,
+      })),
       avgStoriesPerActiveUser: (() => {
         const total = (storyCounts?.publicCount ?? 0) + (storyCounts?.privateCount ?? 0)
         const paid = paidUsersRow?.count ?? 0

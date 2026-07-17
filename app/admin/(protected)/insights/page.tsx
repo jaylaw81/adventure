@@ -7,8 +7,9 @@ import {
   Share2, AlertTriangle, CheckCircle2, ExternalLink,
   BarChart3, Globe, Zap, Copy, Check, Settings,
   UserPlus, CreditCard, GitBranch, Layers, Network,
-  Link2, ThumbsUp, MessageSquare,
+  Link2, ThumbsUp, MessageSquare, MapPin,
 } from 'lucide-react'
+import { ACQUISITION_SOURCE_LABELS } from '@/lib/acquisitionSources'
 
 interface TrialUser {
   email: string
@@ -41,6 +42,7 @@ interface InsightsData {
     avgStoriesPerActiveUser: number
     editorMode: { node: number; block: number }
     createdFrom: { blank: number; template: number }
+    acquisitionSources: { source: string; count: number }[]
   }
   ga: {
     configured: boolean
@@ -521,6 +523,45 @@ export default function AdminInsightsPage() {
 
         </div>
       </section>
+
+      {/* ── Acquisition sources ─────────────────────────────────────────────── */}
+      {db.acquisitionSources.length > 0 && (
+        <section>
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">How users found us</h2>
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-7 h-7 bg-teal-100 rounded-lg flex items-center justify-center">
+                <MapPin size={14} className="text-teal-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-slate-700">Acquisition sources</h3>
+              <span className="ml-auto text-xs text-slate-400">
+                {db.acquisitionSources.reduce((s, r) => s + r.count, 0)} responses
+              </span>
+            </div>
+            <div className="space-y-2">
+              {(() => {
+                const total = db.acquisitionSources.reduce((s, r) => s + r.count, 0)
+                return db.acquisitionSources.map(r => {
+                  const pct = total > 0 ? Math.round((r.count / total) * 100) : 0
+                  return (
+                    <div key={r.source}>
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-slate-600 font-medium">
+                          {ACQUISITION_SOURCE_LABELS[r.source] ?? r.source}
+                        </span>
+                        <span className="text-slate-400">{r.count} · {pct}%</span>
+                      </div>
+                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-teal-400 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  )
+                })
+              })()}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Social content suggestions ───────────────────────────────────────── */}
       {db.recentPublicStories.length > 0 && (

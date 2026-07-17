@@ -8,6 +8,7 @@ import {
   FIELD_LABELS,
   BILLING_STATUS_LABELS,
 } from '@/lib/segmentTypes'
+import { ACQUISITION_SOURCES, ACQUISITION_SOURCE_LABELS } from '@/lib/acquisitionSources'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -32,7 +33,7 @@ interface Props {
 
 // ── Field config ──────────────────────────────────────────────────────────────
 
-type FieldType = 'billing_status' | 'boolean' | 'number' | 'account_status'
+type FieldType = 'billing_status' | 'boolean' | 'number' | 'account_status' | 'acquisition_source'
 
 const FIELD_TYPES: Record<SegmentCondition['field'], FieldType> = {
   billing_status:           'billing_status',
@@ -46,6 +47,7 @@ const FIELD_TYPES: Record<SegmentCondition['field'], FieldType> = {
   joined_more_than_days:    'number',
   trial_ends_within_days:   'number',
   inactive_days:            'number',
+  acquisition_source:       'acquisition_source',
 }
 
 function defaultValue(field: SegmentCondition['field']): SegmentCondition['value'] {
@@ -53,6 +55,7 @@ function defaultValue(field: SegmentCondition['field']): SegmentCondition['value
   if (t === 'billing_status') return 'active'
   if (t === 'boolean') return true
   if (t === 'account_status') return 'active'
+  if (t === 'acquisition_source') return 'google'
   return 7
 }
 
@@ -69,6 +72,7 @@ function conditionLabel(c: SegmentCondition): string {
     case 'joined_more_than_days':   return `Joined more than ${c.value} days ago`
     case 'trial_ends_within_days':  return `Trial ends within ${c.value} days`
     case 'inactive_days':           return `Inactive for ${c.value}+ days`
+    case 'acquisition_source':      return `Found via ${ACQUISITION_SOURCE_LABELS[c.value as string] ?? c.value}`
     default:                        return ''
   }
 }
@@ -151,6 +155,20 @@ function ConditionRow({
             >
               <option value="active">Active</option>
               <option value="suspended">Suspended</option>
+            </select>
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          </div>
+        )}
+        {type === 'acquisition_source' && (
+          <div className="relative">
+            <select
+              value={condition.value as string}
+              onChange={e => onChange({ field: 'acquisition_source', value: e.target.value })}
+              className="text-xs border border-slate-200 rounded-lg px-2.5 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 appearance-none pr-7"
+            >
+              {ACQUISITION_SOURCES.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
             </select>
             <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>

@@ -15,6 +15,7 @@ import {
 import SegmentBuilder from '@/components/admin/SegmentBuilder'
 import type { SegmentCondition } from '@/lib/segmentTypes'
 import { FIELD_LABELS, BILLING_STATUS_LABELS, type BillingStatus } from '@/lib/segmentTypes'
+import { ACQUISITION_SOURCE_LABELS } from '@/lib/acquisitionSources'
 
 interface ChangelogEntry {
   date: string
@@ -62,6 +63,7 @@ function conditionLabel(c: SegmentCondition): string {
     case 'joined_more_than_days':   return `Joined > ${c.value}d ago`
     case 'trial_ends_within_days':  return `Trial ends < ${c.value}d`
     case 'inactive_days':           return `Inactive ${c.value}+ days`
+    case 'acquisition_source':      return `Via: ${ACQUISITION_SOURCE_LABELS[c.value as string] ?? c.value}`
     default:                        return FIELD_LABELS[(c as SegmentCondition).field] ?? ''
   }
 }

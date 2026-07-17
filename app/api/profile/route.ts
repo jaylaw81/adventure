@@ -5,6 +5,9 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures, deletedAccounts } from '@/lib/schema'
 import { stripe } from '@/lib/stripe'
+import { ACQUISITION_SOURCES } from '@/lib/acquisitionSources'
+
+const VALID_SOURCES = new Set(ACQUISITION_SOURCES.map(s => s.value))
 
 async function getSession() {
   const session = await getServerSession(authOptions)
@@ -33,7 +36,7 @@ export async function PUT(req: Request) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { displayName, birthDate } = body
+  const { displayName, birthDate, acquisitionSource } = body
 
   if (typeof displayName !== 'string' || !displayName.trim()) {
     return NextResponse.json({ error: 'displayName is required' }, { status: 400 })
@@ -41,9 +44,13 @@ export async function PUT(req: Request) {
   if (birthDate !== undefined && (typeof birthDate !== 'string' || !birthDate.match(/^\d{4}-\d{2}-\d{2}$/))) {
     return NextResponse.json({ error: 'Invalid birthDate format' }, { status: 400 })
   }
+  if (acquisitionSource !== undefined && acquisitionSource !== null && !VALID_SOURCES.has(acquisitionSource)) {
+    return NextResponse.json({ error: 'Invalid acquisitionSource' }, { status: 400 })
+  }
 
-  const updateData: { displayName: string; birthDate?: string } = { displayName: displayName.trim() }
+  const updateData: { displayName: string; birthDate?: string; acquisitionSource?: string | null } = { displayName: displayName.trim() }
   if (birthDate !== undefined) updateData.birthDate = birthDate
+  if (acquisitionSource !== undefined) updateData.acquisitionSource = acquisitionSource || null
 
   const [updated] = await db
     .update(users)

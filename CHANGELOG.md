@@ -6,6 +6,12 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-07-17
+
+- Acquisition source tracking: new users are asked "How did you find StoryQuestor?" during onboarding profile setup (Google, Facebook, friend, Reddit, YouTube, TikTok, Instagram, Other). Responses are saved to their account.
+- Acquisition insights: admin insights page shows a breakdown of acquisition sources with percentage bars.
+- Acquisition email segmentation: custom email blast segments can now filter by "Found us via" to target users from a specific source (e.g. send a campaign only to users who came from Facebook).
+
 ## 2026-07-16
 
 - Pricing page: new public `/pricing` page shows a weekly vs monthly feature comparison table with live pricing from the admin config and CTAs to sign up or manage your subscription.

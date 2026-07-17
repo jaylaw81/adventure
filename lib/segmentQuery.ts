@@ -119,6 +119,8 @@ function conditionClause(c: SegmentCondition, now: Date) {
       const cutoff = new Date(now.getTime() - c.value * 86_400_000)
       return notExists(subUpdatedAfter(cutoff))
     }
+    case 'acquisition_source':
+      return eq(users.acquisitionSource, c.value)
   }
 }
 

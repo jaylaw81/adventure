@@ -12,6 +12,7 @@ import { calcAge } from '@/lib/age'
 import { analytics } from '@/lib/analytics'
 import { formatCents, getEnabledIntervals } from '@/lib/pricing'
 import type { PricingConfig, BillingInterval } from '@/lib/pricing'
+import { ACQUISITION_SOURCES } from '@/lib/acquisitionSources'
 
 interface ProfileData {
   email: string
@@ -44,6 +45,7 @@ function ProfileContent() {
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [displayName, setDisplayName] = useState('')
   const [birthDate, setBirthDate] = useState('')
+  const [acquisitionSource, setAcquisitionSource] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -201,7 +203,11 @@ function ProfileContent() {
       const res = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName: displayName.trim(), birthDate }),
+        body: JSON.stringify({
+          displayName: displayName.trim(),
+          birthDate,
+          ...(isRequired && acquisitionSource ? { acquisitionSource } : {}),
+        }),
       })
       if (!res.ok) throw new Error()
       await update({ displayName: displayName.trim(), birthDate })
@@ -330,6 +336,25 @@ function ProfileContent() {
           )}
           <p className="text-xs text-gray-400 mt-1">Required. Used only to verify your age for content filtering.</p>
         </div>
+
+        {/* How did you hear about us — onboarding only */}
+        {isRequired && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              How did you find StoryQuestor? <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <select
+              value={acquisitionSource}
+              onChange={e => setAcquisitionSource(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+            >
+              <option value="">Select an option…</option>
+              {ACQUISITION_SOURCES.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Email (read-only) */}
         <div>

@@ -26,6 +26,7 @@ export const users = pgTable('users', {
   trialReminderSentAt: timestamp('trial_reminder_sent_at'),
   reEngagementSentAt: timestamp('re_engagement_sent_at'),
   lastLoginAt: timestamp('last_login_at'),
+  acquisitionSource: text('acquisition_source'), // how the user found StoryQuestor
   invitedByToken: text('invited_by_token'), // friend invite token this user signed up through
   pendingFriendRewardWeeks: integer('pending_friend_reward_weeks').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),

@@ -14,6 +14,7 @@ export type SegmentCondition =
   | { field: 'joined_more_than_days';   value: number }
   | { field: 'trial_ends_within_days';  value: number }
   | { field: 'inactive_days';           value: number }
+  | { field: 'acquisition_source';      value: string }
 
 export const FIELD_LABELS: Record<SegmentCondition['field'], string> = {
   billing_status:           'Billing status',
@@ -27,6 +28,7 @@ export const FIELD_LABELS: Record<SegmentCondition['field'], string> = {
   joined_more_than_days:    'Joined more than N days ago',
   trial_ends_within_days:   'Trial ends within N days',
   inactive_days:            'Inactive for N+ days',
+  acquisition_source:       'Found us via',
 }
 
 export const BILLING_STATUS_LABELS: Record<BillingStatus, string> = {
