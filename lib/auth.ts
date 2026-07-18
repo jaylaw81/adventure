@@ -87,6 +87,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             displayName: user.name ?? '',
             trialEndsAt,
+            lastLoginAt: new Date(),
           }).returning({
             unsubscribeToken: users.unsubscribeToken,
             displayName: users.displayName,
@@ -103,7 +104,7 @@ export const authOptions: NextAuthOptions = {
           }
         } else {
           // Returning user — record last login time
-          db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.email, user.email)).catch(console.error)
+          await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.email, user.email))
         }
       } catch {
         // Non-fatal
