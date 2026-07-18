@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Play, BookOpen, Search, X, Flame } from 'lucide-react'
+import { Play, BookOpen, Search, X, Flame, Sword } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 import ReviewsModal from '@/components/explore/ReviewsModal'
 import PageBanner from '@/components/shared/PageBanner'
@@ -35,6 +35,7 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
   const [search, setSearch] = useState('')
   const [selectedAudience, setSelectedAudience] = useState<string | null>(null)
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  const [selectedStoryType, setSelectedStoryType] = useState<string | null>(null)
   const [reviewsModal, setReviewsModal] = useState<{ id: string; title: string } | null>(null)
 
   // Build sorted tag list with counts — only from stories visible to this user
@@ -61,6 +62,8 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
       if (story.audience === 'adults' && !isAdult) return false
       if (selectedAudience && story.audience !== selectedAudience) return false
       if (selectedTag && !parseTags(story.tags).includes(selectedTag)) return false
+      if (selectedStoryType === 'world' && story.storyType !== 'world') return false
+      if (selectedStoryType === 'path' && story.storyType === 'world') return false
       if (q) {
         const tags = parseTags(story.tags)
         const matchesTitle = story.title.toLowerCase().includes(q)
@@ -69,9 +72,9 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
       }
       return true
     })
-  }, [initialStories, selectedAudience, selectedTag, search, isAdult])
+  }, [initialStories, selectedAudience, selectedTag, selectedStoryType, search, isAdult])
 
-  const activeFilterCount = (selectedAudience ? 1 : 0) + (selectedTag ? 1 : 0) + (search.trim() ? 1 : 0)
+  const activeFilterCount = (selectedAudience ? 1 : 0) + (selectedTag ? 1 : 0) + (selectedStoryType ? 1 : 0) + (search.trim() ? 1 : 0)
 
   return (
     <>
@@ -138,6 +141,36 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
               </button>
             ))}
           </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            <button
+              onClick={() => setSelectedStoryType(null)}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                !selectedStoryType ? 'text-white border-violet-600' : 'bg-white text-gray-600 border-gray-200'
+              }`}
+              style={!selectedStoryType ? { background: '#7c3aed' } : undefined}
+            >
+              All Types
+            </button>
+            <button
+              onClick={() => setSelectedStoryType(selectedStoryType === 'path' ? null : 'path')}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                selectedStoryType === 'path' ? 'text-white border-violet-600' : 'bg-white text-gray-600 border-gray-200'
+              }`}
+              style={selectedStoryType === 'path' ? { background: '#7c3aed' } : undefined}
+            >
+              Story Path
+            </button>
+            <button
+              onClick={() => setSelectedStoryType(selectedStoryType === 'world' ? null : 'world')}
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                selectedStoryType === 'world' ? 'text-white border-amber-500' : 'bg-white text-amber-700 border-amber-200'
+              }`}
+              style={selectedStoryType === 'world' ? { background: '#d97706' } : undefined}
+            >
+              <Sword size={10} />
+              World Builder
+            </button>
+          </div>
           {tagStats.length > 0 && (
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
               {tagStats.slice(0, 10).map(({ tag, popular }) => (
@@ -189,6 +222,43 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
               </div>
             </div>
 
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#7c3aed' }}>Story Type</h3>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => setSelectedStoryType(null)}
+                  className={`text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    !selectedStoryType
+                      ? 'bg-violet-100 text-violet-800 font-semibold'
+                      : 'text-gray-600 hover:bg-violet-50'
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setSelectedStoryType(selectedStoryType === 'path' ? null : 'path')}
+                  className={`text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    selectedStoryType === 'path'
+                      ? 'bg-violet-100 text-violet-800 font-semibold'
+                      : 'text-gray-600 hover:bg-violet-50'
+                  }`}
+                >
+                  Story Path
+                </button>
+                <button
+                  onClick={() => setSelectedStoryType(selectedStoryType === 'world' ? null : 'world')}
+                  className={`flex items-center gap-1.5 text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    selectedStoryType === 'world'
+                      ? 'bg-amber-100 text-amber-800 font-semibold'
+                      : 'text-amber-700 hover:bg-amber-50'
+                  }`}
+                >
+                  <Sword size={12} className="shrink-0" />
+                  World Builder
+                </button>
+              </div>
+            </div>
+
             {tagStats.length > 0 && (
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#7c3aed' }}>Tags</h3>
@@ -218,7 +288,7 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
 
             {activeFilterCount > 0 && (
               <button
-                onClick={() => { setSelectedAudience(null); setSelectedTag(null); setSearch('') }}
+                onClick={() => { setSelectedAudience(null); setSelectedTag(null); setSelectedStoryType(null); setSearch('') }}
                 className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors"
               >
                 <X size={12} />
@@ -235,6 +305,12 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
                   <span className="inline-flex items-center gap-1 bg-violet-100 text-violet-800 text-xs font-medium px-2.5 py-1 rounded-full">
                     {AUDIENCE_LABEL[selectedAudience]}
                     <button onClick={() => setSelectedAudience(null)} className="hover:text-violet-600"><X size={11} /></button>
+                  </span>
+                )}
+                {selectedStoryType && (
+                  <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                    {selectedStoryType === 'world' ? <><Sword size={10} /> World Builder</> : 'Story Path'}
+                    <button onClick={() => setSelectedStoryType(null)} className="hover:text-amber-600"><X size={11} /></button>
                   </span>
                 )}
                 {selectedTag && (
@@ -264,7 +340,7 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
                   <>
                     <p className="text-lg font-semibold mb-1" style={{ color: '#1e0a3c' }}>No stories match your filters.</p>
                     <button
-                      onClick={() => { setSelectedAudience(null); setSelectedTag(null); setSearch('') }}
+                      onClick={() => { setSelectedAudience(null); setSelectedTag(null); setSelectedStoryType(null); setSearch('') }}
                       className="mt-3 text-sm text-violet-500 hover:underline"
                     >
                       Clear filters
@@ -277,9 +353,13 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
                 {filtered.map((story, i) => {
                   const tags = parseTags(story.tags)
                   return (
-                    <div key={story.id} className="bg-white rounded-2xl shadow-sm flex flex-col border border-violet-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 overflow-hidden">
+                    <div
+                      key={story.id}
+                      className="bg-white rounded-2xl shadow-sm flex flex-col hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 overflow-hidden"
+                      style={{ border: story.storyType === 'world' ? '1px solid #fcd34d' : '1px solid #ede9fe' }}
+                    >
                       {story.coverImageUrl ? (
-                        <div className="w-full h-36 overflow-hidden shrink-0">
+                        <div className="w-full h-36 overflow-hidden shrink-0 relative">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={story.coverImageUrl}
@@ -287,15 +367,32 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
                             className="w-full h-full object-cover"
                             loading={i < 6 ? 'eager' : 'lazy'}
                           />
+                          {story.storyType === 'world' && (
+                            <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white"
+                              style={{ background: 'rgba(180,83,9,0.85)', backdropFilter: 'blur(4px)' }}>
+                              <Sword size={9} />
+                              World Builder
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <div className="h-1.5 w-full"
-                          style={{ background: 'linear-gradient(90deg, #7c3aed, #a78bfa)' }}
+                          style={{ background: story.storyType === 'world'
+                            ? 'linear-gradient(90deg, #d97706, #f59e0b)'
+                            : 'linear-gradient(90deg, #7c3aed, #a78bfa)' }}
                         />
                       )}
                       <div className="flex-1 p-5 flex flex-col gap-3">
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <h2 className="text-lg font-bold" style={{ color: '#1e0a3c' }}>{story.title}</h2>
+                          <div className="flex flex-col gap-1 min-w-0">
+                            {story.storyType === 'world' && !story.coverImageUrl && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full w-fit">
+                                <Sword size={9} />
+                                World Builder
+                              </span>
+                            )}
+                            <h2 className="text-lg font-bold" style={{ color: '#1e0a3c' }}>{story.title}</h2>
+                          </div>
                           <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 whitespace-nowrap">
                             {AUDIENCE_LABEL[story.audience] ?? story.audience}
                           </span>
