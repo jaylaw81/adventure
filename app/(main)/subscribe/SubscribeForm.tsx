@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { BookOpen, Sparkles, Zap, Heart, Gift, ArrowRight, Lock } from 'lucide-react'
+import { BookOpen, Sparkles, Zap, Heart, Gift, ArrowRight, Lock, Wand2 } from 'lucide-react'
 import OnboardingProgress from '@/components/shared/OnboardingProgress'
 import { formatCents, getDefaultInterval, getEnabledIntervals, intervalLabel } from '@/lib/pricing'
 import type { PricingConfig, IntervalConfig } from '@/lib/pricing'
@@ -22,11 +22,12 @@ interface Props {
   gracePeriodEndsAt: string | null
   pendingFriendRewardWeeks: number
   onboarding?: boolean
+  hasActiveTrial?: boolean
   pricing?: PricingConfig
   initialInterval?: string
 }
 
-export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingFriendRewardWeeks, onboarding, pricing, initialInterval }: Props) {
+export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingFriendRewardWeeks, onboarding, hasActiveTrial, pricing, initialInterval }: Props) {
   const router = useRouter()
   const { data: session } = useSession()
 
@@ -138,10 +139,12 @@ export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingF
                 className="text-3xl font-extrabold text-white mb-2.5"
                 style={{ letterSpacing: '-0.02em', textWrap: 'balance' } as React.CSSProperties}
               >
-                {displayName ? `Almost there, ${displayName}!` : 'Almost there!'}
+                {displayName ? `Welcome, ${displayName}!` : "You're all set!"}
               </h1>
               <p className="text-violet-300/90 text-sm leading-relaxed max-w-xs mx-auto">
-                Activate your subscription to unlock the story canvas and start creating.
+                {hasActiveTrial
+                  ? 'Your free trial gives you full access to the story editor. Subscribe whenever you\'re ready.'
+                  : 'Activate your subscription to unlock the story canvas and start creating.'}
               </p>
             </>
           ) : (
@@ -159,8 +162,33 @@ export default function SubscribeForm({ trialEndsAt, gracePeriodEndsAt, pendingF
           )}
         </div>
 
-        {/* Grace / trial notice */}
-        {deadlineLabel && (
+        {/* Trial escape hatch — onboarding only */}
+        {onboarding && hasActiveTrial && (
+          <div className="mb-5 rounded-xl overflow-hidden border border-teal-500/30" style={{ background: 'rgba(20,184,166,0.08)' }}>
+            <div className="px-4 py-3.5 flex flex-col gap-2.5">
+              <div className="flex items-center gap-2 text-teal-300 text-sm font-semibold">
+                <Wand2 size={14} className="shrink-0" />
+                Your free trial is active
+              </div>
+              <p className="text-teal-200/70 text-xs leading-relaxed">
+                You can start building stories right now
+                {deadlineLabel ? ` — free access until ${deadlineLabel}` : ''}.
+                Subscribe any time to keep going after your trial.
+              </p>
+              <Link
+                href="/"
+                className="mt-0.5 w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold text-teal-900 transition-opacity hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #2dd4bf, #14b8a6)' }}
+              >
+                <Wand2 size={13} />
+                Start creating now
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Grace / trial notice (non-onboarding or no active trial) */}
+        {deadlineLabel && !hasActiveTrial && (
           <div className="mb-5 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-sm text-center">
             Your free access ends on <strong>{deadlineLabel}</strong> — subscribe to keep creating.
           </div>

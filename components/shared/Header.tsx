@@ -82,7 +82,7 @@ export default function Header() {
     analytics.globalSoundToggle(next)
   }
 
-  const forceSolid = pathname.startsWith('/demo')
+  const forceSolid = !!session || pathname.startsWith('/demo') || pathname.startsWith('/profile') || pathname.startsWith('/subscribe') || pathname.startsWith('/privacy') || pathname.startsWith('/terms')
   const solidBg = scrolled || forceSolid
 
   return (

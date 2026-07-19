@@ -31,7 +31,7 @@ const LINK_COLUMNS = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-violet-100 mt-auto">
+    <footer className="border-t border-violet-100 mt-auto" style={{ background: 'white' }}>
       <div className="max-w-6xl mx-auto px-6 pt-10 pb-6">
 
         {/* Main area: logo + link grid */}

@@ -44,12 +44,15 @@ export default async function SubscribePage({ searchParams }: Props) {
     redirect(onboarding ? '/' : '/profile')
   }
 
+  const hasActiveTrial = !!(user?.trialEndsAt && new Date(user.trialEndsAt) > new Date())
+
   return (
     <SubscribeForm
       trialEndsAt={user?.trialEndsAt?.toISOString() ?? null}
       gracePeriodEndsAt={user?.gracePeriodEndsAt?.toISOString() ?? null}
       pendingFriendRewardWeeks={user?.pendingFriendRewardWeeks ?? 0}
       onboarding={onboarding}
+      hasActiveTrial={hasActiveTrial}
       pricing={pricing}
       initialInterval={intervalParam || undefined}
     />
