@@ -40,7 +40,7 @@ function CanvasMockup() {
           <Settings size={11} /> Settings
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium text-white/40 border border-white/10">
-          <Sparkles size={11} /> AI Image
+          <Sparkles size={11} /> Image
         </div>
         <div className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-gray-900 bg-amber-500">
           Publish
@@ -134,7 +134,7 @@ function ReaderMockup() {
           <div className="absolute inset-0 flex items-center justify-center opacity-25">
             <Sparkles size={22} className="text-amber-400" />
           </div>
-          <div className="absolute bottom-1.5 right-2 text-xs text-white/40 bg-black/30 px-1.5 py-0.5 rounded text-[10px]">AI scene</div>
+          <div className="absolute bottom-1.5 right-2 text-xs text-white/40 bg-black/30 px-1.5 py-0.5 rounded text-[10px]">Scene image</div>
         </div>
         <p className="text-xs text-gray-700 leading-relaxed mb-4">
           The wizard gestures toward two glowing portals. &ldquo;Choose wisely…&rdquo;
@@ -260,7 +260,7 @@ const howToSchema = {
         { '@type': 'HowToStep', position: 3, name: 'Add scenes to the canvas', text: 'Click Add Scene in the toolbar. Click any scene card to open the editor panel. You can set a scene type, write content, mark it Done, and attach ambient sound or music that plays automatically for readers.' },
         { '@type': 'HowToStep', position: 4, name: 'Organize scenes into chapters', text: 'Use the chapter sidebar to add chapters. Each chapter gets its own canvas view and a Start scene. Use Next Chapter scenes to link chapters together. Set an Entry scene on a Next Chapter scene to send readers to a specific scene in the next chapter.' },
         { '@type': 'HowToStep', position: 5, name: 'Connect scenes with choices', text: 'Hover a scene card to reveal handles. Drag from a handle to another scene to create a choice.' },
-        { '@type': 'HowToStep', position: 6, name: 'Generate AI scene images', text: 'Open a completed scene and click Generate Image with AI.' },
+        { '@type': 'HowToStep', position: 6, name: 'Generate scene images', text: 'Open a completed scene and click Generate Image.' },
         { '@type': 'HowToStep', position: 7, name: 'Publish your story', text: 'Toggle Make Public on your story card to publish and list it on the Explore page.' },
       ],
     },
@@ -370,7 +370,7 @@ export default async function HowToPage() {
                 <StepCard number={2} title="Set your audience and tags" accent="amber" id="audience-and-tags">
                   Click the <Kbd>Settings</Kbd> button in the editor toolbar to configure:
                   <ul className="mt-3 flex flex-col gap-2">
-                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Audience</strong> — All Ages, Teens, or Adults Only. Affects how AI images are generated.</span></li>
+                    <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Audience</strong> — All Ages, Teens, or Adults Only. Affects how scene images are generated.</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span><strong className="text-white">Tags</strong> — Keywords like fantasy, mystery, horror. Press Enter after each tag.</span></li>
                   </ul>
                 </StepCard>
@@ -439,8 +439,8 @@ export default async function HowToPage() {
             {/* Step 6 + 7 */}
             <div className="flex flex-col lg:flex-row gap-10 items-start">
               <div className="flex-1 flex flex-col gap-8">
-                <StepCard number={6} title="Generate AI scene images" accent="amber" id="ai-images">
-                  Open a completed scene and click <Kbd><Sparkles size={11} className="inline" /> Generate Image with AI</Kbd>. StoryQuestor creates a cinematic illustration based on your scene title and content.
+                <StepCard number={6} title="Generate scene images" accent="amber" id="ai-images">
+                  Open a completed scene and click <Kbd><Sparkles size={11} className="inline" /> Generate Image</Kbd>. StoryQuestor creates a cinematic illustration based on your scene title and content.
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>You can regenerate up to <strong className="text-white">two times</strong> per scene</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Images generate automatically when you mark a scene <strong className="text-white">Completed</strong></span></li>
@@ -484,7 +484,7 @@ export default async function HowToPage() {
                 },
                 {
                   n: 2, title: 'Read each scene', id: 'read-each-scene',
-                  body: <>Each scene shows a <strong>title</strong>, an <strong>AI-generated illustration</strong>, and <strong>story prose</strong>. Read through it before choosing — the writing gives you context for each option.</>
+                  body: <>Each scene shows a <strong>title</strong>, an <strong>illustration</strong>, and <strong>story prose</strong>. Read through it before choosing — the writing gives you context for each option.</>
                 },
                 {
                   n: 3, title: 'Make your choice', id: 'make-your-choice',
@@ -614,8 +614,8 @@ export default async function HowToPage() {
                   </ul>
                   When the health attribute reaches its minimum, the hero <strong className="text-white">falls</strong> and is shown with a Fallen badge in the party sidebar.
                 </StepCard>
-                <StepCard number={7} title="Generate AI character portraits" accent="amber" id="wb-avatars">
-                  Open any character in the editor and click <Kbd><Sparkles size={11} className="inline" /> Generate avatar</Kbd> (requires a monthly subscription). The AI creates a portrait-style image based on the character&apos;s name and description.
+                <StepCard number={7} title="Generate character portraits" accent="amber" id="wb-avatars">
+                  Open any character in the editor and click <Kbd><Sparkles size={11} className="inline" /> Generate avatar</Kbd> (requires a monthly subscription). A portrait-style image is generated based on the character&apos;s name and description.
                   <ul className="mt-3 flex flex-col gap-2">
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Hero portraits appear in the party sidebar as readers play</span></li>
                     <li className="flex items-start gap-2 text-gray-300"><ChevronRight size={14} className="text-amber-400 shrink-0 mt-0.5" /><span>Foe portraits replace the emoji icon in the dramatic encounter reveal</span></li>
@@ -699,7 +699,7 @@ export default async function HowToPage() {
               { icon: GitBranch, tip: 'Use a "Next Chapter" scene at the end of each chapter to chain them together.' },
               { icon: CheckCircle2, tip: 'Scenes marked Done are highlighted on the canvas so you can track writing progress at a glance.' },
               { icon: MousePointerClick, tip: 'Drag scenes freely to rearrange the canvas — positions are saved automatically.' },
-              { icon: Sparkles, tip: 'AI images respect your audience setting — Adults Only stories never depict minors.' },
+              { icon: Sparkles, tip: 'Scene images respect your audience setting — Adults Only stories never depict minors.' },
               { icon: BookOpen, tip: 'The home page shows reachable ending count — a useful measure of story depth.' },
               { icon: Music, tip: 'Scene sounds autoplay when readers arrive. Use ambient tracks to set the mood — readers can pause, adjust volume, or mute globally from the header.' },
               { icon: BookMarked, tip: 'On Next Chapter scenes, set an Entry scene to drop readers into a specific scene in the next chapter based on where their path leads — not just the default Start.' },
@@ -1004,7 +1004,7 @@ function AiImageMockup() {
   return (
     <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">AI Scene Image</p>
+        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Scene Image</p>
       </div>
       <div className="p-4">
         {/* Scene card */}
@@ -1033,7 +1033,7 @@ function AiImageMockup() {
             2 left
           </div>
         </div>
-        <p className="text-xs text-white/30 text-center mt-3">AI creates a cinematic illustration from your scene content</p>
+        <p className="text-xs text-white/30 text-center mt-3">A cinematic illustration generated from your scene content</p>
       </div>
     </div>
   )

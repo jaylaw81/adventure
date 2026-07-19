@@ -57,7 +57,7 @@ export default function PrivacyPage() {
             <li>To create and manage your account</li>
             <li>To display your stories and allow other users to read them when you make them public</li>
             <li>To enforce our age-based content restrictions (13+ to use the Service; 18+ for Adults Only stories)</li>
-            <li>To generate AI scene images using the content of your scenes (sent to Hugging Face inference API; not stored by that service)</li>
+            <li>To generate scene images using the content of your scenes (sent to Hugging Face inference API; not stored by that service)</li>
             <li>To understand how the Service is used and improve it over time</li>
             <li>To serve relevant advertisements (see Advertising below)</li>
           </ul>
@@ -84,7 +84,7 @@ export default function PrivacyPage() {
               <a href="https://neon.tech/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Neon Privacy Policy</a>
             </li>
             <li>
-              <strong>Hugging Face (AI image generation)</strong> — scene content is sent to Hugging Face&apos;s inference API to generate images. Content is not stored by Hugging Face beyond processing.{' '}
+              <strong>Hugging Face (image generation)</strong> — scene content is sent to Hugging Face&apos;s inference API to generate images. Content is not stored by Hugging Face beyond processing.{' '}
               <a href="https://huggingface.co/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Hugging Face Privacy Policy</a>
             </li>
             <li>

@@ -65,10 +65,10 @@ export default function TermsPage() {
           <p>We reserve the right to remove any User Content that violates these Terms.</p>
         </Section>
 
-        <Section title="AI-Generated Images">
-          <p>StoryQuestor provides an AI image generation feature powered by third-party models. Generated images are stored on our platform and associated with your story. You acknowledge that:</p>
+        <Section title="Generated Images">
+          <p>StoryQuestor provides an image generation feature powered by third-party models. Generated images are stored on our platform and associated with your story. You acknowledge that:</p>
           <ul className="list-disc list-inside space-y-1 mt-1">
-            <li>The quality and accuracy of AI-generated images may vary</li>
+            <li>The quality and accuracy of generated images may vary</li>
             <li>We do not guarantee the originality or intellectual property status of generated images</li>
             <li>You must not use the image generation feature to create prohibited content as defined above</li>
           </ul>

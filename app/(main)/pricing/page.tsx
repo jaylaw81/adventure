@@ -26,8 +26,8 @@ const FEATURES: {
   { label: 'Publish stories publicly',          icon: Globe,    weekly: true,  monthly: true  },
   { label: 'Tags & audience controls',          icon: Tag,      weekly: true,  monthly: true  },
   { label: 'Story ratings & reviews',           icon: Star,     weekly: true,  monthly: true  },
-  { label: 'AI scene image generation',         icon: Sparkles, weekly: false, monthly: true  },
-  { label: 'AI character portraits',            icon: Sparkles, weekly: false, monthly: true  },
+  { label: 'Scene image generation',            icon: Sparkles, weekly: false, monthly: true  },
+  { label: 'Character portraits',               icon: Sparkles, weekly: false, monthly: true  },
   { label: 'Scene soundscapes',                 icon: Music,    weekly: false, monthly: true  },
 ]
 
@@ -164,7 +164,7 @@ export default async function PricingPage() {
             </div>
             <p className="text-sm text-white/35 mb-6">per month</p>
             <p className="text-xs text-white/40 mb-6 leading-relaxed flex-1">
-              Everything in Weekly, plus AI scene images, AI character portraits, and scene soundscapes
+              Everything in Weekly, plus scene images, character portraits, and scene soundscapes
             </p>
             <Link
               href={ctaHref('month')}

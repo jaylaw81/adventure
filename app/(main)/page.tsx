@@ -83,7 +83,7 @@ function CanvasMockup() {
           <Plus size={11} /> Add Scene
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium text-white/40 border border-white/10">
-          <Sparkles size={11} /> AI Image
+          <Sparkles size={11} /> Image
         </div>
         <div className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white bg-violet-600">
           Publish
@@ -212,7 +212,7 @@ function ReaderMockup() {
               <Sparkles size={24} className="text-violet-400" />
             </div>
           </div>
-          <div className="absolute bottom-2 right-2 text-xs text-white/40 bg-black/30 px-2 py-0.5 rounded">AI scene</div>
+          <div className="absolute bottom-2 right-2 text-xs text-white/40 bg-black/30 px-2 py-0.5 rounded">Scene image</div>
         </div>
         <p className="text-sm leading-relaxed mb-5" style={{ color: '#1e0a3c' }}>
           The old wizard gestures toward two glowing portals. &ldquo;Choose wisely — each path leads to a different fate.&rdquo;
@@ -273,7 +273,7 @@ function LandingPage() {
                 <span className="text-amber-400">Every Choice Matters</span>
               </h1>
               <p className="text-lg sm:text-xl text-white/60 mb-4 max-w-xl">
-                Build classic branching stories or full RPG-style worlds with characters, items, and foe combat — all on a visual canvas with AI illustrations.
+                Build classic branching stories or full RPG-style worlds with characters, items, and foe combat — all on a visual canvas with custom illustrations.
               </p>
               <p className="text-sm text-violet-300/70 mb-8 max-w-xl">
                 From {minPrice}/{minInterval}. Cancel anytime.
@@ -338,7 +338,7 @@ function LandingPage() {
                 iconColor: '#d97706',
                 badgeBg: '#f59e0b',
                 title: 'Write & illustrate',
-                desc: 'Write scene content and generate cinematic AI images for each moment — no design skills needed.'
+                desc: 'Write scene content and generate cinematic images for each moment — no design skills needed.'
               },
               {
                 step: '3',
@@ -382,13 +382,13 @@ function LandingPage() {
                 A beautiful reading experience for your audience
               </h2>
               <p className="text-base leading-relaxed mb-8" style={{ color: '#6b7280' }}>
-                Readers get an immersive, mobile-friendly experience. Every scene loads instantly, choices feel natural, and AI images bring the story to life.
+                Readers get an immersive, mobile-friendly experience. Every scene loads instantly, choices feel natural, and scene images bring the story to life.
               </p>
               <ul className="flex flex-col gap-3 text-sm">
                 {[
                   'Clean, distraction-free reading layout',
                   'Tap choices to navigate branches',
-                  'AI-generated scene illustrations',
+                  'Scene illustrations',
                   'Live character stats sidebar in World Builder stories',
                   'Turn-based foe combat with items and abilities',
                   'Rate and review stories at the end',
@@ -422,7 +422,7 @@ function LandingPage() {
               { num: '01', title: 'Visual Canvas', desc: 'Map your full story structure with drag-and-drop scene nodes on an infinite canvas. See every branch at a glance.' },
               { num: '02', title: 'World Builder', desc: 'Create RPG-style adventures with a custom cast of heroes and foes. Characters have attributes like HP, Gold, and Strength that shift with every choice — and foe encounters add real stakes with turn-based combat.' },
               { num: '03', title: 'Chapters', desc: 'Break long stories into chapters — each with its own scenes, branches, and a smooth "Next Chapter" transition.' },
-              { num: '04', title: 'AI Scene Images', desc: 'Auto-generate cinematic illustrations for every scene. No art skills required — just write the content and let the model paint the moment.' },
+              { num: '04', title: 'Scene Images', desc: 'Generate cinematic illustrations for every scene. No art skills required — just write the content and let the platform paint the moment.' },
               { num: '05', title: 'One-click Publish', desc: 'Share your story with a public link. Built-in validation catches dead ends before your readers do.' },
               { num: '06', title: 'Audience Controls', desc: 'Set age ratings and genre tags. Reach the right readers with the right story.' },
               { num: '07', title: 'Ratings & Reviews', desc: 'Readers rate and review. Build credibility through community feedback across every ending they discover.' },
@@ -575,7 +575,7 @@ function Dashboard() {
         {imagesGenerated > 0 && (
           <div className="mb-5 flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm text-violet-800">
             <Sparkles size={14} className="text-violet-500 shrink-0" />
-            AI images generated for {imagesGenerated} scene{imagesGenerated !== 1 ? 's' : ''}. Open a story to see them.
+            Images generated for {imagesGenerated} scene{imagesGenerated !== 1 ? 's' : ''}. Open a story to see them.
             <button onClick={() => setImagesGenerated(0)} className="ml-auto text-violet-400 hover:text-violet-600 text-xs">✕</button>
           </div>
         )}
