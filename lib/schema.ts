@@ -25,6 +25,7 @@ export const users = pgTable('users', {
   welcomeEmailSentAt: timestamp('welcome_email_sent_at'),
   trialReminderSentAt: timestamp('trial_reminder_sent_at'),
   reEngagementSentAt: timestamp('re_engagement_sent_at'),
+  inactivityReminderSentAt: timestamp('inactivity_reminder_sent_at'),
   lastLoginAt: timestamp('last_login_at'),
   acquisitionSource: text('acquisition_source'), // how the user found StoryQuestor
   invitedByToken: text('invited_by_token'), // friend invite token this user signed up through
