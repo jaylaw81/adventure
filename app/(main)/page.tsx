@@ -218,16 +218,16 @@ function ReaderMockup() {
           The old wizard gestures toward two glowing portals. &ldquo;Choose wisely — each path leads to a different fate.&rdquo;
         </p>
         <div className="flex flex-col gap-2.5">
-          <button className="w-full text-left px-4 py-2.5 rounded-xl border-2 border-violet-400 text-sm font-medium flex items-center justify-between"
+          <button tabIndex={-1} className="w-full text-left px-4 py-2.5 rounded-xl border-2 border-violet-400 text-sm font-medium flex items-center justify-between"
             style={{ background: '#f5f3ff', color: '#5b21b6' }}>
             Step through the golden portal
             <ArrowRight size={14} className="text-violet-500" />
           </button>
-          <button className="w-full text-left px-4 py-2.5 rounded-xl border border-violet-100 bg-white text-sm font-medium text-violet-700 flex items-center justify-between">
+          <button tabIndex={-1} className="w-full text-left px-4 py-2.5 rounded-xl border border-violet-100 bg-white text-sm font-medium text-violet-700 flex items-center justify-between">
             Take the silver portal
             <ArrowRight size={14} className="text-violet-300" />
           </button>
-          <button className="w-full text-left px-4 py-2.5 rounded-xl border border-violet-100 bg-white text-sm font-medium text-violet-700 flex items-center justify-between">
+          <button tabIndex={-1} className="w-full text-left px-4 py-2.5 rounded-xl border border-violet-100 bg-white text-sm font-medium text-violet-700 flex items-center justify-between">
             Refuse both and walk away
             <ArrowRight size={14} className="text-violet-300" />
           </button>

@@ -991,7 +991,7 @@ function WorldBuilderCombatMockup() {
               <span className="ml-auto text-[9px] text-amber-400/70">25 dmg</span>
             </div>
           </div>
-          <button className="w-full py-2 rounded-lg text-xs font-bold text-white bg-red-600/80 border border-red-500/40 mt-1">
+          <button tabIndex={-1} className="w-full py-2 rounded-lg text-xs font-bold text-white bg-red-600/80 border border-red-500/40 mt-1">
             ⚔ Attack
           </button>
         </div>
