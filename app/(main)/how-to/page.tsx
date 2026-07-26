@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 function CanvasMockup() {
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+    <div aria-hidden="true" className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10"
       style={{ background: '#0f0e17' }}>
       {/* Browser chrome */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10" style={{ background: '#1a1730' }}>
@@ -118,7 +118,7 @@ function CanvasMockup() {
 
 function ReaderMockup() {
   return (
-    <div className="relative mx-auto w-64 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-gray-800"
+    <div aria-hidden="true" className="relative mx-auto w-64 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-gray-800"
       style={{ background: '#f9fafb' }}>
       <div className="bg-gray-900 h-6 flex items-center justify-center">
         <div className="w-16 h-3 bg-gray-800 rounded-full" />
@@ -163,7 +163,7 @@ function ReaderMockup() {
 
 function NodeTypeLegend() {
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+    <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
         <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Scene Types</p>
       </div>
@@ -197,7 +197,7 @@ function NodeTypeLegend() {
 
 function ConnectionMockup() {
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+    <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
         <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Connecting Scenes</p>
       </div>
@@ -323,26 +323,26 @@ export default async function HowToPage() {
       </section>
 
       {/* ── Quick Nav ── */}
-      <div className="sticky top-0 z-20 border-b border-white/8" style={{ background: 'rgba(15,14,23,0.92)', backdropFilter: 'blur(12px)' }}>
+      <nav aria-label="On this page" className="sticky top-0 z-20 border-b border-white/8" style={{ background: 'rgba(15,14,23,0.92)', backdropFilter: 'blur(12px)' }}>
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <a href="#creating" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
+          <a href="#creating" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:rounded-md">
             <Pencil size={13} />
             Creating Stories
           </a>
-          <a href="#playing" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
+          <a href="#playing" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:rounded-md">
             <Play size={13} />
             Playing Stories
           </a>
-          <a href="#world-builder" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
+          <a href="#world-builder" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:rounded-md">
             <Sword size={13} />
             World Builder
           </a>
-          <a href="#tips" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors">
+          <a href="#tips" className="shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white/50 hover:text-amber-400 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:rounded-md">
             <Lightbulb size={13} />
             Tips &amp; Tricks
           </a>
         </div>
-      </div>
+      </nav>
 
       {/* ── Creating Stories ── */}
       <section id="creating" className="px-6 py-20" style={{ background: 'linear-gradient(180deg, #0f0e17 0%, #1a1025 100%)' }}>
@@ -512,7 +512,7 @@ export default async function HowToPage() {
             {/* Phone mockup — sticky on desktop */}
             <div className="hidden lg:flex flex-col items-center gap-4 sticky top-24 w-72 shrink-0">
               <ReaderMockup />
-              <p className="text-xs text-gray-400 text-center">The reader experience — clean, immersive, works on any device</p>
+              <p className="text-xs text-gray-500 text-center">The reader experience — clean, immersive, works on any device</p>
             </div>
           </div>
 
@@ -729,12 +729,12 @@ export default async function HowToPage() {
           <p className="text-gray-400 text-sm mb-10">From {minPrice}. Cancel anytime.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/sign-up"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-900 bg-amber-500 hover:bg-amber-600 shadow-lg transition-all hover:scale-105">
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-900 bg-amber-500 hover:bg-amber-600 shadow-lg transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2">
               <Plus size={16} />
               Get started
             </Link>
             <Link href="/explore"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors">
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2">
               <Play size={15} />
               Browse stories
             </Link>
@@ -788,7 +788,7 @@ function Callout({ children }: { children: React.ReactNode }) {
 
 function ChaptersMockup() {
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+    <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
         <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Chapter Navigation</p>
       </div>
@@ -863,7 +863,7 @@ function ChaptersMockup() {
 
 function WorldBuilderCharactersMockup() {
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+    <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
         <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Characters Panel</p>
       </div>
@@ -910,7 +910,7 @@ function WorldBuilderCharactersMockup() {
 
 function WorldBuilderItemsMockup() {
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+    <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
         <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Items Panel</p>
       </div>
@@ -955,7 +955,7 @@ function WorldBuilderItemsMockup() {
 
 function WorldBuilderCombatMockup() {
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+    <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
         <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Foe Encounter</p>
       </div>
@@ -1002,7 +1002,7 @@ function WorldBuilderCombatMockup() {
 
 function AiImageMockup() {
   return (
-    <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
+    <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
         <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Scene Image</p>
       </div>
@@ -1017,7 +1017,7 @@ function AiImageMockup() {
           <div className="w-full h-28 relative flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, #1e1b3a, #0f0e17)' }}>
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 rounded-full border-2 border-amber-400/60 border-t-amber-400 animate-spin" />
+              <div className="w-8 h-8 rounded-full border-2 border-amber-400/60 border-t-amber-400 motion-safe:animate-spin" />
               <span className="text-xs text-white/30">Generating image…</span>
             </div>
           </div>
