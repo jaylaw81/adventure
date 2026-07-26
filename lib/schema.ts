@@ -27,6 +27,7 @@ export const users = pgTable('users', {
   reEngagementSentAt: timestamp('re_engagement_sent_at'),
   inactivityReminderSentAt: timestamp('inactivity_reminder_sent_at'),
   lastLoginAt: timestamp('last_login_at'),
+  languagePreference: text('language_preference').notNull().default('en'), // ISO 639-1 reader language
   acquisitionSource: text('acquisition_source'), // how the user found StoryQuestor
   invitedByToken: text('invited_by_token'), // friend invite token this user signed up through
   pendingFriendRewardWeeks: integer('pending_friend_reward_weeks').notNull().default(0),
@@ -44,6 +45,7 @@ export const adventures = pgTable('adventures', {
   shareToken: text('share_token').unique(),
   status: text('status').notNull().default('active'), // 'active' | 'suspended'
   editorMode: text('editor_mode').notNull().default('node'), // 'node' | 'block'
+  language: text('language').notNull().default('en'), // ISO 639-1 story language
   storyType: text('story_type'), // 'path' | 'world' — null treated as 'path'
   createdFrom: text('created_from'), // 'blank' | 'template' — null for stories created before tracking
   createdAt: timestamp('created_at').defaultNow().notNull(),

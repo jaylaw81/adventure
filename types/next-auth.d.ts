@@ -13,6 +13,7 @@ declare module 'next-auth' {
       tier: string
       subscriptionStatus: string | null
       subscriptionInterval: string | null
+      languagePreference: string
     }
   }
 }

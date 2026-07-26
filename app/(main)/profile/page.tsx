@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Save, Trash2, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff, CreditCard, ExternalLink, Gift, Send, CheckCircle, Clock, RefreshCw } from 'lucide-react'
+import { Save, Trash2, CalendarDays, ShieldCheck, ArrowLeft, Bell, BellOff, CreditCard, ExternalLink, Gift, Send, CheckCircle, Clock, RefreshCw, Globe } from 'lucide-react'
 import Link from 'next/link'
 import PageBanner from '@/components/shared/PageBanner'
 import OnboardingProgress from '@/components/shared/OnboardingProgress'
@@ -13,11 +13,13 @@ import { analytics } from '@/lib/analytics'
 import { formatCents, getEnabledIntervals } from '@/lib/pricing'
 import type { PricingConfig, BillingInterval } from '@/lib/pricing'
 import { ACQUISITION_SOURCES } from '@/lib/acquisitionSources'
+import { LANGUAGES } from '@/lib/languages'
 
 interface ProfileData {
   email: string
   displayName: string
   birthDate: string | null
+  languagePreference: string
   createdAt: string
   image: string | null
 }
@@ -46,6 +48,7 @@ function ProfileContent() {
   const [displayName, setDisplayName] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [acquisitionSource, setAcquisitionSource] = useState('')
+  const [languagePreference, setLanguagePreference] = useState('en')
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -93,6 +96,7 @@ function ProfileContent() {
         setProfile(data)
         setDisplayName(data.displayName || '')
         setBirthDate(data.birthDate || '')
+        setLanguagePreference(data.languagePreference || 'en')
       })
     fetch('/api/profile/email-subscription')
       .then(r => r.json())
@@ -206,6 +210,7 @@ function ProfileContent() {
         body: JSON.stringify({
           displayName: displayName.trim(),
           birthDate,
+          languagePreference,
           ...(isRequired && acquisitionSource ? { acquisitionSource } : {}),
         }),
       })
@@ -355,6 +360,26 @@ function ProfileContent() {
             </select>
           </div>
         )}
+
+        {/* Reading language */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
+            <Globe size={14} className="text-gray-400" />
+            Reading Language
+          </label>
+          <select
+            value={languagePreference}
+            onChange={e => setLanguagePreference(e.target.value)}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+          >
+            {LANGUAGES.map(lang => (
+              <option key={lang.code} value={lang.code}>
+                {lang.name} — {lang.nativeName}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-400 mt-1">Stories in other languages will be automatically offered in this language.</p>
+        </div>
 
         {/* Email (read-only) */}
         <div>

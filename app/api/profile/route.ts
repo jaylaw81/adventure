@@ -26,6 +26,7 @@ export async function GET() {
     email: user.email,
     displayName: user.displayName,
     birthDate: user.birthDate ?? null,
+    languagePreference: user.languagePreference ?? 'en',
     createdAt: user.createdAt,
     image: session.user.image ?? null,
   })
@@ -36,7 +37,7 @@ export async function PUT(req: Request) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { displayName, birthDate, acquisitionSource } = body
+  const { displayName, birthDate, acquisitionSource, languagePreference } = body
 
   if (typeof displayName !== 'string' || !displayName.trim()) {
     return NextResponse.json({ error: 'displayName is required' }, { status: 400 })
@@ -47,10 +48,14 @@ export async function PUT(req: Request) {
   if (acquisitionSource !== undefined && acquisitionSource !== null && !VALID_SOURCES.has(acquisitionSource)) {
     return NextResponse.json({ error: 'Invalid acquisitionSource' }, { status: 400 })
   }
+  if (languagePreference !== undefined && typeof languagePreference !== 'string') {
+    return NextResponse.json({ error: 'Invalid languagePreference' }, { status: 400 })
+  }
 
-  const updateData: { displayName: string; birthDate?: string; acquisitionSource?: string | null } = { displayName: displayName.trim() }
+  const updateData: { displayName: string; birthDate?: string; acquisitionSource?: string | null; languagePreference?: string } = { displayName: displayName.trim() }
   if (birthDate !== undefined) updateData.birthDate = birthDate
   if (acquisitionSource !== undefined) updateData.acquisitionSource = acquisitionSource || null
+  if (languagePreference !== undefined) updateData.languagePreference = languagePreference || 'en'
 
   const [updated] = await db
     .update(users)

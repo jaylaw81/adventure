@@ -6,6 +6,12 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-07-26 (translation)
+
+- **Story translation**: readers can now translate any story into their preferred language. When the story language differs from a reader's preference (or browser language for guests), a translate prompt appears. Once accepted, all scene text and choice labels are translated in one step via Google Cloud Translate and cached for the session — clicking through subsequent scenes auto-translates them. A "Show original" link lets readers toggle back at any time.
+- **Reading language preference**: users can set their preferred reading language in Profile Settings. Stories in other languages will offer to translate automatically.
+- **Story language setting**: authors can tag their story's language in Story Settings, helping readers discover stories in their language and enabling accurate translation detection.
+
 ## 2026-07-26
 
 - **Blog section**: added a public `/blog` with 10 full-length articles covering interactive fiction writing tips, story ideas, history, and education. Blog posts are stored in the database and fully editable from the admin panel — admins can create, edit, reorder sections, toggle publish status, and delete posts via `/admin/blog`.

@@ -129,6 +129,7 @@ export const authOptions: NextAuthOptions = {
               token.tier = await resolveEffectiveTier(token.email as string, user.tier)
               token.subscriptionStatus = user.subscriptionStatus ?? null
               token.subscriptionInterval = user.subscriptionInterval ?? null
+              token.languagePreference = user.languagePreference ?? 'en'
             }
           } catch {}
           if (token.email === ADMIN_EMAIL) {
@@ -149,6 +150,7 @@ export const authOptions: NextAuthOptions = {
             token.tier = await resolveEffectiveTier(token.email as string, user.tier)
             token.subscriptionStatus = user.subscriptionStatus ?? null
             token.subscriptionInterval = user.subscriptionInterval ?? null
+            token.languagePreference = user.languagePreference ?? 'en'
           }
         } catch {
           token.displayName = token.displayName || token.name || ''
@@ -173,6 +175,7 @@ export const authOptions: NextAuthOptions = {
         session.user.tier = token.tier ?? 'free'
         session.user.subscriptionStatus = token.subscriptionStatus ?? null
         session.user.subscriptionInterval = token.subscriptionInterval ?? null
+        session.user.languagePreference = (token.languagePreference as string) ?? 'en'
       }
       return session
     },

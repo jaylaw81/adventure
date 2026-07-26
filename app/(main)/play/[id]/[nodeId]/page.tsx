@@ -9,8 +9,7 @@ export const metadata: Metadata = {
 import { authOptions } from '@/lib/auth'
 import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter, getAdventureCharacters, getAdventureItems, getStartNode } from '@/lib/queries'
 import { canViewMemberStory, getAuthorOrgPrivacy } from '@/lib/orgAccess'
-import SceneView from '@/components/reader/SceneView'
-import ChoiceButton from '@/components/reader/ChoiceButton'
+import SceneTranslationWrapper from '@/components/reader/SceneTranslationWrapper'
 import CopySceneButton from '@/components/reader/CopySceneButton'
 import BackButton from '@/components/reader/BackButton'
 import SceneTracker from '@/components/reader/SceneTracker'
@@ -216,7 +215,14 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
           >
             <div className="py-10 px-6 max-w-2xl">
               {sceneHeader}
-              <SceneView node={node} dark />
+              <SceneTranslationWrapper
+                node={node}
+                choices={[]}
+                adventureId={id}
+                storyLanguage={adventure?.language ?? 'en'}
+                userLanguage={session?.user?.languagePreference ?? null}
+                dark
+              />
               {chapterEndContent}
               {endingContent}
             </div>
@@ -257,7 +263,13 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      <SceneView node={node} />
+      <SceneTranslationWrapper
+        node={node}
+        choices={!isEnding && !isChapterEnd ? choices : []}
+        adventureId={id}
+        storyLanguage={adventure?.language ?? 'en'}
+        userLanguage={session?.user?.languagePreference ?? null}
+      />
 
       <div className="mt-10">
         {isChapterEnd ? (
@@ -319,20 +331,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
               <RestartButton href={`/play/${id}`} adventureId={id} />
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <p className="text-sm font-medium text-gray-500 mb-1">What do you do?</p>
-            {choices.map((choice, index) => (
-              <ChoiceButton
-                key={choice.id}
-                href={`/play/${id}/${choice.targetNodeId}`}
-                label={choice.label}
-                index={index}
-                adventureId={id}
-              />
-            ))}
-          </div>
-        )}
+        ) : null}
       </div>
 
       <div className="mt-10 pt-6 border-t border-gray-100">

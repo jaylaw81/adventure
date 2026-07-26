@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { X, GitBranch, Layers, Swords, MapPin } from 'lucide-react'
+import { X, GitBranch, Layers, Swords, MapPin, Globe } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { analytics } from '@/lib/analytics'
 import { STORY_TAGS } from '@/lib/tags'
+import { LANGUAGES } from '@/lib/languages'
 
 interface Props {
   adventure: AdventureWithCounts
@@ -31,6 +32,9 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
   const [storyType, setStoryType] = useState<'path' | 'world'>(
     (adventure as { storyType?: string | null }).storyType === 'world' ? 'world' : 'path'
   )
+  const [language, setLanguage] = useState<string>(
+    (adventure as { language?: string | null }).language ?? 'en'
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -49,7 +53,7 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
       const res = await fetch(`/api/adventures/${adventure.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), description: description.trim(), audience, tags, editorMode, storyType }),
+        body: JSON.stringify({ title: title.trim(), description: description.trim(), audience, tags, editorMode, storyType, language }),
       })
       if (!res.ok) throw new Error('Failed to save')
       analytics.adventureSettingsSaved(adventure.id, audience)
@@ -213,6 +217,26 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
               </label>
             ))}
           </div>
+        </div>
+
+        {/* Story Language */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+            <Globe size={14} className="text-gray-400" />
+            Story Language
+          </label>
+          <select
+            value={language}
+            onChange={e => setLanguage(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+          >
+            {LANGUAGES.map(lang => (
+              <option key={lang.code} value={lang.code}>
+                {lang.name} — {lang.nativeName}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-400">Helps readers find and translate your story</p>
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
