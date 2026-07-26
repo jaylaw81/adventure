@@ -447,7 +447,7 @@ export default async function HowToPage() {
                   </ul>
                 </StepCard>
                 <StepCard number={7} title="Publish and share" accent="amber" id="publish-and-share">
-                  On the home page, click <Kbd><Share2 size={11} className="inline" /> Share</Kbd> on your story card. This generates a public link and lists your story on the <Link href="/explore" className="text-amber-400 hover:underline">Explore</Link> page.
+                  On the home page, click <Kbd><Share2 size={11} className="inline" /> Share</Kbd> on your story card. This generates a public link and lists your story on the <Link href="/explore" className="text-amber-400 underline underline-offset-2">Explore</Link> page.
                   <Callout>Toggle sharing off at any time to make a story private again.</Callout>
                 </StepCard>
               </div>
@@ -480,7 +480,7 @@ export default async function HowToPage() {
               {[
                 {
                   n: 1, title: 'Find a story', id: 'find-a-story',
-                  body: <>Browse the <Link href="/explore" className="text-amber-700 hover:underline font-medium">Explore</Link> page to discover public stories. Click <Kbd dark>Play</Kbd> on any card, then <Kbd dark>Start Playing</Kbd>. Or just open a direct link someone shared with you.</>
+                  body: <>Browse the <Link href="/explore" className="text-amber-700 underline underline-offset-2 font-medium">Explore</Link> page to discover public stories. Click <Kbd dark>Play</Kbd> on any card, then <Kbd dark>Start Playing</Kbd>. Or just open a direct link someone shared with you.</>
                 },
                 {
                   n: 2, title: 'Read each scene', id: 'read-each-scene',
