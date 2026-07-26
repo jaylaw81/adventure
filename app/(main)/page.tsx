@@ -64,7 +64,7 @@ function HeroSparkles() {
 
 function CanvasMockup() {
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+    <div aria-hidden="true" className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10"
       style={{ background: '#0f0e17' }}>
       {/* Browser chrome */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10" style={{ background: '#1a1730' }}>
@@ -191,7 +191,7 @@ function CanvasMockup() {
 
 function ReaderMockup() {
   return (
-    <div className="relative mx-auto w-72 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-violet-200"
+    <div aria-hidden="true" className="relative mx-auto w-72 rounded-[2rem] overflow-hidden shadow-2xl border-4 border-violet-200"
       style={{ background: '#faf5ff' }}>
       {/* Phone notch */}
       <div className="h-7 flex items-center justify-center" style={{ background: '#2d0b69' }}>
@@ -310,7 +310,7 @@ function LandingPage() {
       <section className="px-6 py-20" style={{ background: '#f5f3ff' }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-violet-500 mb-3">How it works</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-violet-700 mb-3">How it works</p>
             <h2 className="text-3xl sm:text-4xl font-extrabold" style={{ color: '#1e0a3c' }}>
               From idea to adventure in minutes
             </h2>
@@ -377,7 +377,7 @@ function LandingPage() {
             </div>
 
             <div className="flex-1 text-center lg:text-left">
-              <p className="text-xs font-semibold uppercase tracking-widest text-amber-500 mb-3">The Reader</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-amber-700 mb-3">The Reader</p>
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-5" style={{ color: '#1e0a3c' }}>
                 A beautiful reading experience for your audience
               </h2>
@@ -412,7 +412,7 @@ function LandingPage() {
       <section className="px-6 py-20" style={{ background: '#faf5ff' }}>
         <div className="max-w-5xl mx-auto">
           <div className="mb-12">
-            <p className="text-xs font-semibold uppercase tracking-widest text-violet-500 mb-3">What you get</p>
+            <p className="text-xs font-semibold uppercase tracking-widest text-violet-700 mb-3">What you get</p>
             <h2 className="text-3xl sm:text-4xl font-extrabold" style={{ color: '#1e0a3c' }}>
               Built for the story, not the software
             </h2>
@@ -429,7 +429,7 @@ function LandingPage() {
               { num: '08', title: 'Simple Pricing', desc: `Creating and editing stories requires a subscription — starting at just ${minPrice}/${minInterval}. Reading and browsing are always free.` },
             ].map(({ num, title, desc }) => (
               <div key={num} className="flex items-start gap-6 sm:gap-10 py-6 group">
-                <span className="text-xs font-mono text-violet-300 pt-1.5 w-6 shrink-0">{num}</span>
+                <span className="text-xs font-mono text-violet-600 pt-1.5 w-6 shrink-0">{num}</span>
                 <h3 className="text-base font-bold w-40 shrink-0 group-hover:text-violet-600 transition-colors"
                   style={{ color: '#1e0a3c' }}>{title}</h3>
                 <p className="text-sm leading-relaxed flex-1 hidden sm:block" style={{ color: '#6b7280' }}>{desc}</p>
@@ -568,7 +568,7 @@ function Dashboard() {
               <span>
                 You have {n} private {n === 1 ? 'story' : 'stories'} — toggle &ldquo;Make public&rdquo; on any card to share {n === 1 ? 'it' : 'them'} with the world.
               </span>
-              <button onClick={dismissPrivateNudge} className="ml-auto text-amber-400 hover:text-amber-600 text-xs shrink-0">✕</button>
+              <button onClick={dismissPrivateNudge} className="ml-auto text-amber-600 hover:text-amber-800 text-xs shrink-0">✕</button>
             </div>
           ) : null
         })()}
@@ -576,18 +576,18 @@ function Dashboard() {
           <div className="mb-5 flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm text-violet-800">
             <Sparkles size={14} className="text-violet-500 shrink-0" />
             Images generated for {imagesGenerated} scene{imagesGenerated !== 1 ? 's' : ''}. Open a story to see them.
-            <button onClick={() => setImagesGenerated(0)} className="ml-auto text-violet-400 hover:text-violet-600 text-xs">✕</button>
+            <button onClick={() => setImagesGenerated(0)} className="ml-auto text-violet-600 hover:text-violet-800 text-xs">✕</button>
           </div>
         )}
         {imagesGenerating && !imagesGenerated && (
-          <div className="mb-5 flex items-center gap-2 rounded-xl border border-violet-100 bg-violet-50/50 px-4 py-2.5 text-xs text-violet-400">
+          <div className="mb-5 flex items-center gap-2 rounded-xl border border-violet-100 bg-violet-50/50 px-4 py-2.5 text-xs text-violet-600">
             <Sparkles size={13} className="text-violet-300 shrink-0 animate-pulse" />
             Checking for scenes to illustrate…
           </div>
         )}
 
         {loading ? (
-          <div className="text-center py-20 text-violet-400">Loading…</div>
+          <div className="text-center py-20 text-violet-600">Loading…</div>
         ) : adventures.length === 0 ? (
           <div className="text-center py-24 rounded-2xl border-2 border-dashed border-violet-200"
             style={{ background: '#f5f3ff' }}>
@@ -624,7 +624,7 @@ export default function HomePage() {
   const { status } = useSession()
 
   if (status === 'loading') {
-    return <div className="text-center py-20 text-violet-400">Loading…</div>
+    return <div className="text-center py-20 text-violet-600">Loading…</div>
   }
 
   return status === 'authenticated' ? <Dashboard /> : <LandingPage />
