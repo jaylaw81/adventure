@@ -459,6 +459,29 @@ export const priceReductionOffers = pgTable('price_reduction_offers', {
   index('price_offers_user_email_idx').on(t.userEmail),
 ])
 
+export const blogPosts = pgTable('blog_posts', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  slug: text('slug').unique().notNull(),
+  title: text('title').notNull(),
+  description: text('description').notNull().default(''),
+  publishedAt: text('published_at').notNull(), // YYYY-MM-DD
+  readingMinutes: integer('reading_minutes').notNull().default(5),
+  category: text('category').notNull().default('Writing Tips'),
+  heroImageUrl: text('hero_image_url'),
+  heroImageCredit: text('hero_image_credit'), // JSON: { authorName, authorUrl } — set when sourced from Unsplash
+  intro: text('intro').notNull().default(''),
+  sections: json('sections').notNull().$type<import('./blogPosts').BlogSection[]>().default([]),
+  published: boolean('published').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (t) => [
+  index('blog_posts_slug_idx').on(t.slug),
+  index('blog_posts_published_idx').on(t.published),
+])
+
+export type BlogPostRow = typeof blogPosts.$inferSelect
+export type NewBlogPost = typeof blogPosts.$inferInsert
+
 export type SiteSetting = typeof siteSettings.$inferSelect
 export type PriceReductionOffer = typeof priceReductionOffers.$inferSelect
 export type FriendInvite = typeof friendInvites.$inferSelect

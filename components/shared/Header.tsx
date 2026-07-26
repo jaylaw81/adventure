@@ -82,7 +82,7 @@ export default function Header() {
     analytics.globalSoundToggle(next)
   }
 
-  const forceSolid = !!session || pathname.startsWith('/demo') || pathname.startsWith('/profile') || pathname.startsWith('/subscribe') || pathname.startsWith('/privacy') || pathname.startsWith('/terms')
+  const forceSolid = !!session || pathname.startsWith('/demo') || pathname.startsWith('/profile') || pathname.startsWith('/subscribe') || pathname.startsWith('/privacy') || pathname.startsWith('/terms') || pathname.startsWith('/blog')
   const solidBg = scrolled || forceSolid
 
   return (
@@ -126,6 +126,7 @@ export default function Header() {
             <>
               <NavLink href="/explore">Explore</NavLink>
               <NavLink href="/how-to">Guide</NavLink>
+              <NavLink href="/blog">Blog</NavLink>
             </>
           )}
           {(!session || (session.user.tier !== 'organization' && session.user.subscriptionStatus !== 'active' && session.user.subscriptionStatus !== 'trialing')) && (
@@ -343,6 +344,10 @@ export default function Header() {
               <Link href="/how-to" onClick={() => setMobileOpen(false)}
                 className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/how-to' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                 Guide
+              </Link>
+              <Link href="/blog" onClick={() => setMobileOpen(false)}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname.startsWith('/blog') ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                Blog
               </Link>
             </>
           )}

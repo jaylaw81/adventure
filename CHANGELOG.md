@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-07-26
+
+- **Blog section**: added a public `/blog` with 10 full-length articles covering interactive fiction writing tips, story ideas, history, and education. Blog posts are stored in the database and fully editable from the admin panel — admins can create, edit, reorder sections, toggle publish status, and delete posts via `/admin/blog`.
+
 ## 2026-07-17
 
 - **Character health, armor, and death system**: hero characters can now have a designated Health attribute and an optional Armor attribute. In combat, foe counterattacks drain armor first and then overflow into health. When health reaches its minimum the character falls — shown with a "Fallen" badge in the party sidebar. If all party members fall, the story ends with a game-over screen and an encouraging "Try Again" message that resets progress and returns to the start. Fallen characters can be revived mid-combat if a party member carries a revival item.
