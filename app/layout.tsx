@@ -6,7 +6,11 @@ import JsonLd from '@/components/JsonLd'
 
 const SITE_URL = 'https://www.storyquestor.com'
 
-const geist = Geist({ subsets: ['latin'] })
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: {
@@ -38,8 +42,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" style={{ colorScheme: 'light' }}>
       <head>
         <meta property="fb:app_id" content="859715873260802" />
-        {/* Google AdSense */}
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9068413627358148" crossOrigin="anonymous" />
+        {/* DNS prefetch for third-party origins loaded after consent */}
+        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         {/* Google Consent Mode v2 defaults — must run before any GA/Ads scripts */}
         <script dangerouslySetInnerHTML={{ __html: `
 (function(){
@@ -62,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 })();
         `}} />
       </head>
-      <body className={`${geist.className} antialiased min-h-screen`} style={{ background: '#faf5ff' }}>
+      <body className={`${geist.variable} ${geist.className} antialiased min-h-screen`} style={{ background: '#faf5ff' }}>
         <JsonLd data={{
           '@context': 'https://schema.org',
           '@graph': [
