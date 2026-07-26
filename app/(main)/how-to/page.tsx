@@ -468,7 +468,7 @@ export default async function HowToPage() {
               <Play size={18} className="text-amber-600" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-amber-500">Part 2</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-amber-700">Part 2</p>
               <h2 id="playing-a-story" className="text-2xl sm:text-3xl font-extrabold text-gray-900">Playing a Story</h2>
             </div>
           </div>
@@ -480,7 +480,7 @@ export default async function HowToPage() {
               {[
                 {
                   n: 1, title: 'Find a story', id: 'find-a-story',
-                  body: <>Browse the <Link href="/explore" className="text-amber-600 hover:underline font-medium">Explore</Link> page to discover public stories. Click <Kbd dark>Play</Kbd> on any card, then <Kbd dark>Start Playing</Kbd>. Or just open a direct link someone shared with you.</>
+                  body: <>Browse the <Link href="/explore" className="text-amber-700 hover:underline font-medium">Explore</Link> page to discover public stories. Click <Kbd dark>Play</Kbd> on any card, then <Kbd dark>Start Playing</Kbd>. Or just open a direct link someone shared with you.</>
                 },
                 {
                   n: 2, title: 'Read each scene', id: 'read-each-scene',
@@ -519,7 +519,7 @@ export default async function HowToPage() {
           {/* Mobile phone mockup */}
           <div className="lg:hidden flex flex-col items-center gap-4 mt-10">
             <ReaderMockup />
-            <p className="text-xs text-gray-400 text-center">The reader experience — clean, immersive, works on any device</p>
+            <p className="text-xs text-gray-500 text-center">The reader experience — clean, immersive, works on any device</p>
           </div>
         </div>
       </section>
@@ -726,7 +726,7 @@ export default async function HowToPage() {
           <p className="text-gray-500 text-base mb-2 max-w-lg mx-auto">
             Have your first branching story live in minutes.
           </p>
-          <p className="text-gray-400 text-sm mb-10">From {minPrice}. Cancel anytime.</p>
+          <p className="text-gray-500 text-sm mb-10">From {minPrice}. Cancel anytime.</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/sign-up"
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-gray-900 bg-amber-500 hover:bg-amber-600 shadow-lg transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2">
