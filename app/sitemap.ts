@@ -1,5 +1,8 @@
 import type { MetadataRoute } from 'next'
+import { eq, desc } from 'drizzle-orm'
 import { getPublicAdventures, getAllPublicTags } from '@/lib/queries'
+import { db } from '@/lib/db'
+import { blogPosts } from '@/lib/schema'
 
 const SITE_URL = 'https://www.storyquestor.com'
 
@@ -36,6 +39,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     {
+      url: `${SITE_URL}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
       url: `${SITE_URL}/privacy`,
       lastModified: new Date('2025-01-01'),
       changeFrequency: 'yearly',
@@ -49,9 +58,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  const [stories, tags] = await Promise.all([
+  const [stories, tags, posts] = await Promise.all([
     getPublicAdventures(),
     getAllPublicTags(),
+    db.select({ slug: blogPosts.slug, updatedAt: blogPosts.updatedAt })
+      .from(blogPosts)
+      .where(eq(blogPosts.published, true))
+      .orderBy(desc(blogPosts.updatedAt)),
   ])
 
   const storyPages: MetadataRoute.Sitemap = stories.map(story => ({
@@ -68,5 +81,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }))
 
-  return [...staticPages, ...storyPages, ...tagPages]
+  const blogPostPages: MetadataRoute.Sitemap = posts.map(post => ({
+    url: `${SITE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.updatedAt),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }))
+
+  return [...staticPages, ...storyPages, ...tagPages, ...blogPostPages]
 }
