@@ -28,7 +28,7 @@ function CanvasMockup() {
           <div className="w-3 h-3 rounded-full bg-green-500/80" />
         </div>
         <div className="flex-1 mx-4 bg-white/5 rounded-md h-5 flex items-center px-3">
-          <span className="text-xs text-white/30 font-mono">storyquestor.com/edit/…</span>
+          <span className="text-xs text-white/50 font-mono">storyquestor.com/edit/…</span>
         </div>
       </div>
       {/* Toolbar */}
@@ -165,7 +165,7 @@ function NodeTypeLegend() {
   return (
     <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Scene Types</p>
+        <p className="text-xs font-semibold text-white/55 uppercase tracking-wider">Scene Types</p>
       </div>
       <div className="p-4 flex flex-col gap-3">
         {[
@@ -199,7 +199,7 @@ function ConnectionMockup() {
   return (
     <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Connecting Scenes</p>
+        <p className="text-xs font-semibold text-white/55 uppercase tracking-wider">Connecting Scenes</p>
       </div>
       <div className="relative px-6 py-8 flex items-center justify-between gap-0">
         <div className="w-28 rounded-xl border border-amber-500/30 bg-amber-500/10 shrink-0">
@@ -790,13 +790,13 @@ function ChaptersMockup() {
   return (
     <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Chapter Navigation</p>
+        <p className="text-xs font-semibold text-white/55 uppercase tracking-wider">Chapter Navigation</p>
       </div>
       <div className="flex" style={{ minHeight: 220 }}>
         {/* Sidebar */}
         <div className="w-40 shrink-0 border-r border-white/5 flex flex-col" style={{ background: '#0d0c1a' }}>
           <div className="px-3 py-2.5 border-b border-white/5">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">Chapters</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">Chapters</p>
           </div>
           <div className="flex flex-col p-2 gap-1 flex-1">
             {[
@@ -806,7 +806,7 @@ function ChaptersMockup() {
             ].map(({ label, active, done }) => (
               <div key={label} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg ${active ? 'bg-teal-500/15 border border-teal-500/25' : 'hover:bg-white/5'}`}>
                 <BookMarked size={10} className={active ? 'text-teal-400' : done ? 'text-white/25' : 'text-white/25'} />
-                <span className={`text-xs font-medium truncate ${active ? 'text-teal-300' : 'text-white/35'}`}>{label}</span>
+                <span className={`text-xs font-medium truncate ${active ? 'text-teal-300' : 'text-white/55'}`}>{label}</span>
                 {done && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-green-400/60 shrink-0" />}
               </div>
             ))}
@@ -865,7 +865,7 @@ function WorldBuilderCharactersMockup() {
   return (
     <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Characters Panel</p>
+        <p className="text-xs font-semibold text-white/55 uppercase tracking-wider">Characters Panel</p>
       </div>
       <div className="p-4 flex flex-col gap-3">
         {/* Hero card */}
@@ -912,7 +912,7 @@ function WorldBuilderItemsMockup() {
   return (
     <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Items Panel</p>
+        <p className="text-xs font-semibold text-white/55 uppercase tracking-wider">Items Panel</p>
       </div>
       <div className="p-4 flex flex-col gap-3">
         {/* Weapon */}
@@ -957,17 +957,17 @@ function WorldBuilderCombatMockup() {
   return (
     <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Foe Encounter</p>
+        <p className="text-xs font-semibold text-white/55 uppercase tracking-wider">Foe Encounter</p>
       </div>
       <div className="p-4">
         {/* Foe reveal */}
         <div className="text-center mb-4 pb-4 border-b border-white/5">
           <div className="text-4xl mb-2">🐉</div>
           <p className="text-sm font-bold text-red-300">Cave Drake</p>
-          <p className="text-[10px] text-white/40 mt-0.5 leading-snug max-w-[180px] mx-auto">A fire-breathing drake guards the ancient tomb…</p>
+          <p className="text-[10px] text-white/55 mt-0.5 leading-snug max-w-[180px] mx-auto">A fire-breathing drake guards the ancient tomb…</p>
           {/* HP bar */}
           <div className="mt-3 mx-auto max-w-[160px]">
-            <div className="flex justify-between text-[10px] text-white/40 mb-1"><span>HP</span><span>60 / 80</span></div>
+            <div className="flex justify-between text-[10px] text-white/55 mb-1"><span>HP</span><span>60 / 80</span></div>
             <div className="w-full h-2 rounded-full bg-white/8">
               <div className="h-full rounded-full bg-red-500" style={{ width: '75%' }} />
             </div>
@@ -976,7 +976,7 @@ function WorldBuilderCombatMockup() {
         {/* Combat controls */}
         <div className="flex flex-col gap-2.5">
           <div>
-            <p className="text-[10px] text-white/30 mb-1">Select hero</p>
+            <p className="text-[10px] text-white/55 mb-1">Select hero</p>
             <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-violet-500/15 border border-violet-500/25">
               <div className="w-5 h-5 rounded-full bg-violet-500/30 text-violet-300 text-[9px] font-bold flex items-center justify-center">A</div>
               <span className="text-xs text-violet-200 font-medium">Aldric</span>
@@ -984,7 +984,7 @@ function WorldBuilderCombatMockup() {
             </div>
           </div>
           <div>
-            <p className="text-[10px] text-white/30 mb-1">Select weapon / ability</p>
+            <p className="text-[10px] text-white/55 mb-1">Select weapon / ability</p>
             <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-amber-500/12 border border-amber-500/25">
               <span className="text-sm">⚔️</span>
               <span className="text-xs text-amber-200 font-medium">Iron Sword</span>
@@ -1004,7 +1004,7 @@ function AiImageMockup() {
   return (
     <div aria-hidden="true" className="rounded-2xl overflow-hidden border border-white/10 shadow-xl" style={{ background: '#0f0e17' }}>
       <div className="px-4 py-3 border-b border-white/5" style={{ background: '#16142a' }}>
-        <p className="text-xs font-semibold text-white/40 uppercase tracking-wider">Scene Image</p>
+        <p className="text-xs font-semibold text-white/55 uppercase tracking-wider">Scene Image</p>
       </div>
       <div className="p-4">
         {/* Scene card */}
@@ -1018,7 +1018,7 @@ function AiImageMockup() {
             style={{ background: 'linear-gradient(135deg, #1e1b3a, #0f0e17)' }}>
             <div className="flex flex-col items-center gap-2">
               <div className="w-8 h-8 rounded-full border-2 border-amber-400/60 border-t-amber-400 motion-safe:animate-spin" />
-              <span className="text-xs text-white/30">Generating image…</span>
+              <span className="text-xs text-white/50">Generating image…</span>
             </div>
           </div>
           <div className="px-3 py-3">
@@ -1033,7 +1033,7 @@ function AiImageMockup() {
             2 left
           </div>
         </div>
-        <p className="text-xs text-white/30 text-center mt-3">A cinematic illustration generated from your scene content</p>
+        <p className="text-xs text-white/50 text-center mt-3">A cinematic illustration generated from your scene content</p>
       </div>
     </div>
   )
