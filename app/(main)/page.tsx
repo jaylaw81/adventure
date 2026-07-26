@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Plus, BookOpen, GitBranch,
-  Sparkles, ArrowRight, Check, Play, ChevronRight, Globe, BookMarked, Sword
+  Sparkles, ArrowRight, Check, Play, ChevronRight, Globe, BookMarked, Sword, Clock
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { analytics } from '@/lib/analytics'
@@ -12,6 +13,16 @@ import AdventureCard from '@/components/shared/AdventureCard'
 import PageBanner from '@/components/shared/PageBanner'
 import type { AdventureWithCounts } from '@/lib/queries'
 import type { PricingConfig } from '@/lib/pricing'
+
+type LatestPost = {
+  slug: string
+  title: string
+  description: string
+  category: string
+  readingMinutes: number
+  publishedAt: string
+  heroImageUrl: string | null
+}
 
 function usePricingText(): { amount: string; interval: string } {
   const [val, setVal] = useState({ amount: '$2', interval: 'week' })
@@ -245,6 +256,15 @@ function ReaderMockup() {
 
 function LandingPage() {
   const { amount: minPrice, interval: minInterval } = usePricingText()
+  const [latestPost, setLatestPost] = useState<LatestPost | null>(null)
+
+  useEffect(() => {
+    fetch('/api/blog?limit=1')
+      .then(r => r.json())
+      .then((posts: LatestPost[]) => { if (posts[0]) setLatestPost(posts[0]) })
+      .catch(() => {})
+  }, [])
+
   return (
     <div className="flex flex-col">
 
@@ -438,6 +458,90 @@ function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Latest from the blog ── */}
+      {latestPost && (
+        <section className="px-6 py-20 bg-white border-t border-violet-100">
+          <div className="max-w-5xl mx-auto">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-6 mb-10">
+              <div>
+                <h2 className="text-2xl font-extrabold mb-1" style={{ color: '#1e0a3c' }}>
+                  From the blog
+                </h2>
+                <p className="text-sm" style={{ color: '#6b7280' }}>
+                  Writing tips, story ideas, and craft for interactive fiction writers
+                </p>
+              </div>
+              <Link
+                href="/blog"
+                className="shrink-0 mt-1 flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-800 transition-colors"
+              >
+                All articles <ArrowRight size={13} />
+              </Link>
+            </div>
+
+            {/* Featured card */}
+            <Link
+              href={`/blog/${latestPost.slug}`}
+              className="group flex flex-col lg:flex-row overflow-hidden rounded-2xl border border-violet-200 hover:border-violet-400 transition-all duration-300 hover:-translate-y-0.5"
+              style={{ background: '#faf5ff' }}
+            >
+              {/* Image */}
+              {latestPost.heroImageUrl ? (
+                <div className="relative lg:w-[44%] shrink-0 h-56 sm:h-72 lg:h-auto overflow-hidden">
+                  <Image
+                    src={latestPost.heroImageUrl}
+                    alt={latestPost.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                    unoptimized
+                  />
+                  {/* Fade right edge into card background on desktop */}
+                  <div
+                    className="hidden lg:block absolute inset-y-0 right-0 w-20 pointer-events-none"
+                    style={{ background: 'linear-gradient(to right, transparent, #faf5ff)' }}
+                    aria-hidden="true"
+                  />
+                </div>
+              ) : (
+                <div className="hidden lg:flex lg:w-[44%] shrink-0 items-center justify-center" style={{ background: '#ede9fe' }}>
+                  <BookOpen size={48} style={{ color: '#7c3aed', opacity: 0.25 }} aria-hidden="true" />
+                </div>
+              )}
+
+              {/* Content */}
+              <div className="flex flex-col justify-center px-8 py-8 lg:px-10 lg:py-10">
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-violet-200 text-violet-800">
+                    {latestPost.category}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs" style={{ color: '#6b7280' }}>
+                    <Clock size={11} />
+                    {latestPost.readingMinutes} min read
+                  </span>
+                </div>
+                <h3
+                  className="text-2xl lg:text-3xl font-extrabold leading-snug mb-3 group-hover:text-violet-700 transition-colors duration-200"
+                  style={{ color: '#1e0a3c' }}
+                >
+                  {latestPost.title}
+                </h3>
+                <p className="text-base leading-relaxed line-clamp-3 mb-7" style={{ color: '#4b5563' }}>
+                  {latestPost.description}
+                </p>
+                <span
+                  className="self-start inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 group-hover:brightness-110"
+                  style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
+                >
+                  Read article
+                  <ArrowRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                </span>
+              </div>
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* ── CTA ── */}
       <section className="relative overflow-hidden px-6 py-24 text-center"

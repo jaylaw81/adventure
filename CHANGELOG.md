@@ -9,6 +9,7 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 ## 2026-07-26
 
 - **Blog section**: added a public `/blog` with 10 full-length articles covering interactive fiction writing tips, story ideas, history, and education. Blog posts are stored in the database and fully editable from the admin panel — admins can create, edit, reorder sections, toggle publish status, and delete posts via `/admin/blog`.
+- **Latest blog post on homepage**: the landing page now surfaces the most recent published blog post between the Features section and the CTA — showing the hero image, category, read time, title, and description as a featured card with a direct read link.
 
 ## 2026-07-17
 
