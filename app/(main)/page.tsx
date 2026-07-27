@@ -592,6 +592,7 @@ function Dashboard() {
   const [adventures, setAdventures] = useState<AdventureWithCounts[]>([])
   const [loading, setLoading] = useState(true)
   const [canMakePublic, setCanMakePublic] = useState(true)
+  const [canMakePrivate, setCanMakePrivate] = useState(true)
   const [imagesGenerating, setImagesGenerating] = useState(false)
   const [imagesGenerated, setImagesGenerated] = useState(0)
   const [showPrivateNudge, setShowPrivateNudge] = useState(false)
@@ -612,6 +613,13 @@ function Dashboard() {
       setAdventures(data)
       const canPublish = !(orgData?.orgPrivacyLevel && orgData.orgPrivacyLevel !== 'public')
       if (!canPublish) setCanMakePublic(false)
+      // Private stories require an active subscription (not just a trial)
+      const subStatus = session?.user?.subscriptionStatus
+      const isActiveSubscriber =
+        subStatus === 'active' ||
+        session?.user?.tier === 'organization' ||
+        !!session?.user?.isAdmin
+      setCanMakePrivate(isActiveSubscriber)
       setLoading(false)
 
       if (canPublish && Array.isArray(data)) {
@@ -670,7 +678,10 @@ function Dashboard() {
             <div className="mb-5 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               <Globe size={14} className="text-amber-500 shrink-0" />
               <span>
-                You have {n} private {n === 1 ? 'story' : 'stories'} — toggle &ldquo;Make public&rdquo; on any card to share {n === 1 ? 'it' : 'them'} with the world.
+                {canMakePrivate
+                  ? <>You have {n} private {n === 1 ? 'story' : 'stories'} — toggle &ldquo;Make public&rdquo; on any card to share {n === 1 ? 'it' : 'them'} with the world.</>
+                  : <>You have {n} unpublished {n === 1 ? 'story' : 'stories'}. Toggle &ldquo;Make public&rdquo; to share, or <Link href="/pricing" className="underline font-medium hover:text-amber-900">subscribe</Link> to keep {n === 1 ? 'it' : 'them'} private.</>
+                }
               </span>
               <button onClick={dismissPrivateNudge} className="ml-auto text-amber-600 hover:text-amber-800 text-xs shrink-0">✕</button>
             </div>
@@ -713,7 +724,7 @@ function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {adventures.map(adventure => (
-              <AdventureCard key={adventure.id} adventure={adventure} onDelete={handleDelete} canMakePublic={canMakePublic} />
+              <AdventureCard key={adventure.id} adventure={adventure} onDelete={handleDelete} canMakePublic={canMakePublic} canMakePrivate={canMakePrivate} />
             ))}
           </div>
         )}

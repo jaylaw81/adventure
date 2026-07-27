@@ -44,6 +44,29 @@ export async function canGenerateImages(email: string): Promise<boolean> {
   )
 }
 
+/**
+ * True if the user can make a story private (set isPublic = false).
+ * Trial users are explicitly excluded — private stories are a paid-subscriber benefit.
+ */
+export async function canHavePrivateStories(email: string): Promise<boolean> {
+  if (email === ADMIN_EMAIL) return true
+  const [user] = await db
+    .select({
+      tier: users.tier,
+      grandfathered: users.grandfathered,
+      subscriptionStatus: users.subscriptionStatus,
+    })
+    .from(users)
+    .where(eq(users.email, email))
+
+  if (!user) return false
+  if (user.grandfathered) return true
+  if (user.tier === 'organization') return true
+  if (user.subscriptionStatus === 'active') return true
+  if (await isOrgUser(email)) return true
+  return false
+}
+
 export async function canCreateStories(email: string): Promise<boolean> {
   if (email === ADMIN_EMAIL) return true
   const [user] = await db

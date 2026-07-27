@@ -448,7 +448,7 @@ export default async function HowToPage() {
                 </StepCard>
                 <StepCard number={7} title="Publish and share" accent="amber" id="publish-and-share">
                   On the home page, click <Kbd><Share2 size={11} className="inline" /> Share</Kbd> on your story card. This generates a public link and lists your story on the <Link href="/explore" className="text-amber-400 underline underline-offset-2">Explore</Link> page.
-                  <Callout>Toggle sharing off at any time to make a story private again.</Callout>
+                  <Callout>Keeping a story private is a subscriber benefit — <Link href="/pricing" className="text-amber-300 underline underline-offset-2">see plans</Link> to control who can find your work.</Callout>
                 </StepCard>
               </div>
               <div className="flex-1 w-full max-w-sm">

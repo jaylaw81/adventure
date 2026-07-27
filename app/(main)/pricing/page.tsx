@@ -24,6 +24,7 @@ const FEATURES: {
   { label: 'World Builder RPG system',          icon: Sword,    weekly: true,  monthly: true  },
   { label: 'Characters, items & foe combat',    icon: Users,    weekly: true,  monthly: true  },
   { label: 'Publish stories publicly',          icon: Globe,    weekly: true,  monthly: true  },
+  { label: 'Private stories',                   icon: Lock,     weekly: true,  monthly: true  },
   { label: 'Tags & audience controls',          icon: Tag,      weekly: true,  monthly: true  },
   { label: 'Story ratings & reviews',           icon: Star,     weekly: true,  monthly: true  },
   { label: 'Scene image generation',            icon: Sparkles, weekly: false, monthly: true  },
@@ -32,7 +33,7 @@ const FEATURES: {
 ]
 
 // Index after which the "monthly-only" features start
-const PREMIUM_START = 7
+const PREMIUM_START = 8
 
 export default async function PricingPage() {
   const [session, pricing] = await Promise.all([
@@ -130,7 +131,7 @@ export default async function PricingPage() {
             </div>
             <p className="text-sm text-white/35 mb-6">per week</p>
             <p className="text-xs text-white/40 mb-6 leading-relaxed flex-1">
-              Story editor, unlimited scenes, publish publicly
+              Story editor, unlimited scenes, public and private stories
             </p>
             <Link
               href={ctaHref('week')}
@@ -164,7 +165,7 @@ export default async function PricingPage() {
             </div>
             <p className="text-sm text-white/35 mb-6">per month</p>
             <p className="text-xs text-white/40 mb-6 leading-relaxed flex-1">
-              Everything in Weekly, plus scene images, character portraits, and scene soundscapes
+              Everything in Weekly — private stories, scene images, character portraits, and soundscapes
             </p>
             <Link
               href={ctaHref('month')}

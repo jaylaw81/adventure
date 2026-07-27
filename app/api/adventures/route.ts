@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { isNull, eq } from 'drizzle-orm'
+import { isNull, eq, inArray } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, chapters, nodes, choices } from '@/lib/schema'
 import { getAdventures } from '@/lib/queries'
-import { canCreateStories } from '@/lib/subscription'
+import { canCreateStories, canHavePrivateStories } from '@/lib/subscription'
 
 const ORIGINAL_OWNER = 'jaylaw81@gmail.com'
 
@@ -138,6 +138,17 @@ export async function GET() {
     }
 
     const all = await getAdventures(email)
+
+    // Trial users cannot have private stories — force any private ones to public
+    const canPrivate = await canHavePrivateStories(email)
+    if (!canPrivate) {
+      const privateIds = all.filter(a => !a.isPublic).map(a => a.id)
+      if (privateIds.length > 0) {
+        await db.update(adventures).set({ isPublic: true }).where(inArray(adventures.id, privateIds))
+        return NextResponse.json(all.map(a => ({ ...a, isPublic: true })))
+      }
+    }
+
     return NextResponse.json(all)
   } catch {
     return NextResponse.json({ error: 'Failed to fetch adventures' }, { status: 500 })
@@ -156,6 +167,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Subscription required' }, { status: 402 })
     }
 
+    const canPrivate = await canHavePrivateStories(session.user.email)
+
     const body = await req.json()
     const { title, description, template, chapterCount = 0, editorMode = 'node', storyType } = body as {
       title: string
@@ -168,7 +181,7 @@ export async function POST(req: Request) {
 
     if (!title) return NextResponse.json({ error: 'Title required' }, { status: 400 })
 
-    // Create the adventure
+    // Create the adventure — trial users start as public (they cannot have private stories)
     const [adventure] = await db
       .insert(adventures)
       .values({
@@ -178,6 +191,7 @@ export async function POST(req: Request) {
         editorMode,
         storyType: storyType ?? null,
         createdFrom: template ? 'template' : 'blank',
+        isPublic: !canPrivate,
       })
       .returning()
 

@@ -6,6 +6,12 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-07-26 (private stories)
+
+- **Private stories require a subscription**: trial users can only have public stories. Attempting to make a published story private shows a subscribe CTA. The API enforces this server-side with a 402. Subscribers on any paid plan (weekly or monthly) can freely toggle stories between public and private.
+- **Pricing page updated**: "Private stories" added as a feature row for both weekly and monthly plans, and plan card descriptions updated.
+- **How-to guide updated**: the publish step now notes that keeping stories private is a subscriber benefit.
+
 ## 2026-07-26 (translation)
 
 - **Story translation**: readers can now translate any story into their preferred language. When the story language differs from a reader's preference (or browser language for guests), a translate prompt appears. Once accepted, all scene text and choice labels are translated in one step via Google Cloud Translate and cached for the session — clicking through subsequent scenes auto-translates them. A "Show original" link lets readers toggle back at any time.

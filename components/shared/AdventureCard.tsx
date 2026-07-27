@@ -12,6 +12,7 @@ interface Props {
   adventure: AdventureWithCounts
   onDelete?: (id: string) => void
   canMakePublic?: boolean
+  canMakePrivate?: boolean
 }
 
 function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onConfirm: () => void; onCancel: () => void }) {
@@ -66,7 +67,7 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onC
   )
 }
 
-export default function AdventureCard({ adventure, onDelete, canMakePublic = true }: Props) {
+export default function AdventureCard({ adventure, onDelete, canMakePublic = true, canMakePrivate = true }: Props) {
   const [current, setCurrent] = useState(adventure)
   const [showSettings, setShowSettings] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -143,6 +144,7 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
               initialIsPublic={current.isPublic}
               initialShareToken={current.shareToken ?? null}
               canMakePublic={canMakePublic}
+              canMakePrivate={canMakePrivate}
             />
           </div>
 

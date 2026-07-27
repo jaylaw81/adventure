@@ -11,9 +11,17 @@ interface Props {
   initialIsPublic: boolean
   initialShareToken: string | null
   canMakePublic?: boolean
+  /** False for trial users — private stories require an active subscription. */
+  canMakePrivate?: boolean
 }
 
-export default function ShareToggle({ adventureId, initialIsPublic, initialShareToken, canMakePublic = true }: Props) {
+export default function ShareToggle({
+  adventureId,
+  initialIsPublic,
+  initialShareToken,
+  canMakePublic = true,
+  canMakePrivate = true,
+}: Props) {
   const [isPublic, setIsPublic] = useState(initialIsPublic)
   const [shareToken, setShareToken] = useState(initialShareToken)
   const [loading, setLoading] = useState(false)
@@ -21,6 +29,7 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([])
   const [canPublishAnyway, setCanPublishAnyway] = useState(false)
   const [showPanel, setShowPanel] = useState(false)
+  const [showSubscribePanel, setShowSubscribePanel] = useState(false)
 
   const shareUrl = shareToken
     ? `${window.location.origin}/s/${shareToken}`
@@ -38,11 +47,22 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
 
   const handleToggle = async () => {
     if (loading) return
-    setLoading(true)
 
+    // Going from public → private: check subscription gate first
+    if (isPublic && !canMakePrivate) {
+      setShowSubscribePanel(prev => !prev)
+      return
+    }
+
+    setLoading(true)
     try {
       if (isPublic) {
-        await fetch(`/api/adventures/${adventureId}/share`, { method: 'DELETE' })
+        const res = await fetch(`/api/adventures/${adventureId}/share`, { method: 'DELETE' })
+        if (res.status === 402) {
+          // Subscription check failed server-side — show the panel
+          setShowSubscribePanel(true)
+          return
+        }
         setIsPublic(false)
         setShowPanel(false)
         setValidationIssues([])
@@ -55,12 +75,10 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
       const { issues, canPublish } = await res.json()
 
       if (issues.length === 0) {
-        // Clean — publish immediately with no friction
         await doPublish()
         return
       }
 
-      // Show the issues panel; let the user decide
       setValidationIssues(issues)
       setCanPublishAnyway(canPublish)
       setShowPanel(true)
@@ -101,7 +119,14 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
     <div className="flex flex-col gap-2.5">
       {/* Toggle row */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-600">Make public</span>
+        <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
+          Make public
+          {isPublic && !canMakePrivate && (
+            <span title="Subscribe to make private" className="inline-flex">
+              <Lock size={9} className="text-violet-400 ml-0.5" />
+            </span>
+          )}
+        </span>
         <button
           role="switch"
           aria-checked={isPublic}
@@ -118,6 +143,35 @@ export default function ShareToggle({ adventureId, initialIsPublic, initialShare
           />
         </button>
       </div>
+
+      {/* Subscribe-to-make-private panel */}
+      {showSubscribePanel && (
+        <div className="rounded-xl border border-violet-100 bg-violet-50 p-3 flex flex-col gap-2.5">
+          <div className="flex items-start gap-2">
+            <Lock size={13} className="text-violet-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-violet-900">Private stories are a subscriber benefit</p>
+              <p className="text-xs text-violet-600 mt-0.5 leading-snug">
+                Subscribe to hide stories from the Explore page and control who can find them.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/pricing"
+              className="flex items-center gap-1 text-xs font-semibold text-white bg-violet-600 hover:bg-violet-700 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              See plans <ArrowRight size={11} />
+            </Link>
+            <button
+              onClick={() => setShowSubscribePanel(false)}
+              className="ml-auto text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Pre-publish validation panel */}
       {showPanel && validationIssues.length > 0 && (

@@ -4,6 +4,7 @@ import { eq, and } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, organizationMembers, organizations } from '@/lib/schema'
+import { canHavePrivateStories } from '@/lib/subscription'
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -62,6 +63,14 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const [adventure] = await db.select().from(adventures).where(eq(adventures.id, id))
     if (!adventure || adventure.userEmail !== session.user.email) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    // Private stories are a paid-subscriber benefit — trial users cannot un-publish
+    if (!await canHavePrivateStories(session.user.email)) {
+      return NextResponse.json(
+        { error: 'Private stories are a subscriber benefit.', code: 'subscription_required' },
+        { status: 402 }
+      )
     }
 
     const [updated] = await db
