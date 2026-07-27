@@ -10,6 +10,7 @@ export interface ExploreStory {
   tags: string
   storyType: string | null
   shareToken: string | null
+  readCount: number
   createdAt: Date
   updatedAt: Date
   avgRating: number | null
@@ -28,6 +29,7 @@ export async function getExploreStories(): Promise<ExploreStory[]> {
         tags: adventures.tags,
         storyType: adventures.storyType,
         shareToken: adventures.shareToken,
+        readCount: adventures.readCount,
         createdAt: adventures.createdAt,
         updatedAt: adventures.updatedAt,
       })

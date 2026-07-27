@@ -16,6 +16,7 @@ export const DEMO_ADVENTURE: Adventure = {
   language: 'en',
   storyType: null,
   createdFrom: null,
+  readCount: 0,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
 }

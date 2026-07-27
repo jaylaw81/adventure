@@ -48,6 +48,7 @@ export const adventures = pgTable('adventures', {
   language: text('language').notNull().default('en'), // ISO 639-1 story language
   storyType: text('story_type'), // 'path' | 'world' — null treated as 'path'
   createdFrom: text('created_from'), // 'blank' | 'template' — null for stories created before tracking
+  readCount: integer('read_count').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (t) => [

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Pencil, Play, Trash2, GitBranch, Settings, AlertTriangle } from 'lucide-react'
+import { Pencil, Play, Trash2, GitBranch, Settings, AlertTriangle, BookOpen, Globe } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import ShareToggle from './ShareToggle'
 import AdventureSettingsModal from './AdventureSettingsModal'
@@ -71,7 +71,7 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
   const [current, setCurrent] = useState(adventure)
   const [showSettings, setShowSettings] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const { outcomes, sceneCount } = current
+  const { outcomes, sceneCount, readCount, isPublic } = current
 
   const tags: string[] = (() => {
     try { return JSON.parse(current.tags ?? '[]') } catch { return [] }
@@ -130,6 +130,25 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
                 </>
               ) : (
                 <span className="text-gray-400 text-xs italic">No scenes yet</span>
+              )}
+            </div>
+
+            {/* Read count + shared status */}
+            <div className="flex items-center gap-2.5 mt-2.5">
+              <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                <BookOpen size={11} />
+                {readCount === 0
+                  ? 'No reads yet'
+                  : `${readCount.toLocaleString()} read${readCount !== 1 ? 's' : ''}`}
+              </span>
+              {isPublic && (
+                <>
+                  <span className="text-gray-200">·</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                    <Globe size={11} />
+                    Public
+                  </span>
+                </>
               )}
             </div>
 
