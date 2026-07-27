@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
+import { Compass } from 'lucide-react'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -113,7 +114,13 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             {!isStart && <BackButton />}
-            <Link href="/" className="text-xs text-white/40 hover:text-white/70">Home</Link>
+            <Link
+              href="/explore"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white px-3 py-1.5 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/10 transition-all"
+            >
+              <Compass size={13} />
+              Back to Explore
+            </Link>
           </div>
           <div className="flex items-center gap-3">
             {canShare && <CopySceneButton content={node.content} choices={choices} adventureId={id} />}
@@ -261,8 +268,12 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           {!isStart && <BackButton />}
-          <Link href="/" className="text-xs text-gray-400 hover:text-gray-600">
-            Home
+          <Link
+            href="/explore"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-700 hover:text-violet-900 px-3 py-1.5 rounded-lg border border-violet-200 hover:border-violet-400 hover:bg-violet-50 transition-all"
+          >
+            <Compass size={13} />
+            Back to Explore
           </Link>
         </div>
         <div className="flex items-center gap-3">
