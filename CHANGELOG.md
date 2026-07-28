@@ -8,6 +8,8 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ## 2026-07-28
 
+- **Site feedback widget**: A floating violet button (bottom-right) lets any user submit questions or concerns from any page. Input is sanitized server-side to strip HTML tags and XSS vectors before storage. Admins can view, filter, review, and resolve submissions at /admin/feedback with an unread count badge in the admin nav.
+
 - **Landing page hero redesign**: Replaced the generic dark hero with an atmospheric reader-experience visualization — a styled story card showing choices, a character stats panel, and an endings count badge — capturing the interactive fiction experience rather than a raw editor screenshot. Headline and CTAs also improved for clarity and visual weight.
 - **Publish / Move to draft from the editor**: Authors can now publish a story or return it to draft directly from the node graph editor toolbar and the block builder toolbar — no need to go back to the dashboard.
 - **All stories start as draft**: Every new story, regardless of plan, begins as a private draft and must be explicitly published before it appears on the Explore page.

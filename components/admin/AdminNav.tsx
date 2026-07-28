@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { ShieldCheck, BookOpen, Flag, LogOut, School, MessageSquareHeart, Users, Settings2, Menu, X, Mail, Building2, TrendingUp, Lightbulb, DollarSign, Newspaper } from 'lucide-react'
+import { ShieldCheck, BookOpen, Flag, LogOut, School, MessageSquareHeart, Users, Settings2, Menu, X, Mail, Building2, TrendingUp, Lightbulb, DollarSign, Newspaper, MessagesSquare } from 'lucide-react'
 
 export default function AdminNav() {
   const pathname = usePathname()
   const [pendingReports, setPendingReports] = useState(0)
   const [waitlistCount, setWaitlistCount] = useState(0)
   const [surveyCount, setSurveyCount] = useState(0)
+  const [feedbackCount, setFeedbackCount] = useState(0)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
@@ -19,13 +20,15 @@ export default function AdminNav() {
       fetch('/api/admin/review-reports').then(r => r.json()).catch(() => []),
       fetch('/api/admin/waitlist').then(r => r.json()).catch(() => []),
       fetch('/api/admin/survey').then(r => r.json()).catch(() => []),
-    ]).then(([stories, reviews, waitlist, survey]: [{ status: string }[], { status: string }[], { status: string }[], unknown[]]) => {
+      fetch('/api/admin/feedback').then(r => r.json()).catch(() => []),
+    ]).then(([stories, reviews, waitlist, survey, feedback]: [{ status: string }[], { status: string }[], { status: string }[], unknown[], { status: string }[]]) => {
       const pending =
         stories.filter(r => r.status === 'pending').length +
         reviews.filter(r => r.status === 'pending').length
       setPendingReports(pending)
       setWaitlistCount(Array.isArray(waitlist) ? waitlist.filter(w => w.status === 'pending').length : 0)
       setSurveyCount(Array.isArray(survey) ? survey.length : 0)
+      setFeedbackCount(Array.isArray(feedback) ? feedback.filter(f => f.status === 'new').length : 0)
     })
   }, [pathname])
 
@@ -46,6 +49,7 @@ export default function AdminNav() {
     { href: '/admin/insights', label: 'Insights', icon: Lightbulb, badge: 0, badgeStyle: 'count' },
     { href: '/admin/pricing', label: 'Pricing', icon: DollarSign, badge: 0, badgeStyle: 'count' },
     { href: '/admin/blog', label: 'Blog Posts', icon: Newspaper, badge: 0, badgeStyle: 'count' },
+    { href: '/admin/feedback', label: 'Site Feedback', icon: MessagesSquare, badge: feedbackCount, badgeStyle: 'alert' },
   ] as const
 
   const navLinks = NAV_ITEMS.map(({ href, label, icon: Icon, badge, badgeStyle }) => {

@@ -485,6 +485,21 @@ export const blogPosts = pgTable('blog_posts', {
 export type BlogPostRow = typeof blogPosts.$inferSelect
 export type NewBlogPost = typeof blogPosts.$inferInsert
 
+export const siteFeedback = pgTable('site_feedback', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userEmail: text('user_email'), // null for unauthenticated visitors
+  type: text('type').notNull().default('other'), // 'question' | 'concern' | 'other'
+  message: text('message').notNull(),
+  pageUrl: text('page_url'),
+  status: text('status').notNull().default('new'), // 'new' | 'reviewed' | 'resolved'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('site_feedback_status_idx').on(t.status),
+  index('site_feedback_created_at_idx').on(t.createdAt),
+])
+
+export type SiteFeedback = typeof siteFeedback.$inferSelect
+
 export type SiteSetting = typeof siteSettings.$inferSelect
 export type PriceReductionOffer = typeof priceReductionOffers.$inferSelect
 export type FriendInvite = typeof friendInvites.$inferSelect
