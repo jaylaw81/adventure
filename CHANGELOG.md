@@ -8,6 +8,9 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ## 2026-07-28
 
+- **Landing page hero redesign**: Replaced the generic dark hero with an atmospheric reader-experience visualization — a styled story card showing choices, a character stats panel, and an endings count badge — capturing the interactive fiction experience rather than a raw editor screenshot. Headline and CTAs also improved for clarity and visual weight.
+- **Publish / Move to draft from the editor**: Authors can now publish a story or return it to draft directly from the node graph editor toolbar and the block builder toolbar — no need to go back to the dashboard.
+- **All stories start as draft**: Every new story, regardless of plan, begins as a private draft and must be explicitly published before it appears on the Explore page.
 - **Draft publish flow for free/trial users**: Stories created by free and trial users now start as a private draft instead of going live immediately. A "Draft — not yet published" badge appears on the story card and the share toggle reads "Publish story". Publishing runs the existing validation flow, makes the story public, and activates it on the Explore page. Draft stories are invisible to all readers until explicitly published.
 
 ## 2026-07-27

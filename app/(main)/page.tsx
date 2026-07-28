@@ -44,156 +44,127 @@ function usePricingText(): { amount: string; interval: string } {
   return val
 }
 
-/* ── Decorative sparkles ─────────────────────────────────────────── */
-
-function HeroSparkles() {
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      aria-hidden
-      preserveAspectRatio="xMidYMid slice"
-    >
-      {/* Scattered stars */}
-      <circle cx="8%" cy="18%" r="1.5" fill="#a78bfa" style={{ animation: 'twinkle 3.2s ease-in-out infinite' }} />
-      <circle cx="15%" cy="72%" r="1" fill="#f59e0b" style={{ animation: 'twinkle 4.1s ease-in-out infinite 0.8s' }} />
-      <circle cx="78%" cy="12%" r="2" fill="#c4b5fd" style={{ animation: 'twinkle 2.8s ease-in-out infinite 0.3s' }} />
-      <circle cx="88%" cy="62%" r="1.5" fill="#a78bfa" style={{ animation: 'twinkle 3.7s ease-in-out infinite 1.2s' }} />
-      <circle cx="92%" cy="30%" r="1" fill="#f59e0b" style={{ animation: 'twinkle 5s ease-in-out infinite 0.5s' }} />
-      <circle cx="4%" cy="45%" r="1" fill="#c4b5fd" style={{ animation: 'twinkle 4.5s ease-in-out infinite 2s' }} />
-      <circle cx="55%" cy="88%" r="1.5" fill="#a78bfa" style={{ animation: 'twinkle 3.3s ease-in-out infinite 1.5s' }} />
-      <circle cx="30%" cy="6%" r="1" fill="#f59e0b" style={{ animation: 'twinkle 4.8s ease-in-out infinite 0.2s' }} />
-      <circle cx="68%" cy="78%" r="1" fill="#c4b5fd" style={{ animation: 'twinkle 3.9s ease-in-out infinite 0.9s' }} />
-      {/* 4-pointed sparkle shapes */}
-      <path d="M120,40 L122,36 L124,40 L122,44 Z" fill="#a78bfa" opacity="0.5" style={{ animation: 'twinkle 4s ease-in-out infinite 1s' }} />
-      <path d="M700,80 L703,74 L706,80 L703,86 Z" fill="#f59e0b" opacity="0.4" style={{ animation: 'twinkle 5.2s ease-in-out infinite 0.4s' }} />
-      <path d="M50,200 L52,195 L54,200 L52,205 Z" fill="#c4b5fd" opacity="0.45" style={{ animation: 'twinkle 3.6s ease-in-out infinite 1.8s' }} />
-    </svg>
-  )
-}
-
 /* ── UI Mockups ─────────────────────────────────────────────────── */
 
-function CanvasMockup() {
+function HeroStoryViz() {
   return (
-    <div aria-hidden="true" className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10"
-      style={{ background: '#0f0e17' }}>
-      {/* Browser chrome */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10" style={{ background: '#1a1730' }}>
-        <div className="flex gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-red-500/80" />
-          <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-          <div className="w-3 h-3 rounded-full bg-green-500/80" />
-        </div>
-        <div className="flex-1 mx-4 bg-white/5 rounded-md h-5 flex items-center px-3">
-          <span className="text-xs text-white/30 font-mono">storyquestor.com/edit/…</span>
-        </div>
-      </div>
-      {/* Editor toolbar */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-white/5" style={{ background: '#16142a' }}>
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium text-violet-300 border border-violet-400/30 bg-violet-400/10">
-          <Plus size={11} /> Add Scene
-        </div>
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium text-white/40 border border-white/10">
-          <Sparkles size={11} /> Image
-        </div>
-        <div className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white bg-violet-600">
-          Publish
-        </div>
-      </div>
-      {/* Editor body */}
-      <div className="flex" style={{ background: '#0f0e17' }}>
-        {/* Chapter sidebar */}
-        <div className="w-36 shrink-0 border-r border-white/5 flex-col hidden sm:flex" style={{ background: '#0d0c1a' }}>
-          <div className="px-3 py-2.5 border-b border-white/5">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/30">Chapters</p>
-          </div>
-          <div className="flex flex-col p-2 gap-1">
-            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/25">
-              <BookMarked size={10} className="text-violet-400 shrink-0" />
-              <span className="text-xs font-semibold text-violet-300 truncate">Chapter 1</span>
-            </div>
-            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5">
-              <BookMarked size={10} className="text-white/30 shrink-0" />
-              <span className="text-xs text-white/40 truncate">Chapter 2</span>
-            </div>
-            <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5">
-              <BookMarked size={10} className="text-white/30 shrink-0" />
-              <span className="text-xs text-white/40 truncate">Chapter 3</span>
-            </div>
-          </div>
-          <div className="mt-auto p-2 border-t border-white/5">
-            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] text-teal-400 border border-teal-500/20 bg-teal-500/10">
-              <Plus size={9} /> Add Chapter
-            </div>
+    <div className="relative w-full" aria-hidden="true">
+      {/* Ambient glow */}
+      <div className="absolute pointer-events-none" style={{
+        inset: '-15%',
+        background: 'radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.3) 0%, transparent 65%)',
+        filter: 'blur(48px)',
+      }} />
+
+      {/* Main reader card */}
+      <div className="relative rounded-xl overflow-hidden" style={{
+        background: 'linear-gradient(160deg, #14112e 0%, #0d0c1f 100%)',
+        border: '1px solid rgba(167,139,250,0.15)',
+        boxShadow: '0 28px 72px rgba(0,0,0,0.6)',
+      }}>
+        {/* Scene image area */}
+        <div className="relative h-44 overflow-hidden" style={{
+          background: 'linear-gradient(150deg, #200d50 0%, #0c1535 100%)',
+        }}>
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at 35% 65%, rgba(124,58,237,0.5) 0%, transparent 58%)',
+          }} />
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at 80% 25%, rgba(245,158,11,0.15) 0%, transparent 50%)',
+          }} />
+          {/* Subtle star field */}
+          <svg className="absolute inset-0 w-full h-full opacity-40" preserveAspectRatio="xMidYMid slice">
+            {[
+              [20,18],[55,8],[78,22],[88,14],[40,30],[65,40],[12,35],[95,38],
+            ].map(([x,y], i) => (
+              <circle key={i} cx={`${x}%`} cy={`${y}%`} r="1" fill="white"
+                style={{ animation: `twinkle ${3 + (i * 0.4)}s ease-in-out infinite ${i * 0.3}s` }} />
+            ))}
+          </svg>
+          {/* Fade bottom */}
+          <div className="absolute bottom-0 left-0 right-0 h-16" style={{
+            background: 'linear-gradient(to top, #0d0c1f, transparent)',
+          }} />
+          {/* Chapter badge */}
+          <div className="absolute top-3.5 left-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{
+            background: 'rgba(124,58,237,0.28)',
+            border: '1px solid rgba(167,139,250,0.3)',
+          }}>
+            <BookMarked size={9} className="text-violet-300" />
+            <span className="text-[10px] font-semibold text-violet-300">Chapter 2 · The Oracle&apos;s Chamber</span>
           </div>
         </div>
 
-        {/* Canvas area */}
-        <div className="relative flex-1 h-60 overflow-hidden px-4 py-4" style={{ background: 'radial-gradient(ellipse at 30% 50%, #2d0b69 0%, #0f0e17 70%)' }}>
-          {/* Grid dots */}
-          <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="#fff" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#dots)" />
-          </svg>
-          {/* Connector lines */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M 118 64 C 160 64 165 52 200 52" stroke="#a78bfa" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowViolet)" />
-            <path d="M 118 78 C 160 78 165 106 200 106" stroke="#f59e0b" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowAmber)" />
-            <path d="M 305 52 C 340 52 348 64 368 64" stroke="#a78bfa" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowViolet)" />
-            <path d="M 305 106 C 340 106 352 80 368 76" stroke="#f59e0b" strokeWidth="1.5" fill="none" opacity="0.6" markerEnd="url(#arrowAmber)" />
-            <defs>
-              <marker id="arrowViolet" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                <path d="M 0 0 L 6 3 L 0 6 Z" fill="#a78bfa" opacity="0.8" />
-              </marker>
-              <marker id="arrowAmber" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                <path d="M 0 0 L 6 3 L 0 6 Z" fill="#f59e0b" opacity="0.8" />
-              </marker>
-            </defs>
-          </svg>
-          {/* Start node */}
-          <div className="absolute top-8 left-4 w-28 rounded-xl border border-green-500/40 shadow-lg" style={{ background: '#1a1025' }}>
-            <div className="px-2.5 py-1.5 rounded-t-xl border-b border-green-500/30 bg-green-500/10 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-              <span className="text-[10px] font-semibold text-green-400">Start</span>
+        {/* Story text */}
+        <div className="px-5 pt-4 pb-2">
+          <p className="text-sm leading-relaxed text-white/75">
+            The oracle&apos;s eyes turn silver as she faces you. &ldquo;Three truths I know about your path — but you may only hear one.&rdquo;
+          </p>
+        </div>
+
+        {/* Choices */}
+        <div className="px-5 pb-5 pt-2.5 flex flex-col gap-2">
+          <button tabIndex={-1} className="w-full text-left px-4 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between" style={{
+            background: 'rgba(124,58,237,0.15)',
+            border: '1px solid rgba(167,139,250,0.38)',
+            color: '#c4b5fd',
+          }}>
+            <span>&ldquo;Tell me about the darkness ahead.&rdquo;</span>
+            <ArrowRight size={11} className="opacity-60 shrink-0 ml-2" />
+          </button>
+          <button tabIndex={-1} className="w-full text-left px-4 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between" style={{
+            background: 'rgba(245,158,11,0.08)',
+            border: '1px solid rgba(245,158,11,0.25)',
+            color: '#fbbf24',
+          }}>
+            <span>&ldquo;Reveal who I was before the curse.&rdquo;</span>
+            <ArrowRight size={11} className="opacity-60 shrink-0 ml-2" />
+          </button>
+          <button tabIndex={-1} className="w-full text-left px-4 py-2.5 rounded-xl text-xs font-medium flex items-center justify-between" style={{
+            border: '1px solid rgba(255,255,255,0.07)',
+            color: 'rgba(255,255,255,0.32)',
+          }}>
+            <span>&ldquo;I don&apos;t trust her — walk away.&rdquo;</span>
+            <ArrowRight size={11} className="opacity-40 shrink-0 ml-2" />
+          </button>
+        </div>
+      </div>
+
+      {/* Floating: character stats */}
+      <div className="absolute -right-4 top-7 rounded-xl p-3 hidden lg:block" style={{
+        background: '#13112c',
+        border: '1px solid rgba(167,139,250,0.18)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+        transform: 'rotate(3.5deg)',
+      }}>
+        <p className="text-[9px] font-bold text-violet-400/50 uppercase tracking-wider mb-2.5">Arwen</p>
+        <div className="flex flex-col gap-1.5 w-28">
+          {([
+            ['HP',    '65%', '#22c55e'],
+            ['Mana',  '40%', '#a78bfa'],
+            ['Gold',  '80%', '#f59e0b'],
+          ] as const).map(([label, pct, color]) => (
+            <div key={label} className="flex items-center gap-2">
+              <span className="text-[9px] w-8" style={{ color: 'rgba(255,255,255,0.38)' }}>{label}</span>
+              <div className="flex-1 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <div className="h-full rounded-full" style={{ width: pct, background: color }} />
+              </div>
             </div>
-            <div className="px-2.5 py-1.5">
-              <p className="text-[10px] font-medium text-white leading-snug">The path splits before you…</p>
-            </div>
-          </div>
-          {/* Scene A */}
-          <div className="absolute top-2 left-[200px] w-28 rounded-xl border border-violet-500/30 shadow-lg" style={{ background: '#1a1025' }}>
-            <div className="px-2.5 py-1.5 rounded-t-xl border-b border-violet-500/20 bg-violet-500/10 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-violet-400" />
-              <span className="text-[10px] font-semibold text-violet-400">Scene</span>
-            </div>
-            <div className="px-2.5 py-1.5">
-              <p className="text-[10px] font-medium text-white leading-snug">Into the dark cave…</p>
-            </div>
-          </div>
-          {/* Scene B */}
-          <div className="absolute top-[72px] left-[200px] w-28 rounded-xl border border-amber-500/30 shadow-lg" style={{ background: '#1a1025' }}>
-            <div className="px-2.5 py-1.5 rounded-t-xl border-b border-amber-500/20 bg-amber-500/10 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <span className="text-[10px] font-semibold text-amber-400">Scene</span>
-            </div>
-            <div className="px-2.5 py-1.5">
-              <p className="text-[10px] font-medium text-white leading-snug">The river flows east…</p>
-            </div>
-          </div>
-          {/* Next Chapter node */}
-          <div className="absolute top-[36px] left-[368px] w-28 rounded-xl border border-teal-400/40 shadow-lg" style={{ background: '#1a1025' }}>
-            <div className="px-2.5 py-1.5 rounded-t-xl border-b border-teal-400/30 bg-teal-400/10 flex items-center gap-1.5">
-              <BookMarked size={9} className="text-teal-400" />
-              <span className="text-[10px] font-semibold text-teal-400">Next Chapter</span>
-            </div>
-            <div className="px-2.5 py-1.5">
-              <p className="text-[10px] font-medium text-white/60 leading-snug">→ Chapter 2</p>
-            </div>
-          </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Floating: endings count */}
+      <div className="absolute -left-4 bottom-12 rounded-xl px-3 py-2 hidden lg:flex items-center gap-2" style={{
+        background: '#0d0c1e',
+        border: '1px solid rgba(245,158,11,0.24)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.45)',
+        transform: 'rotate(-2.5deg)',
+      }}>
+        <GitBranch size={13} className="text-amber-400 shrink-0" />
+        <div>
+          <p className="text-[11px] font-bold text-amber-400">12 endings</p>
+          <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.28)' }}>across 4 chapters</p>
         </div>
       </div>
     </div>
@@ -271,46 +242,71 @@ function LandingPage() {
       {/* ── Hero ── */}
       {/* -mt-16 pulls the hero behind the transparent sticky header (h-16 = 64px) */}
       <section className="relative overflow-hidden px-6 pt-36 pb-20 sm:pt-44 sm:pb-28 -mt-16"
-        style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 45%, #0f172a 100%)' }}>
+        style={{ background: 'linear-gradient(155deg, #160b30 0%, #0e1428 52%, #090d1c 100%)' }}>
 
-        {/* Decorative radial glow */}
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 30% 60%, rgba(124,58,237,0.2) 0%, transparent 65%)' }}
-        />
-        <HeroSparkles />
+        {/* Atmospheric depth layers */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse at 20% 55%, rgba(124,58,237,0.22) 0%, transparent 55%)',
+        }} />
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse at 80% 20%, rgba(245,158,11,0.08) 0%, transparent 48%)',
+        }} />
 
         <div className="relative max-w-6xl mx-auto">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
             {/* Left: copy */}
-            <div className="flex-1 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 text-violet-300 text-sm font-medium px-4 py-1.5 rounded-full mb-6 border"
-                style={{ background: 'rgba(124,58,237,0.15)', borderColor: 'rgba(167,139,250,0.3)' }}>
-                <Sparkles size={14} />
-                Interactive Storytelling Platform
-              </div>
-              <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold text-white mb-6 leading-tight">
-                Create Stories Where<br />
-                <span className="text-amber-400">Every Choice Matters</span>
+            <div className="flex-1 text-center lg:text-left" style={{
+              animation: 'hero-rise 0.75s cubic-bezier(0.22,1,0.36,1) 0.05s both',
+            }}>
+              <h1
+                className="font-extrabold text-white mb-5 leading-[1.08]"
+                style={{
+                  fontSize: 'clamp(2.25rem, 3.5vw + 1.25rem, 4.75rem)',
+                  letterSpacing: '-0.025em',
+                  textWrap: 'balance',
+                }}
+              >
+                Create Stories Where Every Choice Matters
               </h1>
-              <p className="text-lg sm:text-xl text-white/60 mb-4 max-w-xl">
-                Build classic branching stories or full RPG-style worlds with characters, items, and foe combat — all on a visual canvas with custom illustrations.
+              <p className="text-lg sm:text-xl mb-4 max-w-lg" style={{ color: 'rgba(255,255,255,0.55)', lineHeight: '1.6' }}>
+                Design branching adventures on a visual canvas — from classic choose-your-own stories to full RPG worlds with characters and combat.
               </p>
-              <p className="text-sm text-violet-300/70 mb-8 max-w-xl">
+              <p className="text-sm mb-8 max-w-lg" style={{ color: 'rgba(167,139,250,0.6)' }}>
                 From {minPrice}/{minInterval}. Cancel anytime.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link
                   href="/sign-up"
                   onClick={() => analytics.landingSignInClicked('hero')}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-white shadow-lg transition-all hover:scale-105 hover:brightness-110"
-                  style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-white transition-all"
+                  style={{
+                    background: '#7c3aed',
+                    boxShadow: '0 4px 20px rgba(124,58,237,0.4)',
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 6px 28px rgba(124,58,237,0.6)'
+                    ;(e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)'
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 20px rgba(124,58,237,0.4)'
+                    ;(e.currentTarget as HTMLAnchorElement).style.transform = ''
+                  }}
                 >
                   Start creating
                   <ArrowRight size={16} />
                 </Link>
                 <Link
                   href="/demo"
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-white/80 border border-white/15 hover:bg-white/5 hover:text-white transition-colors"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold transition-colors"
+                  style={{ color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.12)' }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.05)'
+                    ;(e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.9)'
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLAnchorElement).style.background = ''
+                    ;(e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.65)'
+                  }}
                 >
                   <Play size={15} />
                   Try the editor
@@ -318,69 +314,64 @@ function LandingPage() {
               </div>
             </div>
 
-            {/* Right: canvas mockup */}
-            <div className="flex-1 w-full max-w-2xl">
-              <CanvasMockup />
+            {/* Right: reader story experience */}
+            <div className="flex-1 w-full max-w-lg" style={{
+              animation: 'hero-rise 0.85s cubic-bezier(0.22,1,0.36,1) 0.18s both',
+            }}>
+              <HeroStoryViz />
             </div>
           </div>
         </div>
       </section>
 
       {/* ── How It Works ── */}
-      <section className="px-6 py-20" style={{ background: '#f5f3ff' }}>
+      <section className="px-6 py-24" style={{ background: '#f5f3ff' }}>
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-semibold uppercase tracking-widest text-violet-700 mb-3">How it works</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold" style={{ color: '#1e0a3c' }}>
-              From idea to adventure in minutes
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            {/* Connecting line on desktop */}
-            <div className="hidden md:block absolute top-11 left-1/3 right-1/3 h-px"
-              style={{ background: 'linear-gradient(to right, #a78bfa, #7c3aed, #a78bfa)' }} />
-
+          <h2
+            className="text-3xl sm:text-4xl font-extrabold mb-16 text-center"
+            style={{ color: '#1e0a3c', letterSpacing: '-0.02em', textWrap: 'balance' }}
+          >
+            From idea to adventure in minutes
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-violet-200">
             {[
               {
                 step: '1',
                 icon: GitBranch,
-                bg: '#ede9fe',
                 iconColor: '#7c3aed',
-                badgeBg: '#7c3aed',
                 title: 'Build your canvas',
-                desc: 'Drag scenes onto an infinite canvas and connect them. Map every branch of your story visually.'
+                desc: 'Drag scenes onto an infinite canvas and connect them. Map every branch of your story visually.',
               },
               {
                 step: '2',
                 icon: Sparkles,
-                bg: '#fef3c7',
                 iconColor: '#d97706',
-                badgeBg: '#f59e0b',
                 title: 'Write & illustrate',
-                desc: 'Write scene content and generate cinematic images for each moment — no design skills needed.'
+                desc: 'Write scene content and generate cinematic images for each moment — no design skills needed.',
               },
               {
                 step: '3',
                 icon: Globe,
-                bg: '#fce7f3',
-                iconColor: '#be185d',
-                badgeBg: '#ec4899',
+                iconColor: '#6d28d9',
                 title: 'Publish & share',
-                desc: 'Hit publish and share your link. Readers play through every branch and discover every ending.'
+                desc: 'Hit publish and share your link. Readers play through every branch and discover every ending.',
               },
-            ].map(({ step, icon: Icon, bg, iconColor, badgeBg, title, desc }) => (
-              <div key={step} className="flex flex-col items-center text-center gap-4 bg-white rounded-2xl p-8 shadow-sm border border-violet-100">
-                <div className="relative w-20 h-20 rounded-2xl flex items-center justify-center shadow-sm"
-                  style={{ background: bg }}>
-                  <Icon size={30} style={{ color: iconColor }} />
-                  <span className="absolute -top-2 -right-2 w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center text-white shadow-sm"
-                    style={{ background: badgeBg }}>
-                    {step}
-                  </span>
+            ].map(({ step, icon: Icon, iconColor, title, desc }) => (
+              <div key={step} className="relative flex flex-col gap-4 px-8 py-10 md:px-10">
+                <span
+                  className="absolute top-6 right-7 text-7xl font-black leading-none select-none pointer-events-none"
+                  style={{ color: 'rgba(124,58,237,0.07)', fontVariantNumeric: 'tabular-nums' }}
+                >
+                  {step}
+                </span>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{ background: 'rgba(124,58,237,0.1)' }}>
+                  <Icon size={19} style={{ color: iconColor }} />
                 </div>
-                <h3 className="text-lg font-bold" style={{ color: '#1e0a3c' }}>{title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: '#6b7280' }}>{desc}</p>
+                <div>
+                  <h3 className="text-base font-bold mb-2" style={{ color: '#1e0a3c' }}>{title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: '#4b3d6b' }}>{desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -388,37 +379,36 @@ function LandingPage() {
       </section>
 
       {/* ── Reader Experience ── */}
-      <section className="px-6 py-20" style={{ background: '#fffbeb' }}>
+      <section className="px-6 py-24 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
             {/* Phone mockup */}
             <div className="flex-1 flex justify-center">
               <ReaderMockup />
             </div>
 
             <div className="flex-1 text-center lg:text-left">
-              <p className="text-xs font-semibold uppercase tracking-widest text-amber-700 mb-3">The Reader</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold mb-5" style={{ color: '#1e0a3c' }}>
+              <h2
+                className="text-3xl sm:text-4xl font-extrabold mb-5"
+                style={{ color: '#1e0a3c', letterSpacing: '-0.02em', textWrap: 'balance' }}
+              >
                 A beautiful reading experience for your audience
               </h2>
-              <p className="text-base leading-relaxed mb-8" style={{ color: '#6b7280' }}>
+              <p className="text-base leading-relaxed mb-8 max-w-lg" style={{ color: '#4b5563' }}>
                 Readers get an immersive, mobile-friendly experience. Every scene loads instantly, choices feel natural, and scene images bring the story to life.
               </p>
               <ul className="flex flex-col gap-3 text-sm">
                 {[
                   'Clean, distraction-free reading layout',
                   'Tap choices to navigate branches',
-                  'Scene illustrations',
+                  'Scene illustrations for every moment',
                   'Live character stats sidebar in World Builder stories',
                   'Turn-based foe combat with items and abilities',
                   'Rate and review stories at the end',
                   'Works on any device — phone, tablet, desktop',
                 ].map(item => (
-                  <li key={item} className="flex items-center gap-3" style={{ color: '#374151' }}>
-                    <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-white"
-                      style={{ background: '#7c3aed' }}>
-                      <Check size={12} />
-                    </span>
+                  <li key={item} className="flex items-start gap-3" style={{ color: '#374151' }}>
+                    <Check size={14} className="text-violet-500 shrink-0 mt-0.5" />
                     {item}
                   </li>
                 ))}
@@ -429,14 +419,14 @@ function LandingPage() {
       </section>
 
       {/* ── Features ── */}
-      <section className="px-6 py-20" style={{ background: '#faf5ff' }}>
+      <section className="px-6 py-24" style={{ background: '#faf5ff' }}>
         <div className="max-w-5xl mx-auto">
-          <div className="mb-12">
-            <p className="text-xs font-semibold uppercase tracking-widest text-violet-700 mb-3">What you get</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold" style={{ color: '#1e0a3c' }}>
-              Built for the story, not the software
-            </h2>
-          </div>
+          <h2
+            className="text-3xl sm:text-4xl font-extrabold mb-12"
+            style={{ color: '#1e0a3c', letterSpacing: '-0.02em', textWrap: 'balance' }}
+          >
+            Built for the story, not the software
+          </h2>
           <div className="flex flex-col divide-y divide-violet-100">
             {[
               { num: '01', title: 'Visual Canvas', desc: 'Map your full story structure with drag-and-drop scene nodes on an infinite canvas. See every branch at a glance.' },
@@ -448,11 +438,13 @@ function LandingPage() {
               { num: '07', title: 'Ratings & Reviews', desc: 'Readers rate and review. Build credibility through community feedback across every ending they discover.' },
               { num: '08', title: 'Simple Pricing', desc: `Creating and editing stories requires a subscription — starting at just ${minPrice}/${minInterval}. Reading and browsing are always free.` },
             ].map(({ num, title, desc }) => (
-              <div key={num} className="flex items-start gap-6 sm:gap-10 py-6 group">
-                <span className="text-xs font-mono text-violet-600 pt-1.5 w-6 shrink-0">{num}</span>
-                <h3 className="text-base font-bold w-40 shrink-0 group-hover:text-violet-600 transition-colors"
-                  style={{ color: '#1e0a3c' }}>{title}</h3>
-                <p className="text-sm leading-relaxed flex-1 hidden sm:block" style={{ color: '#6b7280' }}>{desc}</p>
+              <div key={num} className="flex items-start gap-5 sm:gap-10 py-5 group">
+                <span className="text-xs font-mono text-violet-400 pt-1.5 w-6 shrink-0">{num}</span>
+                <div className="flex-1 flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-10">
+                  <h3 className="text-base font-bold sm:w-40 sm:shrink-0 group-hover:text-violet-600 transition-colors"
+                    style={{ color: '#1e0a3c' }}>{title}</h3>
+                  <p className="text-sm leading-relaxed flex-1" style={{ color: '#6b7280' }}>{desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -484,7 +476,7 @@ function LandingPage() {
             {/* Featured card */}
             <Link
               href={`/blog/${latestPost.slug}`}
-              className="group flex flex-col lg:flex-row overflow-hidden rounded-2xl border border-violet-200 hover:border-violet-400 transition-all duration-300 hover:-translate-y-0.5"
+              className="group flex flex-col lg:flex-row overflow-hidden rounded-xl border border-violet-200 hover:border-violet-400 transition-all duration-300 hover:-translate-y-0.5"
               style={{ background: '#faf5ff' }}
             >
               {/* Image */}
@@ -545,35 +537,57 @@ function LandingPage() {
 
       {/* ── CTA ── */}
       <section className="relative overflow-hidden px-6 py-24 text-center"
-        style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 50%, #0f172a 100%)' }}>
-        {/* Glow */}
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(124,58,237,0.25) 0%, transparent 70%)' }}
-        />
-        <HeroSparkles />
+        style={{ background: 'linear-gradient(155deg, #160b30 0%, #0d1427 52%, #090d1c 100%)' }}>
+        {/* Atmospheric glows */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse at 40% 50%, rgba(124,58,237,0.28) 0%, transparent 60%)',
+        }} />
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse at 72% 30%, rgba(245,158,11,0.07) 0%, transparent 45%)',
+        }} />
         <div className="relative max-w-2xl mx-auto">
-          <h2 className="text-4xl sm:text-5xl font-extrabold text-white mb-5 leading-tight">
+          <h2
+            className="text-4xl sm:text-5xl font-extrabold text-white mb-5"
+            style={{ letterSpacing: '-0.025em', textWrap: 'balance' }}
+          >
             Ready to tell your story?
           </h2>
-          <p className="text-white/60 text-lg mb-3 max-w-lg mx-auto">
+          <p className="text-lg mb-3 max-w-lg mx-auto" style={{ color: 'rgba(255,255,255,0.55)' }}>
             Join creators building branching adventures their readers love.
           </p>
-          <p className="text-violet-300/60 text-sm mb-10">
+          <p className="text-sm mb-10" style={{ color: 'rgba(167,139,250,0.6)' }}>
             From {minPrice}/{minInterval}. Cancel anytime.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/sign-up"
               onClick={() => analytics.landingSignInClicked('cta_bottom')}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-lg font-semibold text-white shadow-xl transition-all hover:scale-105 hover:brightness-110"
-              style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-lg font-semibold text-white transition-all"
+              style={{ background: '#7c3aed', boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 6px 28px rgba(124,58,237,0.6)'
+                ;(e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)'
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 20px rgba(124,58,237,0.4)'
+                ;(e.currentTarget as HTMLAnchorElement).style.transform = ''
+              }}
             >
               Start creating
               <ArrowRight size={18} />
             </Link>
             <Link
               href="/explore"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-lg font-semibold text-white/70 border border-white/15 hover:bg-white/5 hover:text-white transition-colors"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-lg font-semibold transition-colors"
+              style={{ color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.12)' }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.05)'
+                ;(e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.9)'
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLAnchorElement).style.background = ''
+                ;(e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.65)'
+              }}
             >
               <BookOpen size={16} />
               Browse stories
