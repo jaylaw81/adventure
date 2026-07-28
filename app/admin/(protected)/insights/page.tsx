@@ -7,7 +7,8 @@ import {
   Share2, AlertTriangle, CheckCircle2, ExternalLink,
   BarChart3, Globe, Zap, Copy, Check, Settings,
   UserPlus, CreditCard, GitBranch, Layers, Network,
-  Link2, ThumbsUp, MessageSquare, MapPin,
+  Link2, ThumbsUp, MessageSquare, MapPin, BarChart2,
+  Search, MousePointerClick, Eye,
 } from 'lucide-react'
 import { ACQUISITION_SOURCE_LABELS } from '@/lib/acquisitionSources'
 
@@ -25,6 +26,15 @@ interface RecentStory {
   updatedAt: string
 }
 
+interface TopStory {
+  id: string
+  title: string
+  userEmail: string | null
+  shareToken: string | null
+  readCount: number
+  socialCount?: number
+}
+
 interface FbEngagement { shareCount: number; reactionCount: number; commentCount: number }
 
 interface InsightsData {
@@ -40,6 +50,8 @@ interface InsightsData {
     recentPublicStories: RecentStory[]
     facebookEngagement: Record<string, FbEngagement>
     avgStoriesPerActiveUser: number
+    topByReads: TopStory[]
+    topBySocial: TopStory[]
     editorMode: { node: number; block: number }
     createdFrom: { blank: number; template: number }
     acquisitionSources: { source: string; count: number }[]
@@ -197,9 +209,33 @@ function CopyPostButton({ story }: { story: RecentStory }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+interface GSCPage {
+  page: string
+  adventureId: string | null
+  title: string | null
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
+interface GSCData {
+  configured: boolean
+  pages?: GSCPage[]
+  error?: string
+}
+
 export default function AdminInsightsPage() {
   const [data, setData] = useState<InsightsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [gsc, setGsc] = useState<GSCData | null>(null)
+
+  useEffect(() => {
+    fetch('/api/admin/gsc')
+      .then(r => r.json())
+      .then((d: GSCData) => setGsc(d))
+      .catch(() => setGsc({ configured: false }))
+  }, [])
 
   useEffect(() => {
     fetch('/api/admin/insights')
@@ -370,6 +406,103 @@ export default function AdminInsightsPage() {
           ))}
         </div>
       </section>
+
+      {/* ── Top stories ──────────────────────────────────────────────────────── */}
+      {(db.topByReads.length > 0 || db.topBySocial.length > 0) && (
+        <section>
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Top stories</h2>
+          <div className="grid lg:grid-cols-2 gap-4">
+
+            {/* Top by reads */}
+            {db.topByReads.length > 0 && (() => {
+              const maxReads = db.topByReads[0].readCount
+              return (
+                <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                  <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
+                    <BookOpen size={14} className="text-violet-500" />
+                    <h3 className="text-sm font-semibold text-slate-700">Most read</h3>
+                    <span className="text-xs text-slate-400 ml-auto">all time</span>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {db.topByReads.map((story, i) => (
+                      <div key={story.id} className="flex items-center gap-3 px-5 py-3">
+                        <span className="text-xs font-bold text-slate-300 w-5 shrink-0 tabular-nums">{i + 1}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-800 truncate">{story.title}</p>
+                          <div className="mt-1.5 h-1 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-violet-400"
+                              style={{ width: `${Math.max(4, (story.readCount / maxReads) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-sm font-bold text-slate-900 tabular-nums">
+                            {story.readCount.toLocaleString()}
+                          </span>
+                          <Link
+                            href={`/admin/referrers/${story.id}`}
+                            className="flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 hover:bg-violet-100 text-slate-400 hover:text-violet-600 transition-colors"
+                            title="View referrer analytics"
+                          >
+                            <BarChart2 size={11} />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* Top by social traffic */}
+            {db.topBySocial.length > 0 && (() => {
+              const maxSocial = db.topBySocial[0].socialCount ?? 1
+              return (
+                <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                  <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
+                    <Share2 size={14} className="text-amber-500" />
+                    <h3 className="text-sm font-semibold text-slate-700">Most shared</h3>
+                    <span className="text-xs text-slate-400 ml-auto">social traffic</span>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {db.topBySocial.map((story, i) => (
+                      <div key={story.id} className="flex items-center gap-3 px-5 py-3">
+                        <span className="text-xs font-bold text-slate-300 w-5 shrink-0 tabular-nums">{i + 1}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-800 truncate">{story.title}</p>
+                          <div className="mt-1.5 h-1 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-amber-400"
+                              style={{ width: `${Math.max(4, ((story.socialCount ?? 0) / maxSocial) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-slate-900 tabular-nums">
+                              {(story.socialCount ?? 0).toLocaleString()}
+                            </p>
+                            <p className="text-[10px] text-slate-400 leading-none">social visits</p>
+                          </div>
+                          <Link
+                            href={`/admin/referrers/${story.id}`}
+                            className="flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 hover:bg-amber-100 text-slate-400 hover:text-amber-600 transition-colors"
+                            title="View referrer analytics"
+                          >
+                            <BarChart2 size={11} />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
+          </div>
+        </section>
+      )}
 
       {/* ── Sharing & social ────────────────────────────────────────────────── */}
       <section>
@@ -690,6 +823,117 @@ GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"...","private
             </div>
           </div>
         )}
+      </section>
+
+      {/* ── Google Search Console ────────────────────────────────────────────── */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Search Console (last 90 days)</h2>
+          {gsc?.configured && !gsc.error && (
+            <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
+              <CheckCircle2 size={12} /> Connected
+            </span>
+          )}
+        </div>
+
+        {!gsc ? (
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 text-center text-slate-400 text-sm">
+            Loading search data…
+          </div>
+        ) : !gsc.configured ? (
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center shrink-0">
+                <Search size={18} className="text-teal-700" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-800 mb-1">Set up Google Search Console integration</p>
+                <p className="text-sm text-slate-500 mb-3">
+                  Connect Search Console to see which story pages appear in Google search, what queries surface them, and how many impressions and clicks each gets.
+                </p>
+                <ol className="text-xs text-slate-500 space-y-1.5 list-decimal list-inside mb-4">
+                  <li>Add your site to <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-700">Google Search Console</a> and verify ownership</li>
+                  <li>In GSC → Settings → Users and permissions, add your service account email as a <strong>Full</strong> user</li>
+                  <li>The service account email is the <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">client_email</code> field in your <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">GOOGLE_SERVICE_ACCOUNT_KEY</code></li>
+                  <li>Add to <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700">.env.local</code>:</li>
+                </ol>
+                <pre className="bg-slate-900 text-slate-300 text-xs rounded-lg px-4 py-3 overflow-x-auto">
+{`GSC_SITE_URL=https://www.storyquestor.com/`}
+                </pre>
+                <p className="text-xs text-slate-400 mt-2">The existing <code className="bg-slate-100 px-1 rounded">GOOGLE_SERVICE_ACCOUNT_KEY</code> is reused — no new credentials needed.</p>
+              </div>
+            </div>
+          </div>
+        ) : gsc.error ? (
+          <div className="bg-white border border-red-200 rounded-xl shadow-sm p-5">
+            <p className="text-sm font-semibold text-red-700 mb-1">Search Console error</p>
+            <p className="text-xs text-slate-500 font-mono break-all">{gsc.error}</p>
+          </div>
+        ) : (gsc.pages ?? []).length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 text-center text-slate-400 text-sm">
+            No story pages found in Search Console yet. Pages appear once Google has crawled them.
+          </div>
+        ) : (() => {
+          const pages = gsc.pages!
+          const maxImpressions = pages[0]?.impressions ?? 1
+          return (
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+              {/* Column headers */}
+              <div className="grid px-5 py-2.5 border-b border-slate-100 bg-slate-50 text-xs font-semibold text-slate-400 uppercase tracking-wide"
+                style={{ gridTemplateColumns: '1fr 80px 80px 70px 72px 32px' }}>
+                <span>Story</span>
+                <span className="text-right flex items-center justify-end gap-1"><Eye size={10} /> Impr.</span>
+                <span className="text-right flex items-center justify-end gap-1"><MousePointerClick size={10} /> Clicks</span>
+                <span className="text-right">CTR</span>
+                <span className="text-right">Position</span>
+                <span />
+              </div>
+              <div className="divide-y divide-slate-50">
+                {pages.map((p, i) => (
+                  <div key={i} className="grid items-center px-5 py-3 hover:bg-slate-50 transition-colors"
+                    style={{ gridTemplateColumns: '1fr 80px 80px 70px 72px 32px' }}>
+                    <div className="min-w-0 pr-3">
+                      <p className="text-sm font-medium text-slate-800 truncate">
+                        {p.title ?? p.page.replace(/^https?:\/\/[^/]+/, '')}
+                      </p>
+                      <div className="mt-1.5 h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-teal-400"
+                          style={{ width: `${Math.max(3, (p.impressions / maxImpressions) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-800 tabular-nums text-right">
+                      {p.impressions.toLocaleString()}
+                    </span>
+                    <span className="text-sm text-slate-600 tabular-nums text-right">
+                      {p.clicks.toLocaleString()}
+                    </span>
+                    <span className="text-sm text-slate-500 tabular-nums text-right">
+                      {(p.ctr * 100).toFixed(1)}%
+                    </span>
+                    <span className={`text-sm font-medium tabular-nums text-right ${
+                      p.position <= 3 ? 'text-green-600' : p.position <= 10 ? 'text-amber-600' : 'text-slate-400'
+                    }`}>
+                      #{p.position.toFixed(1)}
+                    </span>
+                    <div className="flex justify-end">
+                      {p.adventureId && (
+                        <Link
+                          href={`/admin/referrers/${p.adventureId}`}
+                          className="flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 hover:bg-teal-100 text-slate-400 hover:text-teal-600 transition-colors"
+                          title="Full referrer analytics"
+                        >
+                          <BarChart2 size={11} />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
       </section>
     </div>
   )

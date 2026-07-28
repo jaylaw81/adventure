@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { and, eq, exists, gt, isNotNull, lt, ne, notExists, or, isNull, sql } from 'drizzle-orm'
+import { and, desc, eq, exists, gt, isNotNull, lt, ne, notExists, or, isNull, sql } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { users, adventures, nodes, choices } from '@/lib/schema'
+import { users, adventures, nodes, choices, storyReferrers } from '@/lib/schema'
 import { getGAClient, gaProperty, EVENT_LABELS } from '@/lib/ga-data'
 
 export async function GET() {
@@ -34,6 +34,8 @@ export async function GET() {
     [editorModeCounts],
     [createdFromCounts],
     acquisitionSourceRows,
+    topByReads,
+    topBySocial,
   ] = await Promise.all([
 
     // Users who have created stories but zero are public
@@ -157,6 +159,35 @@ export async function GET() {
       .where(isNotNull(users.acquisitionSource))
       .groupBy(users.acquisitionSource)
       .orderBy(sql`count(*) desc`),
+
+    // Top 10 stories by read count
+    db.select({
+      id: adventures.id,
+      title: adventures.title,
+      userEmail: adventures.userEmail,
+      shareToken: adventures.shareToken,
+      readCount: adventures.readCount,
+    })
+      .from(adventures)
+      .where(and(eq(adventures.status, 'active'), gt(adventures.readCount, 0)))
+      .orderBy(desc(adventures.readCount))
+      .limit(10),
+
+    // Top 10 stories by social traffic (storyReferrers where category = 'social')
+    db.select({
+      id: adventures.id,
+      title: adventures.title,
+      userEmail: adventures.userEmail,
+      shareToken: adventures.shareToken,
+      readCount: adventures.readCount,
+      socialCount: sql<number>`cast(count(*) as int)`,
+    })
+      .from(storyReferrers)
+      .innerJoin(adventures, eq(adventures.id, storyReferrers.adventureId))
+      .where(eq(storyReferrers.referrerCategory, 'social'))
+      .groupBy(adventures.id, adventures.title, adventures.userEmail, adventures.shareToken, adventures.readCount)
+      .orderBy(desc(sql`count(*)`))
+      .limit(10),
   ])
 
   // ── Google Analytics ──────────────────────────────────────────────────────
@@ -314,6 +345,21 @@ export async function GET() {
         const paid = paidUsersRow?.count ?? 0
         return paid > 0 ? Math.round((total / paid) * 10) / 10 : 0
       })(),
+      topByReads: topByReads.map(s => ({
+        id: s.id,
+        title: s.title,
+        userEmail: s.userEmail,
+        shareToken: s.shareToken,
+        readCount: s.readCount,
+      })),
+      topBySocial: topBySocial.map(s => ({
+        id: s.id,
+        title: s.title,
+        userEmail: s.userEmail,
+        shareToken: s.shareToken,
+        readCount: s.readCount,
+        socialCount: s.socialCount,
+      })),
     },
     ga: {
       configured: gaConfigured,

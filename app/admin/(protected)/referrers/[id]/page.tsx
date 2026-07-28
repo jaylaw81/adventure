@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, TrendingUp, Users, Globe, Search, Share2, Mail, Link2, Layers } from 'lucide-react'
+import { ArrowLeft, ExternalLink, TrendingUp, Users, Globe, Search, Share2, Mail, Link2, Layers, MousePointerClick, Eye } from 'lucide-react'
 
 interface CategoryRow { category: string; count: number }
 interface DomainRow { domain: string; category: string; count: number }
@@ -16,6 +16,20 @@ interface ReferrerData {
   byDomain: DomainRow[]
   daily: DayRow[]
   trackedTotal: number
+}
+
+interface GSCQueryRow {
+  query: string
+  clicks: number
+  impressions: number
+  ctr: number
+  position: number
+}
+
+interface GSCData {
+  configured: boolean
+  queries?: GSCQueryRow[]
+  error?: string
 }
 
 const CATEGORY_META: Record<string, { label: string; color: string; bg: string; Icon: React.ElementType }> = {
@@ -88,12 +102,20 @@ export default function ReferrersPage() {
   const [data, setData] = useState<ReferrerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState<string | null>(null)
+  const [gsc, setGsc] = useState<GSCData | null>(null)
 
   useEffect(() => {
     fetch(`/api/admin/referrers/${id}`)
       .then(r => r.ok ? r.json() : r.json().then((e: { error: string }) => { throw new Error(e.error) }))
       .then(d => { setData(d); setLoading(false) })
       .catch(e => { setErr(e.message); setLoading(false) })
+  }, [id])
+
+  useEffect(() => {
+    fetch(`/api/admin/gsc/${id}`)
+      .then(r => r.json())
+      .then((d: GSCData) => setGsc(d))
+      .catch(() => setGsc({ configured: false }))
   }, [id])
 
   if (loading) return (
@@ -257,10 +279,80 @@ export default function ReferrersPage() {
       </div>
 
       {trackedTotal === 0 && adventure.readCount > 0 && (
-        <div className="mt-4 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700">
+        <div className="px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-700">
           This story has reads but no referrer data yet — tracking started after existing reads occurred. New reads will begin appearing here.
         </div>
       )}
+
+      {/* Search Console queries */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <Search size={14} className="text-teal-500" />
+            Google search queries (last 90 days)
+          </h2>
+          {gsc?.configured && !gsc.error && (
+            <span className="text-xs text-teal-600 font-medium">via Search Console</span>
+          )}
+        </div>
+
+        {!gsc ? (
+          <p className="px-5 py-6 text-center text-xs text-slate-400">Loading search data…</p>
+        ) : !gsc.configured ? (
+          <div className="px-5 py-5">
+            <p className="text-xs text-slate-500 mb-1">Search Console not connected.</p>
+            <p className="text-xs text-slate-400">
+              Add <code className="bg-slate-100 px-1 rounded">GSC_SITE_URL</code> to your environment and grant the service account access to your GSC property to see which search queries bring readers to this story.
+            </p>
+          </div>
+        ) : gsc.error ? (
+          <p className="px-5 py-5 text-xs text-red-500">{gsc.error}</p>
+        ) : !gsc.queries?.length ? (
+          <p className="px-5 py-6 text-center text-xs text-slate-400">
+            No search query data yet — this story may not be indexed, or hasn&apos;t received search traffic in the last 90 days.
+          </p>
+        ) : (() => {
+          const maxImp = gsc.queries![0].impressions
+          return (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[480px]">
+                <thead>
+                  <tr className="text-xs text-slate-400 uppercase tracking-wide border-b border-slate-100">
+                    <th className="text-left px-5 py-2.5 font-medium">Query</th>
+                    <th className="text-right px-4 py-2.5 font-medium flex items-center justify-end gap-1"><Eye size={10} /> Impr.</th>
+                    <th className="text-right px-4 py-2.5 font-medium"><MousePointerClick size={10} className="inline mr-0.5" />Clicks</th>
+                    <th className="text-right px-5 py-2.5 font-medium">Pos.</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {gsc.queries!.map((q, i) => (
+                    <tr key={i} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-5 py-2.5 min-w-0">
+                        <p className="text-sm text-slate-700 font-medium truncate max-w-xs">{q.query}</p>
+                        <div className="mt-1 h-0.5 bg-slate-100 rounded-full overflow-hidden w-full max-w-xs">
+                          <div className="h-full bg-teal-400 rounded-full"
+                            style={{ width: `${Math.max(3, (q.impressions / maxImp) * 100)}%` }} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-right text-sm font-semibold text-slate-800 tabular-nums">
+                        {q.impressions.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-2.5 text-right text-sm text-slate-600 tabular-nums">
+                        {q.clicks.toLocaleString()}
+                      </td>
+                      <td className={`px-5 py-2.5 text-right text-sm font-medium tabular-nums ${
+                        q.position <= 3 ? 'text-green-600' : q.position <= 10 ? 'text-amber-600' : 'text-slate-400'
+                      }`}>
+                        #{q.position.toFixed(1)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )
+        })()}
+      </div>
     </div>
   )
 }
