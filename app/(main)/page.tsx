@@ -673,6 +673,11 @@ function Dashboard() {
     session.user.tier !== 'organization' &&
     !['active', 'trialing'].includes(session.user.subscriptionStatus ?? '')
 
+  const canViewAnalytics = !!session?.user && (
+    session.user.subscriptionInterval === 'month' ||
+    !!session.user.isAdmin
+  )
+
   const atFreeLimit = !loading && isFreeTier && adventures.length >= 1
 
   return (
@@ -765,7 +770,7 @@ function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {adventures.map(adventure => (
-              <AdventureCard key={adventure.id} adventure={adventure} onDelete={handleDelete} canMakePublic={canMakePublic} canMakePrivate={canMakePrivate} />
+              <AdventureCard key={adventure.id} adventure={adventure} onDelete={handleDelete} canMakePublic={canMakePublic} canMakePrivate={canMakePrivate} canViewAnalytics={canViewAnalytics} />
             ))}
           </div>
         )}

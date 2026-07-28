@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Pencil, Play, Trash2, GitBranch, Settings, AlertTriangle, BookOpen, Globe } from 'lucide-react'
+import { Pencil, Play, Trash2, GitBranch, Settings, AlertTriangle, BookOpen, Globe, BarChart2 } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import ShareToggle from './ShareToggle'
 import AdventureSettingsModal from './AdventureSettingsModal'
+import StoryAnalyticsModal from './StoryAnalyticsModal'
 import { analytics } from '@/lib/analytics'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
   onDelete?: (id: string) => void
   canMakePublic?: boolean
   canMakePrivate?: boolean
+  canViewAnalytics?: boolean
 }
 
 function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onConfirm: () => void; onCancel: () => void }) {
@@ -67,11 +69,12 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onC
   )
 }
 
-export default function AdventureCard({ adventure, onDelete, canMakePublic = true, canMakePrivate = true }: Props) {
+export default function AdventureCard({ adventure, onDelete, canMakePublic = true, canMakePrivate = true, canViewAnalytics = false }: Props) {
   const [current, setCurrent] = useState(adventure)
   const [isDraft, setIsDraft] = useState(adventure.status === 'draft')
   const [showSettings, setShowSettings] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(false)
   const { outcomes, sceneCount, readCount, isPublic } = current
 
   const tags: string[] = (() => {
@@ -181,7 +184,7 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Link
               href={`/play/${current.id}`}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:brightness-110"
@@ -197,15 +200,27 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
               <Pencil size={13} />
               Edit
             </Link>
-            {onDelete && (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="ml-auto flex items-center gap-1 px-3 py-2 bg-red-50 text-red-500 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors"
-                aria-label="Delete story"
-              >
-                <Trash2 size={13} />
-              </button>
-            )}
+            <div className="ml-auto flex items-center gap-1.5">
+              {canViewAnalytics && (
+                <button
+                  onClick={() => setShowAnalytics(true)}
+                  className="flex items-center justify-center w-9 h-9 bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-100 transition-colors"
+                  title="Analytics"
+                  aria-label="View story analytics"
+                >
+                  <BarChart2 size={14} />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center justify-center w-9 h-9 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors"
+                  aria-label="Delete story"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -227,6 +242,14 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
             onDelete(current.id)
             setShowDeleteConfirm(false)
           }}
+        />
+      )}
+
+      {showAnalytics && (
+        <StoryAnalyticsModal
+          adventureId={current.id}
+          title={current.title}
+          onClose={() => setShowAnalytics(false)}
         />
       )}
     </>
