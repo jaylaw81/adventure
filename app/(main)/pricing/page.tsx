@@ -16,20 +16,21 @@ export const metadata: Metadata = {
 const FEATURES: {
   label: string
   icon: React.ComponentType<{ size?: number; className?: string }>
+  free: boolean
   weekly: boolean
   monthly: boolean
 }[] = [
-  { label: 'Visual story canvas',              icon: BookOpen, weekly: true,  monthly: true  },
-  { label: 'Unlimited scenes & branches',       icon: Sparkles, weekly: true,  monthly: true  },
-  { label: 'World Builder RPG system',          icon: Sword,    weekly: true,  monthly: true  },
-  { label: 'Characters, items & foe combat',    icon: Users,    weekly: true,  monthly: true  },
-  { label: 'Publish stories publicly',          icon: Globe,    weekly: true,  monthly: true  },
-  { label: 'Private stories',                   icon: Lock,     weekly: true,  monthly: true  },
-  { label: 'Tags & audience controls',          icon: Tag,      weekly: true,  monthly: true  },
-  { label: 'Story ratings & reviews',           icon: Star,     weekly: true,  monthly: true  },
-  { label: 'Scene image generation',            icon: Sparkles, weekly: false, monthly: true  },
-  { label: 'Character portraits',               icon: Sparkles, weekly: false, monthly: true  },
-  { label: 'Scene soundscapes',                 icon: Music,    weekly: false, monthly: true  },
+  { label: 'Visual story canvas',              icon: BookOpen, free: true,  weekly: true,  monthly: true  },
+  { label: 'Unlimited scenes & branches',       icon: Sparkles, free: true,  weekly: true,  monthly: true  },
+  { label: 'World Builder RPG system',          icon: Sword,    free: false, weekly: true,  monthly: true  },
+  { label: 'Characters, items & foe combat',    icon: Users,    free: false, weekly: true,  monthly: true  },
+  { label: 'Publish stories publicly',          icon: Globe,    free: true,  weekly: true,  monthly: true  },
+  { label: 'Private stories',                   icon: Lock,     free: false, weekly: true,  monthly: true  },
+  { label: 'Tags & audience controls',          icon: Tag,      free: false, weekly: true,  monthly: true  },
+  { label: 'Story ratings & reviews',           icon: Star,     free: true,  weekly: true,  monthly: true  },
+  { label: 'Scene image generation',            icon: Sparkles, free: false, weekly: false, monthly: true  },
+  { label: 'Character portraits',               icon: Sparkles, free: false, weekly: false, monthly: true  },
+  { label: 'Scene soundscapes',                 icon: Music,    free: false, weekly: false, monthly: true  },
 ]
 
 // Index after which the "monthly-only" features start
@@ -110,11 +111,53 @@ export default async function PricingPage() {
         </div>
 
         {/* ── Plan cards ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+
+          {/* Free */}
+          <div
+            className="rounded-xl p-5 flex flex-col"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+          >
+            <p className="text-sm font-semibold text-white/40 mb-5">Free</p>
+            <div className="mb-1">
+              <span
+                className="text-4xl font-extrabold text-white"
+                style={{ letterSpacing: '-0.03em' }}
+              >
+                $0
+              </span>
+            </div>
+            <p className="text-sm text-white/35 mb-6">forever</p>
+            <p className="text-xs text-white/40 mb-6 leading-relaxed flex-1">
+              1 public story with Block Builder. No images or sounds.
+            </p>
+            {isActive ? (
+              <Link
+                href="/profile"
+                className="block w-full py-3 rounded-lg text-sm font-bold text-white/30 border border-white/10 text-center"
+              >
+                Manage plan
+              </Link>
+            ) : session ? (
+              <div className="block w-full py-3 rounded-lg text-sm font-bold text-white/25 border border-white/8 text-center">
+                Your current plan
+              </div>
+            ) : (
+              <Link
+                href="/sign-up"
+                className="block w-full py-3 rounded-lg text-sm font-bold text-white/50 border border-white/20 hover:bg-white/5 transition-colors text-center"
+              >
+                Start free
+              </Link>
+            )}
+          </div>
 
           {/* Weekly */}
           <div
-            className="rounded-xl p-6 flex flex-col"
+            className="rounded-xl p-5 flex flex-col"
             style={{
               background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(255,255,255,0.1)',
@@ -143,7 +186,7 @@ export default async function PricingPage() {
 
           {/* Monthly */}
           <div
-            className="rounded-xl p-6 flex flex-col"
+            className="rounded-xl p-5 flex flex-col"
             style={{
               background: 'rgba(124,58,237,0.12)',
               border: '1px solid rgba(124,58,237,0.45)',
@@ -189,9 +232,10 @@ export default async function PricingPage() {
           {/* Column header row */}
           <div
             className="grid text-xs font-semibold"
-            style={{ gridTemplateColumns: '1fr 88px 88px' }}
+            style={{ gridTemplateColumns: '1fr 76px 76px 88px' }}
           >
             <div className="px-5 py-3 text-white/30">Features</div>
+            <div className="py-3 text-white/25 text-center">Free</div>
             <div className="py-3 text-white/35 text-center">Weekly</div>
             <div className="py-3 text-white/50 text-center">Monthly</div>
           </div>
@@ -202,7 +246,7 @@ export default async function PricingPage() {
               key={f.label}
               className="grid border-t"
               style={{
-                gridTemplateColumns: '1fr 88px 88px',
+                gridTemplateColumns: '1fr 76px 76px 88px',
                 borderColor: 'rgba(255,255,255,0.06)',
                 background: i >= PREMIUM_START ? 'rgba(124,58,237,0.04)' : undefined,
               }}
@@ -210,6 +254,12 @@ export default async function PricingPage() {
               <div className="px-5 py-3.5 flex items-center gap-2.5">
                 <f.icon size={13} className="text-white/25 shrink-0" />
                 <span className="text-sm text-white/65">{f.label}</span>
+              </div>
+              <div className="py-3.5 flex items-center justify-center">
+                {f.free
+                  ? <Check size={15} className="text-amber-400" strokeWidth={2.5} />
+                  : <span className="text-white/20 text-base leading-none select-none">—</span>
+                }
               </div>
               <div className="py-3.5 flex items-center justify-center">
                 {f.weekly

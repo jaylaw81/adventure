@@ -654,20 +654,38 @@ function Dashboard() {
 
   const firstName = session?.user?.name?.split(' ')[0]
 
+  const isFreeTier = !!session?.user &&
+    !session.user.isAdmin &&
+    session.user.tier !== 'organization' &&
+    !['active', 'trialing'].includes(session.user.subscriptionStatus ?? '')
+
+  const atFreeLimit = !loading && isFreeTier && adventures.length >= 1
+
   return (
     <>
       <PageBanner
         title={firstName ? `${firstName}'s Stories` : 'Your Stories'}
         subtitle="Create and play branching adventures"
         action={
-          <Link
-            href="/create"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:brightness-110 shadow-sm whitespace-nowrap"
-            style={{ background: 'linear-gradient(135deg, #a78bfa, #7c3aed)' }}
-          >
-            <Plus size={18} />
-            New Story
-          </Link>
+          atFreeLimit ? (
+            <Link
+              href="/pricing"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:brightness-110 shadow-sm whitespace-nowrap"
+              style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+            >
+              <Sparkles size={18} />
+              Upgrade to Create More
+            </Link>
+          ) : (
+            <Link
+              href="/create"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:brightness-110 shadow-sm whitespace-nowrap"
+              style={{ background: 'linear-gradient(135deg, #a78bfa, #7c3aed)' }}
+            >
+              <Plus size={18} />
+              New Story
+            </Link>
+          )
         }
       />
 
@@ -698,6 +716,15 @@ function Dashboard() {
           <div className="mb-5 flex items-center gap-2 rounded-xl border border-violet-100 bg-violet-50/50 px-4 py-2.5 text-xs text-violet-600">
             <Sparkles size={13} className="text-violet-300 shrink-0 animate-pulse" />
             Checking for scenes to illustrate…
+          </div>
+        )}
+        {isFreeTier && !loading && (
+          <div className="mb-5 flex items-center gap-3 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3">
+            <p className="flex-1 text-sm text-violet-800">
+              <span className="font-semibold">Free plan</span> — 1 public story using Block Builder only.{' '}
+              <Link href="/pricing" className="font-medium underline hover:text-violet-900">Upgrade</Link>{' '}
+              for unlimited stories, Node Graph &amp; World Builder, and scene images.
+            </p>
           </div>
         )}
 

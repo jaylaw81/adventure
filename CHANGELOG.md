@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-07-27
+
+- **Free tier**: Users without a subscription can now create 1 public story using Block Builder only. Node Graph, World Builder, scene images, and sounds require a paid plan. Free-tier users see a plan banner on their dashboard and an upgrade prompt once their story limit is reached. The create flow gates Node Graph and World Builder with a "Paid plan" badge. The pricing page now shows a Free column alongside Weekly and Monthly.
+
 ## 2026-07-26 (private stories)
 
 - **Private stories require a subscription**: trial users can only have public stories. Attempting to make a published story private shows a subscribe CTA. The API enforces this server-side with a 402. Subscribers on any paid plan (weekly or monthly) can freely toggle stories between public and private.

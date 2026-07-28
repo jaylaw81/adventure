@@ -67,6 +67,11 @@ export async function canHavePrivateStories(email: string): Promise<boolean> {
   return false
 }
 
+/** True if the user has no active subscription, trial, grace period, or org access. */
+export async function isFreeTier(email: string): Promise<boolean> {
+  return !(await canCreateStories(email))
+}
+
 export async function canCreateStories(email: string): Promise<boolean> {
   if (email === ADMIN_EMAIL) return true
   const [user] = await db

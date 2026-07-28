@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { isNull, eq, inArray } from 'drizzle-orm'
+import { isNull, eq, inArray, sql } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, chapters, nodes, choices } from '@/lib/schema'
@@ -163,11 +163,24 @@ export async function POST(req: Request) {
     }
 
     const allowed = await canCreateStories(session.user.email)
+    let isFree = false
+
     if (!allowed) {
-      return NextResponse.json({ error: 'Subscription required' }, { status: 402 })
+      // Free tier: allow creation of exactly 1 public story using Block Builder
+      const [{ storyCount }] = await db
+        .select({ storyCount: sql<number>`count(*)::int` })
+        .from(adventures)
+        .where(eq(adventures.userEmail, session.user.email))
+      if ((storyCount ?? 0) >= 1) {
+        return NextResponse.json(
+          { error: 'Free plan allows 1 story. Upgrade to create more.', code: 'free_tier_limit' },
+          { status: 402 },
+        )
+      }
+      isFree = true
     }
 
-    const canPrivate = await canHavePrivateStories(session.user.email)
+    const canPrivate = isFree ? false : await canHavePrivateStories(session.user.email)
 
     const body = await req.json()
     const { title, description, template, chapterCount = 0, editorMode = 'node', storyType } = body as {
@@ -180,6 +193,22 @@ export async function POST(req: Request) {
     }
 
     if (!title) return NextResponse.json({ error: 'Title required' }, { status: 400 })
+
+    // Free tier enforcement: block builder only, no world builder
+    if (isFree) {
+      if (storyType === 'world') {
+        return NextResponse.json(
+          { error: 'World Builder requires a subscription.', code: 'subscription_required' },
+          { status: 402 },
+        )
+      }
+      if (editorMode && editorMode !== 'block') {
+        return NextResponse.json(
+          { error: 'Free plan supports Block Builder only. Upgrade for Node Graph and World Builder.', code: 'free_tier_restriction' },
+          { status: 402 },
+        )
+      }
+    }
 
     // Create the adventure — trial users start as public (they cannot have private stories)
     const [adventure] = await db

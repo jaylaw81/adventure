@@ -83,7 +83,7 @@ function StepDots({ current, editorMode, storyType }: { current: Step; editorMod
   )
 }
 
-export default function CreateStoryForm() {
+export default function CreateStoryForm({ isFreeTier = false }: { isFreeTier?: boolean }) {
   const router = useRouter()
   const [step, setStep] = useState<Step>('storyType')
   const [storyType, setStoryType] = useState<StoryType | null>(null)
@@ -132,9 +132,15 @@ export default function CreateStoryForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-      const adventure = await res.json()
+      const data = await res.json()
+      if (!res.ok) {
+        if (data?.code === 'free_tier_limit') { router.push('/pricing?reason=free_tier_limit'); return }
+        setError(data?.error || 'Failed to create story')
+        setLoading(false)
+        return
+      }
       analytics.adventureCreated(title.trim())
-      router.push(`/edit/${adventure.id}`)
+      router.push(`/edit/${data.id}`)
     } catch {
       setError('Failed to create story')
       setLoading(false)
@@ -204,9 +210,21 @@ export default function CreateStoryForm() {
 
               {/* World Builder */}
               <button
-                onClick={() => { setStoryType('world'); setEditorMode('node'); setStep('mode') }}
-                className="group text-left p-6 bg-white rounded-2xl border-2 border-amber-200 hover:border-amber-500 hover:shadow-md transition-all"
+                onClick={isFreeTier
+                  ? () => router.push('/pricing')
+                  : () => { setStoryType('world'); setEditorMode('node'); setStep('mode') }
+                }
+                className={`group text-left p-6 bg-white rounded-2xl border-2 transition-all relative ${
+                  isFreeTier
+                    ? 'border-gray-100 opacity-60 cursor-pointer'
+                    : 'border-amber-200 hover:border-amber-500 hover:shadow-md'
+                }`}
               >
+                {isFreeTier && (
+                  <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                    Paid plan
+                  </span>
+                )}
                 <div className="w-full h-28 bg-amber-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden relative">
                   <svg viewBox="0 0 140 90" className="w-full h-full" aria-hidden>
                     {/* Character silhouettes */}
@@ -231,7 +249,7 @@ export default function CreateStoryForm() {
                 <div className="flex items-center gap-2 mb-1">
                   <Globe size={15} className="text-amber-500" />
                   <h3 className="font-bold text-base" style={{ color: '#1e0a3c' }}>World Builder</h3>
-                  <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">New</span>
+                  {!isFreeTier && <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">New</span>}
                 </div>
                 <p className="text-sm text-gray-500 leading-relaxed">
                   Create characters with stats and attributes. Choices can affect them — readers see their party status as the story unfolds.
@@ -254,9 +272,21 @@ export default function CreateStoryForm() {
 
               {/* Node Graph */}
               <button
-                onClick={() => { setEditorMode('node'); setStep('mode') }}
-                className="group text-left p-6 bg-white rounded-2xl border-2 border-violet-200 hover:border-violet-500 hover:shadow-md transition-all"
+                onClick={isFreeTier
+                  ? () => router.push('/pricing')
+                  : () => { setEditorMode('node'); setStep('mode') }
+                }
+                className={`group text-left p-6 bg-white rounded-2xl border-2 transition-all relative ${
+                  isFreeTier
+                    ? 'border-gray-100 opacity-60 cursor-pointer'
+                    : 'border-violet-200 hover:border-violet-500 hover:shadow-md'
+                }`}
               >
+                {isFreeTier && (
+                  <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                    Paid plan
+                  </span>
+                )}
                 <div className="w-full h-28 bg-violet-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
                   <svg viewBox="0 0 140 90" className="w-full h-full" aria-hidden>
                     <circle cx="70" cy="16" r="10" fill="#7c3aed" />
