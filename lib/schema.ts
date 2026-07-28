@@ -43,6 +43,7 @@ export const adventures = pgTable('adventures', {
   tags: text('tags').notNull().default('[]'), // JSON array of strings
   isPublic: boolean('is_public').notNull().default(false),
   shareToken: text('share_token').unique(),
+  storySlug: text('story_slug').unique(),
   status: text('status').notNull().default('active'), // 'active' | 'suspended'
   editorMode: text('editor_mode').notNull().default('node'), // 'node' | 'block'
   language: text('language').notNull().default('en'), // ISO 639-1 story language

@@ -11,6 +11,7 @@ export const DEMO_ADVENTURE: Adventure = {
   tags: '["Fantasy","Adventure"]',
   isPublic: false,
   shareToken: null,
+  storySlug: null,
   status: 'active',
   editorMode: 'node',
   language: 'en',

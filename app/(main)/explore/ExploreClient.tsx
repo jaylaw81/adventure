@@ -38,9 +38,14 @@ function formatReads(n: number): string {
 }
 
 function storyUrl(story: ExploreStory): string {
-  return story.shareToken
-    ? `https://www.storyquestor.com/s/${story.shareToken}`
-    : `https://www.storyquestor.com/play/${story.id}`
+  if (story.storySlug) return `https://www.storyquestor.com/story/${story.storySlug}`
+  if (story.shareToken) return `https://www.storyquestor.com/s/${story.shareToken}`
+  return `https://www.storyquestor.com/play/${story.id}`
+}
+
+function storyPath(story: ExploreStory): string {
+  if (story.storySlug) return `/story/${story.storySlug}`
+  return `/play/${story.id}`
 }
 
 // ── Card subcomponents ─────────────────────────────────────────────────────────
@@ -187,7 +192,7 @@ function FeaturedCard({ story, selectedTag, onTagClick, onReviewClick }: CardPro
               <ShareButtons title={story.title} url={storyUrl(story)} />
             </div>
             <Link
-              href={`/play/${story.id}`}
+              href={storyPath(story)}
               onClick={() => analytics.exploreStoryClicked(story.id, story.title)}
               className="sq-play-btn shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white"
               style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
@@ -301,7 +306,7 @@ function StoryCard({ story, cardIndex, selectedTag, onTagClick, onReviewClick }:
         )}
 
         <Link
-          href={`/play/${story.id}`}
+          href={storyPath(story)}
           onClick={() => analytics.exploreStoryClicked(story.id, story.title)}
           className="sq-play-btn mt-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
           style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}

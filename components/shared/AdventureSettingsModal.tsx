@@ -1,16 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { X, GitBranch, Layers, Swords, MapPin, Globe } from 'lucide-react'
+import { X, GitBranch, Layers, Swords, MapPin, Globe, Link2, Copy, Check as CheckIcon, RefreshCw } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { analytics } from '@/lib/analytics'
 import { STORY_TAGS } from '@/lib/tags'
 import { LANGUAGES } from '@/lib/languages'
+import { titleToSlug } from '@/lib/slugUtils'
 
 interface Props {
   adventure: AdventureWithCounts
   onClose: () => void
   onSave: (updated: Partial<AdventureWithCounts>) => void
+  canUseCustomSlug?: boolean
 }
 
 const AUDIENCE_OPTIONS = [
@@ -19,7 +21,7 @@ const AUDIENCE_OPTIONS = [
   { value: 'adults', label: 'Adults Only', description: 'Mature themes, adults only' },
 ]
 
-export default function AdventureSettingsModal({ adventure, onClose, onSave }: Props) {
+export default function AdventureSettingsModal({ adventure, onClose, onSave, canUseCustomSlug = false }: Props) {
   const [title, setTitle] = useState(adventure.title)
   const [description, setDescription] = useState(adventure.description ?? '')
   const [audience, setAudience] = useState(adventure.audience ?? 'all')
@@ -37,9 +39,35 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
   )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [slug, setSlug] = useState<string | null>((adventure as { storySlug?: string | null }).storySlug ?? null)
+  const [generatingSlug, setGeneratingSlug] = useState(false)
+  const [slugCopied, setSlugCopied] = useState(false)
+  const [slugError, setSlugError] = useState('')
 
   const toggleTag = (tag: string) => {
     setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
+  }
+
+  const handleGenerateSlug = async () => {
+    setGeneratingSlug(true)
+    setSlugError('')
+    try {
+      const res = await fetch(`/api/adventures/${adventure.id}/slug`, { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to generate URL')
+      const data = await res.json() as { slug: string }
+      setSlug(data.slug)
+    } catch {
+      setSlugError('Failed to generate custom URL')
+    } finally {
+      setGeneratingSlug(false)
+    }
+  }
+
+  const handleCopySlug = async () => {
+    if (!slug) return
+    await navigator.clipboard.writeText(`https://www.storyquestor.com/story/${slug}`)
+    setSlugCopied(true)
+    setTimeout(() => setSlugCopied(false), 2000)
   }
 
   const originalStoryType = (adventure as { storyType?: string | null }).storyType === 'world' ? 'world' : 'path'
@@ -238,6 +266,62 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
           </select>
           <p className="text-xs text-gray-400">Helps readers find and translate your story</p>
         </div>
+
+        {/* Custom Story URL — monthly subscribers only */}
+        {canUseCustomSlug && (
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+              <Link2 size={14} className="text-gray-400" />
+              Custom Story URL
+            </label>
+            {slug ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
+                  <span className="text-xs text-violet-700 truncate flex-1 font-mono">
+                    storyquestor.com/story/{slug}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCopySlug}
+                    className="shrink-0 flex items-center gap-1 text-xs font-medium text-violet-700 hover:text-violet-900 transition-colors"
+                  >
+                    {slugCopied ? <CheckIcon size={12} /> : <Copy size={12} />}
+                    {slugCopied ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateSlug}
+                  disabled={generatingSlug}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 w-fit"
+                >
+                  <RefreshCw size={11} className={generatingSlug ? 'animate-spin' : ''} />
+                  {generatingSlug ? 'Regenerating…' : 'Regenerate from title'}
+                </button>
+                <p className="text-xs text-amber-600">Regenerating will break any existing links to the old URL.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 bg-gray-50 border border-dashed border-gray-300 rounded-lg px-3 py-2">
+                  <span className="text-xs text-gray-400 flex-1 font-mono">
+                    storyquestor.com/story/{titleToSlug(title || adventure.title)}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateSlug}
+                  disabled={generatingSlug}
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 bg-violet-600 text-white rounded-lg text-xs font-medium hover:bg-violet-700 transition-colors disabled:opacity-50 w-fit"
+                >
+                  <Link2 size={12} />
+                  {generatingSlug ? 'Generating…' : 'Generate Custom URL'}
+                </button>
+                <p className="text-xs text-gray-400">Creates a memorable link for sharing your story.</p>
+              </div>
+            )}
+            {slugError && <p className="text-xs text-red-500">{slugError}</p>}
+          </div>
+        )}
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 

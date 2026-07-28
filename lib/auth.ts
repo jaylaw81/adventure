@@ -112,9 +112,10 @@ export const authOptions: NextAuthOptions = {
       return true
     },
     async jwt({ token, trigger, session, account }) {
-      // Set isAdmin once on sign-in (account is only present at sign-in time)
+      // Set isAdmin on every JWT call so stale tokens always have the correct value
+      token.isAdmin = token.email === ADMIN_EMAIL
       if (account !== undefined) {
-        token.isAdmin = token.email === ADMIN_EMAIL
+        // account is only present at sign-in — kept for any future sign-in-only logic
       }
       // Handle update() calls from client (e.g. after saving profile)
       if (trigger === 'update') {

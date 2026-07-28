@@ -6,7 +6,7 @@ import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import { getPricingConfig, formatCents } from '@/lib/pricing'
 import Link from 'next/link'
-import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock, Sword, Users, BarChart2 } from 'lucide-react'
+import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock, Sword, Users, BarChart2, Link2 } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Pricing',
@@ -32,6 +32,7 @@ const FEATURES: {
   { label: 'Character portraits',               icon: Sparkles,   free: false, weekly: false, monthly: true  },
   { label: 'Scene soundscapes',                 icon: Music,      free: false, weekly: false, monthly: true  },
   { label: 'Story analytics & traffic sources', icon: BarChart2,  free: false, weekly: false, monthly: true  },
+  { label: 'Custom story URLs',                  icon: Link2,      free: false, weekly: false, monthly: true  },
 ]
 
 // Index after which the "monthly-only" features start
@@ -209,7 +210,7 @@ export default async function PricingPage() {
             </div>
             <p className="text-sm text-white/35 mb-6">per month</p>
             <p className="text-xs text-white/40 mb-6 leading-relaxed flex-1">
-              Everything in Weekly — private stories, scene images, character portraits, soundscapes, and story analytics
+              Everything in Weekly — private stories, scene images, character portraits, soundscapes, story analytics, and custom story URLs
             </p>
             <Link
               href={ctaHref('month')}

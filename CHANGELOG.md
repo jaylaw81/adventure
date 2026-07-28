@@ -8,6 +8,8 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ## 2026-07-28
 
+- **Custom story URLs**: Monthly subscribers can generate a memorable human-readable URL for any story (e.g. `storyquestor.com/story/the-forest-path`). Slugs are auto-generated from the story title, XSS-safe (only `[a-z0-9-]` characters), and deduplicated with a suffix when a conflict occurs. Accessible via the story's Settings modal; the link can be copied and regenerated at any time.
+
 - **Site feedback widget**: A floating violet button (bottom-right) lets any user submit questions or concerns from any page. Input is sanitized server-side to strip HTML tags and XSS vectors before storage. Admins can view, filter, review, and resolve submissions at /admin/feedback with an unread count badge in the admin nav.
 
 - **Landing page hero redesign**: Replaced the generic dark hero with an atmospheric reader-experience visualization — a styled story card showing choices, a character stats panel, and an endings count badge — capturing the interactive fiction experience rather than a raw editor screenshot. Headline and CTAs also improved for clarity and visual weight.
