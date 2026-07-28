@@ -272,7 +272,7 @@ function LandingPage() {
                 Design branching adventures on a visual canvas — from classic choose-your-own stories to full RPG worlds with characters and combat.
               </p>
               <p className="text-sm mb-8 max-w-lg" style={{ color: 'rgba(167,139,250,0.6)' }}>
-                From {minPrice}/{minInterval}. Cancel anytime.
+                Free to start — no credit card required.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link
