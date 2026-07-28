@@ -544,6 +544,8 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters,
       <Toolbar
         adventureTitle={currentAdventure.title}
         adventureId={currentAdventure.id}
+        adventureStatus={currentAdventure.status ?? 'active'}
+        adventureIsPublic={currentAdventure.isPublic}
         onAddNode={handleAddNode}
         onSave={handleToolbarSave}
         onSettings={() => setShowSettings(true)}

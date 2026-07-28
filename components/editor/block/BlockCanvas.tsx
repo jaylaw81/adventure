@@ -22,6 +22,7 @@ import SceneBlock from './SceneBlock'
 import BlockPalette from './BlockPalette'
 import BlockSidebar from './BlockSidebar'
 import AdventureSettingsModal from '@/components/shared/AdventureSettingsModal'
+import PublishStatusButton from '@/components/editor/PublishStatusButton'
 
 interface Props {
   adventure: Adventure & { nodes: Node[]; choices: Choice[]; chapters: Chapter[] }
@@ -157,6 +158,11 @@ export default function BlockCanvas({ adventure, initialNodes, initialChoices }:
           Block Builder
         </span>
         <div className="ml-auto flex items-center gap-2">
+          <PublishStatusButton
+            adventureId={adventure.id}
+            initialStatus={adventure.status ?? 'active'}
+            initialIsPublic={adventure.isPublic}
+          />
           <button
             onClick={() => setShowSettings(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"

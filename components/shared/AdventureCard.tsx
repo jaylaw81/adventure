@@ -69,6 +69,7 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onC
 
 export default function AdventureCard({ adventure, onDelete, canMakePublic = true, canMakePrivate = true }: Props) {
   const [current, setCurrent] = useState(adventure)
+  const [isDraft, setIsDraft] = useState(adventure.status === 'draft')
   const [showSettings, setShowSettings] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const { outcomes, sceneCount, readCount, isPublic } = current
@@ -135,19 +136,27 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
 
             {/* Read count + shared status */}
             <div className="flex items-center gap-2.5 mt-2.5">
-              <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-                <BookOpen size={11} />
-                {readCount === 0
-                  ? 'No reads yet'
-                  : `${readCount.toLocaleString()} read${readCount !== 1 ? 's' : ''}`}
-              </span>
-              {isPublic && (
+              {isDraft ? (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                  Draft — not yet published
+                </span>
+              ) : (
                 <>
-                  <span className="text-gray-200">·</span>
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
-                    <Globe size={11} />
-                    Public
+                  <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                    <BookOpen size={11} />
+                    {readCount === 0
+                      ? 'No reads yet'
+                      : `${readCount.toLocaleString()} read${readCount !== 1 ? 's' : ''}`}
                   </span>
+                  {isPublic && (
+                    <>
+                      <span className="text-gray-200">·</span>
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                        <Globe size={11} />
+                        Public
+                      </span>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -164,6 +173,11 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
               initialShareToken={current.shareToken ?? null}
               canMakePublic={canMakePublic}
               canMakePrivate={canMakePrivate}
+              isDraft={isDraft}
+              onPublish={() => {
+                setIsDraft(false)
+                setCurrent(prev => ({ ...prev, status: 'active', isPublic: true }))
+              }}
             />
           </div>
 

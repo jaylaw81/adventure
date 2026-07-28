@@ -46,6 +46,9 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
     if (!orgAccess) notFound()
   }
 
+  // Block draft stories — only the owner and admins can preview
+  if (adventure?.status === 'draft' && !isOwner && !isAdmin) notFound()
+
   // Block suspended stories — org admins can still view
   if (adventure?.status === 'suspended' && !isOrgAdmin && !isAdmin) notFound()
 

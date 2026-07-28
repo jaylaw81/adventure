@@ -2,10 +2,13 @@
 
 import Link from 'next/link'
 import { ArrowLeft, Plus, Save, Settings } from 'lucide-react'
+import PublishStatusButton from './PublishStatusButton'
 
 interface Props {
   adventureTitle: string
   adventureId: string
+  adventureStatus: string
+  adventureIsPublic: boolean
   onAddNode: () => void
   onSave: () => void
   onSettings: () => void
@@ -13,7 +16,7 @@ interface Props {
   dirty: boolean
 }
 
-export default function Toolbar({ adventureTitle, adventureId, onAddNode, onSave, onSettings, saving, dirty }: Props) {
+export default function Toolbar({ adventureTitle, adventureId, adventureStatus, adventureIsPublic, onAddNode, onSave, onSettings, saving, dirty }: Props) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 shadow-sm z-10">
       <Link
@@ -29,6 +32,11 @@ export default function Toolbar({ adventureTitle, adventureId, onAddNode, onSave
         {dirty && (
           <span className="text-xs text-amber-600 font-medium hidden sm:block">Unsaved changes</span>
         )}
+        <PublishStatusButton
+          adventureId={adventureId}
+          initialStatus={adventureStatus}
+          initialIsPublic={adventureIsPublic}
+        />
         <button
           onClick={onSettings}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"

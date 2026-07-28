@@ -139,13 +139,16 @@ export async function GET() {
 
     const all = await getAdventures(email)
 
-    // Trial users cannot have private stories — force any private ones to public
+    // Trial users cannot have private stories — force any private active ones to public.
+    // Draft stories (status: 'draft') are intentionally private until explicitly published.
     const canPrivate = await canHavePrivateStories(email)
     if (!canPrivate) {
-      const privateIds = all.filter(a => !a.isPublic).map(a => a.id)
-      if (privateIds.length > 0) {
-        await db.update(adventures).set({ isPublic: true }).where(inArray(adventures.id, privateIds))
-        return NextResponse.json(all.map(a => ({ ...a, isPublic: true })))
+      const privateActiveIds = all.filter(a => !a.isPublic && a.status === 'active').map(a => a.id)
+      if (privateActiveIds.length > 0) {
+        await db.update(adventures).set({ isPublic: true }).where(inArray(adventures.id, privateActiveIds))
+        return NextResponse.json(all.map(a =>
+          !a.isPublic && a.status === 'active' ? { ...a, isPublic: true } : a
+        ))
       }
     }
 
@@ -180,8 +183,6 @@ export async function POST(req: Request) {
       isFree = true
     }
 
-    const canPrivate = isFree ? false : await canHavePrivateStories(session.user.email)
-
     const body = await req.json()
     const { title, description, template, chapterCount = 0, editorMode = 'node', storyType } = body as {
       title: string
@@ -210,7 +211,8 @@ export async function POST(req: Request) {
       }
     }
 
-    // Create the adventure — trial users start as public (they cannot have private stories)
+    // All stories start as drafts — the author must explicitly publish to make a story
+    // visible on Explore. This applies to every plan (free, trial, paid).
     const [adventure] = await db
       .insert(adventures)
       .values({
@@ -220,7 +222,8 @@ export async function POST(req: Request) {
         editorMode,
         storyType: storyType ?? null,
         createdFrom: template ? 'template' : 'blank',
-        isPublic: !canPrivate,
+        status: 'draft',
+        isPublic: false,
       })
       .returning()
 

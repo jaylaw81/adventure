@@ -7,8 +7,8 @@ import InviteFeatureModal from '@/components/shared/InviteFeatureModal'
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
       <SubscriptionNoticeBanner />
+      <Header />
       <ConsentGate />
       <InviteFeatureModal />
       <main className="flex-1">{children}</main>

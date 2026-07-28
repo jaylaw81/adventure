@@ -13,6 +13,10 @@ interface Props {
   canMakePublic?: boolean
   /** False for trial users — private stories require an active subscription. */
   canMakePrivate?: boolean
+  /** True when the story is a draft — changes label to "Publish story". */
+  isDraft?: boolean
+  /** Called after a draft story is successfully published. */
+  onPublish?: () => void
 }
 
 export default function ShareToggle({
@@ -21,6 +25,8 @@ export default function ShareToggle({
   initialShareToken,
   canMakePublic = true,
   canMakePrivate = true,
+  isDraft = false,
+  onPublish,
 }: Props) {
   const [isPublic, setIsPublic] = useState(initialIsPublic)
   const [shareToken, setShareToken] = useState(initialShareToken)
@@ -43,6 +49,7 @@ export default function ShareToggle({
     setShowPanel(false)
     setValidationIssues([])
     analytics.shareEnabled(adventureId)
+    if (isDraft) onPublish?.()
   }
 
   const handleToggle = async () => {
@@ -120,7 +127,7 @@ export default function ShareToggle({
       {/* Toggle row */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
-          Make public
+          {isDraft && !isPublic ? 'Publish story' : 'Make public'}
           {isPublic && !canMakePrivate && (
             <span title="Subscribe to make private" className="inline-flex">
               <Lock size={9} className="text-violet-400 ml-0.5" />
