@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Play, Search, X, Globe, Lock, ExternalLink } from 'lucide-react'
+import { Play, Search, X, Globe, Lock, ExternalLink, BarChart2 } from 'lucide-react'
 
 const AUDIENCE_LABEL: Record<string, string> = {
   all: 'All Ages',
@@ -163,6 +163,13 @@ export default function AdminDashboard() {
                       >
                         <ExternalLink size={11} />
                         Edit
+                      </Link>
+                      <Link
+                        href={`/admin/referrers/${story.id}`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 text-xs font-medium rounded-lg transition-colors"
+                      >
+                        <BarChart2 size={11} />
+                        Traffic
                       </Link>
                     </div>
                   </td>

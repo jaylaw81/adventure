@@ -8,9 +8,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 import { eq, sql } from 'drizzle-orm'
+import { headers } from 'next/headers'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { adventures } from '@/lib/schema'
+import { adventures, storyReferrers } from '@/lib/schema'
+import { parseReferrer } from '@/lib/referrerUtils'
 import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter, getAdventureCharacters, getAdventureItems, getStartNode } from '@/lib/queries'
 import { canViewMemberStory, getAuthorOrgPrivacy } from '@/lib/orgAccess'
 import SceneTranslationWrapper from '@/components/reader/SceneTranslationWrapper'
@@ -52,13 +54,21 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
   // Block suspended stories — org admins can still view
   if (adventure?.status === 'suspended' && !isOrgAdmin && !isAdmin) notFound()
 
-  // Count a read whenever a non-owner lands on the start node
+  // Count a read and capture referrer whenever a non-owner lands on the start node
   if (node.nodeType === 'start' && !isOwner && !isAdmin && adventure) {
+    const reqHeaders = await headers()
+    const { domain, category } = parseReferrer(reqHeaders.get('referer'))
+
     db.update(adventures)
       .set({ readCount: sql`${adventures.readCount} + 1` })
       .where(eq(adventures.id, adventure.id))
       .execute()
-      .catch(() => {}) // fire-and-forget — don't block the render
+      .catch(() => {})
+
+    db.insert(storyReferrers)
+      .values({ adventureId: adventure.id, referrerDomain: domain, referrerCategory: category })
+      .execute()
+      .catch(() => {})
   }
 
   // Hide sharing controls when the story's org restricts public distribution

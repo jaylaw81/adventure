@@ -500,6 +500,17 @@ export const siteFeedback = pgTable('site_feedback', {
 
 export type SiteFeedback = typeof siteFeedback.$inferSelect
 
+export const storyReferrers = pgTable('story_referrers', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  adventureId: uuid('adventure_id').notNull().references(() => adventures.id, { onDelete: 'cascade' }),
+  referrerDomain: text('referrer_domain').notNull(), // 'direct', 'google.com', 'facebook.com', …
+  referrerCategory: text('referrer_category').notNull(), // 'direct' | 'search' | 'social' | 'referral' | 'email' | 'internal'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('story_referrers_adventure_id_idx').on(t.adventureId),
+  index('story_referrers_created_at_idx').on(t.createdAt),
+])
+
 export type SiteSetting = typeof siteSettings.$inferSelect
 export type PriceReductionOffer = typeof priceReductionOffers.$inferSelect
 export type FriendInvite = typeof friendInvites.$inferSelect
