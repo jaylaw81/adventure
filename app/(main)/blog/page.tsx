@@ -11,6 +11,8 @@ import JsonLd from '@/components/JsonLd'
 
 const SITE_URL = 'https://storyquestor.com'
 
+export const revalidate = 300
+
 export const metadata: Metadata = {
   title: 'Writing Tips & Interactive Fiction Guides | StoryQuestor Blog',
   description: 'Tips for writing branching stories, interactive fiction guides, choose-your-own-adventure ideas, and resources for story creators.',

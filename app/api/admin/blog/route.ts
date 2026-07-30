@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { desc } from 'drizzle-orm'
+import { revalidatePath } from 'next/cache'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { blogPosts } from '@/lib/schema'
@@ -39,6 +40,10 @@ export async function POST(req: Request) {
     .insert(blogPosts)
     .values({ slug, title, description, publishedAt, readingMinutes, category, heroImageUrl: heroImageUrl ?? null, heroImageCredit: heroImageCredit ?? null, intro, sections, published })
     .returning()
+
+  revalidatePath('/blog')
+  revalidatePath(`/blog/${slug}`)
+  revalidatePath('/')
 
   return NextResponse.json(post)
 }

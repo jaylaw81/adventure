@@ -8,6 +8,7 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ## 2026-07-28
 
+- **Story analytics**: Monthly subscribers (and admins) can now view a per-story analytics dashboard from an icon on each story card — total reads, social visits, a 30-day reads sparkline, a breakdown of traffic sources (direct, search, social, referral, email, internal), and a list of top referring domains. The pricing page now lists "Story analytics & traffic sources" as a monthly-tier feature.
 - **Custom story URLs**: Monthly subscribers can generate a memorable human-readable URL for any story (e.g. `storyquestor.com/story/the-forest-path`). Slugs are auto-generated from the story title, XSS-safe (only `[a-z0-9-]` characters), and deduplicated with a suffix when a conflict occurs. Accessible via the story's Settings modal; the link can be copied and regenerated at any time.
 
 - **Site feedback widget**: A floating violet button (bottom-right) lets any user submit questions or concerns from any page. Input is sanitized server-side to strip HTML tags and XSS vectors before storage. Admins can view, filter, review, and resolve submissions at /admin/feedback with an unread count badge in the admin nav.

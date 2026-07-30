@@ -11,6 +11,8 @@ import JsonLd from '@/components/JsonLd'
 
 const SITE_URL = 'https://storyquestor.com'
 
+export const revalidate = 300
+
 const CATEGORY_PILL: Record<BlogCategory, string> = {
   'Writing Tips':        'bg-violet-100 text-violet-800',
   'Interactive Fiction': 'bg-blue-100 text-blue-800',
