@@ -8,6 +8,7 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ## 2026-08-03
 
+- **Dismissible feedback button**: The floating feedback button can now be hidden by clicking the small × badge on its corner. The choice is remembered across visits, and a "Feedback" link in the site footer brings it back at any time.
 - **Redesigned Profile Settings**: `/profile` is now organized into a sidebar-tabbed layout (Account, Notifications, Privacy, Billing, Invites, Danger Zone) instead of one long scrolling page, with a new identity summary card up top showing avatar, username, join date, and story/follower/following stats. A "Send invites" link from the invite-friends prompt now opens straight to the Invites tab. Saving now shows an animated confirmation instead of plain text.
 - **Public profile polish**: `/u/<username>` now shows when a creator joined, and the follow button has a subtle confirmation animation when you follow or unfollow someone.
 - **User profile pages**: Every user now has a public profile page at `storyquestor.com/u/<username>` listing the stories they've made public — available on every plan (free, weekly, monthly). Profiles are public by default; a new "Profile Visibility" toggle in Profile Settings lets anyone switch to private. Existing users are prompted to choose a username the next time they sign in, alongside signing up.

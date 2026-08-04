@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MessageCircle, X, Send, CheckCircle, Loader2 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
+import { SHOW_FEEDBACK_WIDGET_EVENT, FEEDBACK_WIDGET_HIDDEN_KEY } from '@/lib/feedbackWidgetEvent'
 
 type FeedbackType = 'question' | 'concern' | 'other'
 
@@ -32,9 +33,27 @@ export default function FeedbackWidget() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError]     = useState('')
+  const [hidden, setHidden]   = useState(false)
+
+  useEffect(() => {
+    if (localStorage.getItem(FEEDBACK_WIDGET_HIDDEN_KEY) === '1') {
+      setHidden(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    function handleShowEvent() {
+      localStorage.removeItem(FEEDBACK_WIDGET_HIDDEN_KEY)
+      setHidden(false)
+      setOpen(true)
+    }
+    window.addEventListener(SHOW_FEEDBACK_WIDGET_EVENT, handleShowEvent)
+    return () => window.removeEventListener(SHOW_FEEDBACK_WIDGET_EVENT, handleShowEvent)
+  }, [])
 
   // Don't show in the admin panel
   if (pathname?.startsWith('/admin')) return null
+  if (hidden) return null
 
   const userEmail = session?.user?.email ?? ''
 
@@ -49,6 +68,12 @@ export default function FeedbackWidget() {
   function handleClose() {
     setOpen(false)
     setTimeout(reset, 250)
+  }
+
+  function handleHide(e: React.MouseEvent) {
+    e.stopPropagation()
+    localStorage.setItem(FEEDBACK_WIDGET_HIDDEN_KEY, '1')
+    setHidden(true)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -87,17 +112,27 @@ export default function FeedbackWidget() {
   return (
     <>
       {/* Floating trigger */}
-      <button
-        onClick={() => setOpen(true)}
-        aria-label="Share feedback"
-        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full flex items-center justify-center transition-transform hover:-translate-y-0.5 active:translate-y-0"
-        style={{
-          background: '#7c3aed',
-          boxShadow: '0 4px 16px rgba(124,58,237,0.45)',
-        }}
-      >
-        <MessageCircle size={20} className="text-white" />
-      </button>
+      <div className="fixed bottom-6 right-6 z-40">
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Share feedback"
+          className="relative w-12 h-12 rounded-full flex items-center justify-center transition-transform hover:-translate-y-0.5 active:translate-y-0"
+          style={{
+            background: '#7c3aed',
+            boxShadow: '0 4px 16px rgba(124,58,237,0.45)',
+          }}
+        >
+          <MessageCircle size={20} className="text-white" />
+        </button>
+        <button
+          onClick={handleHide}
+          aria-label="Hide feedback button"
+          title="Hide feedback button"
+          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center bg-white text-gray-400 border border-gray-200 shadow-sm transition-colors hover:text-gray-600 hover:border-gray-300"
+        >
+          <X size={11} strokeWidth={2.5} />
+        </button>
+      </div>
 
       {/* Overlay */}
       {open && (

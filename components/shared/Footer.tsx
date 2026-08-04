@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Scroll } from 'lucide-react'
 import CookieSettingsButton from '@/components/gdpr/CookieSettingsButton'
+import FeedbackFooterLink from '@/components/shared/FeedbackFooterLink'
 
 const LINK_COLUMNS = [
   {
@@ -87,14 +88,22 @@ export default function Footer() {
                     </li>
                   ))}
                   {col.label === 'Help' && (
-                    <li>
-                      <CookieSettingsButton
-                        className="text-sm hover:opacity-70 transition-opacity"
-                        style={{ color: '#6d28d9' }}
-                      >
-                        Cookie preferences
-                      </CookieSettingsButton>
-                    </li>
+                    <>
+                      <li>
+                        <FeedbackFooterLink
+                          className="text-sm hover:opacity-70 transition-opacity"
+                          style={{ color: '#6d28d9' }}
+                        />
+                      </li>
+                      <li>
+                        <CookieSettingsButton
+                          className="text-sm hover:opacity-70 transition-opacity"
+                          style={{ color: '#6d28d9' }}
+                        >
+                          Cookie preferences
+                        </CookieSettingsButton>
+                      </li>
+                    </>
                   )}
                 </ul>
               </div>
