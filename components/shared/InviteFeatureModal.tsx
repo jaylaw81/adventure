@@ -38,7 +38,7 @@ export default function InviteFeatureModal() {
 
   const goToInvites = () => {
     dismiss()
-    router.push('/profile#invites')
+    router.push('/profile?tab=invites')
   }
 
   if (!show) return null

@@ -1,6 +1,6 @@
 import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import { db } from './db'
-import { adventures, nodes, storyReviews } from './schema'
+import { adventures, nodes, storyReviews, users } from './schema'
 
 export interface ExploreStory {
   id: string
@@ -17,6 +17,9 @@ export interface ExploreStory {
   avgRating: number | null
   reviewCount: number
   coverImageUrl: string | null
+  authorUsername: string | null
+  authorDisplayName: string | null
+  authorProfileVisible: boolean | null
 }
 
 export async function getExploreStories(): Promise<ExploreStory[]> {
@@ -34,8 +37,12 @@ export async function getExploreStories(): Promise<ExploreStory[]> {
         readCount: adventures.readCount,
         createdAt: adventures.createdAt,
         updatedAt: adventures.updatedAt,
+        authorUsername: users.username,
+        authorDisplayName: users.displayName,
+        authorProfileVisible: users.profileVisible,
       })
       .from(adventures)
+      .leftJoin(users, eq(users.email, adventures.userEmail))
       .where(and(eq(adventures.isPublic, true), eq(adventures.status, 'active')))
       .orderBy(desc(adventures.updatedAt)),
     db

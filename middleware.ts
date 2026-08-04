@@ -14,8 +14,8 @@ export default withAuth(
       return NextResponse.next()
     }
 
-    // Authenticated user without a birthdate → force profile completion
-    if (token && !token.birthDate && pathname !== '/profile') {
+    // Authenticated user without a birthdate or username → force profile completion
+    if (token && (!token.birthDate || !token.username) && pathname !== '/profile') {
       return NextResponse.redirect(new URL('/profile?required=1', req.url))
     }
 

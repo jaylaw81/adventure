@@ -14,6 +14,7 @@ declare module 'next-auth' {
       subscriptionStatus: string | null
       subscriptionInterval: string | null
       languagePreference: string
+      username: string | null
     }
   }
 }
@@ -27,5 +28,6 @@ declare module 'next-auth/jwt' {
     tier?: string
     subscriptionStatus?: string | null
     subscriptionInterval?: string | null
+    username?: string | null
   }
 }

@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures, deletedAccounts } from '@/lib/schema'
 import { stripe } from '@/lib/stripe'
 import { ACQUISITION_SOURCES } from '@/lib/acquisitionSources'
+import { validateUsername } from '@/lib/username'
+import { getFollowerCount, getFollowingCount } from '@/lib/queries'
 
 const VALID_SOURCES = new Set(ACQUISITION_SOURCES.map(s => s.value))
 
@@ -22,13 +24,24 @@ export async function GET() {
   const [user] = await db.select().from(users).where(eq(users.email, session.user.email!))
   if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const [[{ count: storyCount }], followerCount, followingCount] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(adventures).where(eq(adventures.userEmail, user.email)),
+    getFollowerCount(user.email),
+    getFollowingCount(user.email),
+  ])
+
   return NextResponse.json({
     email: user.email,
     displayName: user.displayName,
     birthDate: user.birthDate ?? null,
     languagePreference: user.languagePreference ?? 'en',
+    username: user.username ?? null,
+    profileVisible: user.profileVisible,
     createdAt: user.createdAt,
     image: session.user.image ?? null,
+    storyCount,
+    followerCount,
+    followingCount,
   })
 }
 
@@ -37,7 +50,7 @@ export async function PUT(req: Request) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { displayName, birthDate, acquisitionSource, languagePreference } = body
+  const { displayName, birthDate, acquisitionSource, languagePreference, username, profileVisible } = body
 
   if (typeof displayName !== 'string' || !displayName.trim()) {
     return NextResponse.json({ error: 'displayName is required' }, { status: 400 })
@@ -51,11 +64,42 @@ export async function PUT(req: Request) {
   if (languagePreference !== undefined && typeof languagePreference !== 'string') {
     return NextResponse.json({ error: 'Invalid languagePreference' }, { status: 400 })
   }
+  if (profileVisible !== undefined && typeof profileVisible !== 'boolean') {
+    return NextResponse.json({ error: 'Invalid profileVisible' }, { status: 400 })
+  }
 
-  const updateData: { displayName: string; birthDate?: string; acquisitionSource?: string | null; languagePreference?: string } = { displayName: displayName.trim() }
+  let normalizedUsername: string | undefined
+  if (username !== undefined) {
+    if (typeof username !== 'string') {
+      return NextResponse.json({ error: 'Invalid username' }, { status: 400 })
+    }
+    normalizedUsername = username.trim().toLowerCase()
+    const formatError = validateUsername(normalizedUsername)
+    if (formatError) {
+      return NextResponse.json({ error: formatError }, { status: 400 })
+    }
+    const [existing] = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.username, normalizedUsername))
+    if (existing && existing.email !== session.user.email) {
+      return NextResponse.json({ error: 'That username is already taken.' }, { status: 409 })
+    }
+  }
+
+  const updateData: {
+    displayName: string
+    birthDate?: string
+    acquisitionSource?: string | null
+    languagePreference?: string
+    username?: string
+    profileVisible?: boolean
+  } = { displayName: displayName.trim() }
   if (birthDate !== undefined) updateData.birthDate = birthDate
   if (acquisitionSource !== undefined) updateData.acquisitionSource = acquisitionSource || null
   if (languagePreference !== undefined) updateData.languagePreference = languagePreference || 'en'
+  if (normalizedUsername !== undefined) updateData.username = normalizedUsername
+  if (profileVisible !== undefined) updateData.profileVisible = profileVisible
 
   const [updated] = await db
     .update(users)

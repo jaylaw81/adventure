@@ -58,6 +58,27 @@ interface CardProps {
   onReviewClick: (id: string, title: string) => void
 }
 
+function Byline({ story }: { story: ExploreStory }) {
+  if (story.authorUsername && story.authorProfileVisible) {
+    return (
+      <Link
+        href={`/u/${story.authorUsername}`}
+        onClick={e => e.stopPropagation()}
+        className="text-xs text-violet-500 hover:text-violet-700 transition-colors w-fit"
+      >
+        by @{story.authorUsername}
+      </Link>
+    )
+  }
+  if (story.authorUsername) {
+    return <span className="text-xs text-gray-400 w-fit">by @{story.authorUsername}</span>
+  }
+  if (story.authorDisplayName) {
+    return <span className="text-xs text-gray-400 w-fit">by {story.authorDisplayName}</span>
+  }
+  return null
+}
+
 function RatingRow({ story, onReviewClick }: { story: ExploreStory; onReviewClick: (id: string, title: string) => void }) {
   if (story.avgRating === null) return null
   return (
@@ -159,6 +180,8 @@ function FeaturedCard({ story, selectedTag, onTagClick, onReviewClick }: CardPro
           <h2 className="text-2xl font-bold leading-snug" style={{ color: '#1e0a3c' }}>
             {story.title}
           </h2>
+
+          <Byline story={story} />
 
           <RatingRow story={story} onReviewClick={onReviewClick} />
 
@@ -276,6 +299,7 @@ function StoryCard({ story, cardIndex, selectedTag, onTagClick, onReviewClick }:
               </span>
             )}
             <h2 className="text-lg font-bold" style={{ color: '#1e0a3c' }}>{story.title}</h2>
+            <Byline story={story} />
           </div>
           <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 whitespace-nowrap">
             {AUDIENCE_LABEL[story.audience] ?? story.audience}
@@ -366,7 +390,8 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
       if (selectedStoryType === 'path' && story.storyType === 'world') return false
       if (q) {
         const tags = parseTags(story.tags)
-        if (!story.title.toLowerCase().includes(q) && !tags.some(t => t.toLowerCase().includes(q))) return false
+        const matchesUsername = !!story.authorUsername && story.authorUsername.toLowerCase().includes(q)
+        if (!story.title.toLowerCase().includes(q) && !tags.some(t => t.toLowerCase().includes(q)) && !matchesUsername) return false
       }
       return true
     })
@@ -435,7 +460,7 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search by title or tag…"
+            placeholder="Search by title, tag, or creator…"
             className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 text-white placeholder-white/40"
             style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
           />

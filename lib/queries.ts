@@ -1,6 +1,6 @@
 import { eq, sql, and, inArray, isNotNull, desc } from 'drizzle-orm'
 import { db } from './db'
-import { adventures, nodes, choices, chapters, storyReviews, worldCharacters, worldItems } from './schema'
+import { adventures, nodes, choices, chapters, storyReviews, worldCharacters, worldItems, users, userBlocks, follows } from './schema'
 
 export type AdventureWithCounts = Awaited<ReturnType<typeof getAdventures>>[number]
 
@@ -259,4 +259,130 @@ export async function getPublicAdventuresByTag(tag: string) {
     reviewCount: ratingMap.get(s.id)?.reviewCount ?? 0,
     coverImageUrl: coverMap.get(s.id) ?? null,
   }))
+}
+
+export async function getAuthorByEmail(email: string) {
+  const [row] = await db
+    .select({ username: users.username, displayName: users.displayName })
+    .from(users)
+    .where(eq(users.email, email))
+  return row ?? null
+}
+
+export async function getPublicProfile(username: string) {
+  const [row] = await db
+    .select({
+      email: users.email,
+      username: users.username,
+      displayName: users.displayName,
+      profileVisible: users.profileVisible,
+      createdAt: users.createdAt,
+    })
+    .from(users)
+    .where(eq(users.username, username))
+  return row ?? null
+}
+export type PublicProfile = Awaited<ReturnType<typeof getPublicProfile>>
+
+export async function getPublicAdventuresByUsername(username: string) {
+  const stories = await db
+    .select({
+      id: adventures.id,
+      title: adventures.title,
+      description: adventures.description,
+      audience: adventures.audience,
+      tags: adventures.tags,
+      shareToken: adventures.shareToken,
+      storySlug: adventures.storySlug,
+      createdAt: adventures.createdAt,
+      updatedAt: adventures.updatedAt,
+    })
+    .from(adventures)
+    .innerJoin(users, eq(users.email, adventures.userEmail))
+    .where(and(
+      eq(users.username, username),
+      eq(adventures.isPublic, true),
+      eq(adventures.status, 'active'),
+    ))
+    .orderBy(desc(adventures.updatedAt))
+
+  const adventureIds = stories.map(s => s.id)
+  const startNodeImages = adventureIds.length > 0
+    ? await db
+        .select({ adventureId: nodes.adventureId, imageUrl: nodes.imageUrl })
+        .from(nodes)
+        .where(and(
+          inArray(nodes.adventureId, adventureIds),
+          eq(nodes.nodeType, 'start'),
+          isNotNull(nodes.imageUrl),
+        ))
+    : []
+
+  const coverMap = new Map<string, string>()
+  for (const row of startNodeImages) {
+    if (!coverMap.has(row.adventureId) && row.imageUrl) {
+      coverMap.set(row.adventureId, row.imageUrl)
+    }
+  }
+
+  return stories.map(s => ({ ...s, coverImageUrl: coverMap.get(s.id) ?? null }))
+}
+export type PublicProfileAdventure = Awaited<ReturnType<typeof getPublicAdventuresByUsername>>[number]
+
+export async function isBlocked(blockerEmail: string, blockedEmail: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: userBlocks.id })
+    .from(userBlocks)
+    .where(and(eq(userBlocks.blockerEmail, blockerEmail), eq(userBlocks.blockedEmail, blockedEmail)))
+  return !!row
+}
+
+export async function getFollowStatus(followerEmail: string, followingEmail: string): Promise<'none' | 'pending' | 'accepted'> {
+  const [row] = await db
+    .select({ status: follows.status })
+    .from(follows)
+    .where(and(eq(follows.followerEmail, followerEmail), eq(follows.followingEmail, followingEmail)))
+  return (row?.status as 'pending' | 'accepted') ?? 'none'
+}
+
+export async function getFollowerCount(email: string): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(follows)
+    .where(and(eq(follows.followingEmail, email), eq(follows.status, 'accepted')))
+  return row?.count ?? 0
+}
+
+export async function getFollowingCount(email: string): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(follows)
+    .where(and(eq(follows.followerEmail, email), eq(follows.status, 'accepted')))
+  return row?.count ?? 0
+}
+
+export async function getIncomingFollowRequests(email: string) {
+  return db
+    .select({
+      username: users.username,
+      displayName: users.displayName,
+      requestedAt: follows.createdAt,
+    })
+    .from(follows)
+    .innerJoin(users, eq(users.email, follows.followerEmail))
+    .where(and(eq(follows.followingEmail, email), eq(follows.status, 'pending')))
+    .orderBy(desc(follows.createdAt))
+}
+
+export async function getBlockedUsers(blockerEmail: string) {
+  return db
+    .select({
+      username: users.username,
+      displayName: users.displayName,
+      blockedAt: userBlocks.createdAt,
+    })
+    .from(userBlocks)
+    .innerJoin(users, eq(users.email, userBlocks.blockedEmail))
+    .where(eq(userBlocks.blockerEmail, blockerEmail))
+    .orderBy(desc(userBlocks.createdAt))
 }

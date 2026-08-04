@@ -8,6 +8,8 @@ export const users = pgTable('users', {
   id: uuid('id').notNull().unique().default(sql`gen_random_uuid()`).$defaultFn(() => crypto.randomUUID()),
   email: text('email').primaryKey(),
   displayName: text('display_name').notNull().default(''),
+  username: text('username').unique(), // lowercase, 3-20 chars, nullable until set (forced via onboarding gate)
+  profileVisible: boolean('profile_visible').notNull().default(true), // public profile page visibility
   birthDate: text('birth_date'), // YYYY-MM-DD, nullable until user sets it
   passwordHash: text('password_hash'), // null for Google-only accounts
   tier: text('tier').notNull().default('free'), // 'free' | 'organization'
@@ -197,6 +199,30 @@ export const storyReports = pgTable('story_reports', {
 }, (t) => [
   index('story_reports_adventure_id_idx').on(t.adventureId),
   index('story_reports_status_idx').on(t.status),
+])
+
+export const userBlocks = pgTable('user_blocks', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  blockerEmail: text('blocker_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  blockedEmail: text('blocked_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('user_blocks_pair_idx').on(t.blockerEmail, t.blockedEmail),
+  index('user_blocks_blocker_idx').on(t.blockerEmail),
+  index('user_blocks_blocked_idx').on(t.blockedEmail),
+])
+
+export const follows = pgTable('follows', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  followerEmail: text('follower_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  followingEmail: text('following_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
+  status: text('status').notNull().default('pending'), // 'pending' | 'accepted'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  respondedAt: timestamp('responded_at'),
+}, (t) => [
+  uniqueIndex('follows_pair_idx').on(t.followerEmail, t.followingEmail),
+  index('follows_follower_idx').on(t.followerEmail),
+  index('follows_following_idx').on(t.followingEmail),
 ])
 
 export const organizations = pgTable('organizations', {

@@ -546,6 +546,53 @@ export async function sendFriendInviteEmail(opts: {
   })
 }
 
+export async function sendFollowRequestEmail(opts: {
+  to: string
+  followerName: string
+  followerUsername: string
+}) {
+  const { to, followerName, followerUsername } = opts
+  const settingsUrl = `${CANONICAL_URL}/profile`
+  const safeName = escapeHtml(followerName)
+  const safeUsername = escapeHtml(followerUsername)
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: `${followerName} requested to follow you on StoryQuestor`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px 16px;color:#111;">
+          <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+            Story<span style="color:#f59e0b;">Questor</span>
+          </h1>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+          <p style="font-size:15px;line-height:1.7;color:#1e0a3c;">
+            <strong>${safeName}</strong> (@${safeUsername}) requested to follow your profile on StoryQuestor.
+            Your profile is private, so they'll need your approval before they can see your public stories.
+          </p>
+
+          <a href="${settingsUrl}"
+            style="display:inline-block;padding:13px 30px;background:linear-gradient(135deg,#7c3aed,#6d28d9);
+                   color:#fff;font-weight:700;font-size:15px;border-radius:10px;text-decoration:none;">
+            Review Request
+          </a>
+
+          <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-top:24px;">
+            You can accept or decline this request from your Profile Settings.
+          </p>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 12px;" />
+          <p style="font-size:12px;color:#9ca3af;">&copy; ${new Date().getFullYear()} StoryQuestor &mdash; <a href="${CANONICAL_URL}" style="color:#9ca3af;">storyquestor.com</a></p>
+        </body>
+      </html>
+    `,
+  })
+}
+
 export async function sendTrialExpiryReminder(opts: {
   to: string
   displayName: string | null

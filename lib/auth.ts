@@ -131,6 +131,7 @@ export const authOptions: NextAuthOptions = {
               token.subscriptionStatus = user.subscriptionStatus ?? null
               token.subscriptionInterval = user.subscriptionInterval ?? null
               token.languagePreference = user.languagePreference ?? 'en'
+              token.username = user.username ?? null
             }
           } catch {}
           if (token.email === ADMIN_EMAIL) {
@@ -141,7 +142,7 @@ export const authOptions: NextAuthOptions = {
         }
       }
       // On first JWT creation or when missing, fetch from DB
-      if ((!token.displayName || !token.birthDate || token.tier === undefined) && token.email) {
+      if ((!token.displayName || !token.birthDate || !token.username || token.tier === undefined) && token.email) {
         try {
           const [user] = await db.select().from(users).where(eq(users.email, token.email as string))
           if (user) {
@@ -152,6 +153,7 @@ export const authOptions: NextAuthOptions = {
             token.subscriptionStatus = user.subscriptionStatus ?? null
             token.subscriptionInterval = user.subscriptionInterval ?? null
             token.languagePreference = user.languagePreference ?? 'en'
+            token.username = user.username ?? null
           }
         } catch {
           token.displayName = token.displayName || token.name || ''
@@ -171,12 +173,13 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email as string
         session.user.name = (token.displayName as string) || (token.name as string) || session.user.email
         session.user.isAdult = token.isAdult ?? false
-        session.user.profileComplete = !!token.birthDate
+        session.user.profileComplete = !!token.birthDate && !!token.username
         session.user.isAdmin = token.isAdmin ?? false
         session.user.tier = token.tier ?? 'free'
         session.user.subscriptionStatus = token.subscriptionStatus ?? null
         session.user.subscriptionInterval = token.subscriptionInterval ?? null
         session.user.languagePreference = (token.languagePreference as string) ?? 'en'
+        session.user.username = token.username ?? null
       }
       return session
     },

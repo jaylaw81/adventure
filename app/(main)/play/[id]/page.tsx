@@ -4,7 +4,7 @@ import { Tag, Users, ShieldOff } from 'lucide-react'
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getAdventure, getStartNode } from '@/lib/queries'
+import { getAdventure, getStartNode, getAuthorByEmail } from '@/lib/queries'
 import { canViewMemberStory } from '@/lib/orgAccess'
 import StartStoryButton from '@/components/reader/StartStoryButton'
 import ReportButton from '@/components/reader/ReportButton'
@@ -70,6 +70,8 @@ export default async function StoryLandingPage({ params }: Props) {
 
   if (!adventure) notFound()
   if (!startNode) redirect('/')
+
+  const author = adventure.userEmail ? await getAuthorByEmail(adventure.userEmail) : null
 
   // Block private stories from non-owners
   const isOwner = !!session?.user?.email && session.user.email === adventure.userEmail
@@ -171,6 +173,16 @@ export default async function StoryLandingPage({ params }: Props) {
               {audienceLabel}
             </span>
           </div>
+
+          {author && (
+            author.username ? (
+              <Link href={`/u/${author.username}`} className="text-sm text-violet-500 hover:text-violet-700 transition-colors mb-3 inline-block">
+                by @{author.username}
+              </Link>
+            ) : author.displayName ? (
+              <p className="text-sm text-gray-400 mb-3">by {author.displayName}</p>
+            ) : null
+          )}
 
           {adventure.description && (
             <p className="text-base leading-relaxed mb-5" style={{ color: '#374151' }}>{adventure.description}</p>

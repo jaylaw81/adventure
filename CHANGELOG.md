@@ -6,6 +6,17 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-08-03
+
+- **Redesigned Profile Settings**: `/profile` is now organized into a sidebar-tabbed layout (Account, Notifications, Privacy, Billing, Invites, Danger Zone) instead of one long scrolling page, with a new identity summary card up top showing avatar, username, join date, and story/follower/following stats. A "Send invites" link from the invite-friends prompt now opens straight to the Invites tab. Saving now shows an animated confirmation instead of plain text.
+- **Public profile polish**: `/u/<username>` now shows when a creator joined, and the follow button has a subtle confirmation animation when you follow or unfollow someone.
+- **User profile pages**: Every user now has a public profile page at `storyquestor.com/u/<username>` listing the stories they've made public — available on every plan (free, weekly, monthly). Profiles are public by default; a new "Profile Visibility" toggle in Profile Settings lets anyone switch to private. Existing users are prompted to choose a username the next time they sign in, alongside signing up.
+- **Usernames**: Every account now has a username (3–20 lowercase letters, numbers, or underscores) separate from their email, chosen during account setup with live availability checking. Used as the identifier in profile URLs.
+- **Blocking**: From Profile Settings, users can block another account by username to prevent that account from viewing their profile page, and unblock at any time from the same "Blocked Users" list.
+- **Story author byline**: Story reader pages now show a "by @username" byline linking to the author's public profile, when the author has one.
+- **Explore page author bylines & creator search**: Every story card on the Explore page now shows who made it, linking to their profile page when it's public. The search box also matches against creator usernames, not just titles and tags.
+- **Follow requests**: Readers can follow an author from their profile page. Following a public profile is instant; following a private profile sends a request the owner approves or declines from a new "Follow Requests" section in Profile Settings (with an email notification when a request comes in). Profile pages now show follower/following counts, and an accepted follower of a private profile can see that profile's public stories. Blocking someone automatically removes any follow relationship between the two accounts.
+
 ## 2026-07-28
 
 - **Story analytics**: Monthly subscribers (and admins) can now view a per-story analytics dashboard from an icon on each story card — total reads, social visits, a 30-day reads sparkline, a breakdown of traffic sources (direct, search, social, referral, email, internal), and a list of top referring domains. The pricing page now lists "Story analytics & traffic sources" as a monthly-tier feature.
