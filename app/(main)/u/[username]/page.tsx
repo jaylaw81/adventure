@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!profile) return { title: 'Profile Not Found' }
 
   return {
-    title: `@${profile.username} | StoryQuestor`,
-    description: `See public stories by @${profile.username} on StoryQuestor.`,
+    title: { absolute: `@${profile.username} | StoryQuestor` },
+    description: `See public interactive stories and adventures by @${profile.username} on StoryQuestor.`,
     alternates: { canonical: `${SITE_URL}/u/${profile.username}` },
   }
 }

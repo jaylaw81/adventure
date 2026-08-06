@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     default: 'StoryQuestor — Free Choose Your Own Adventure Story Creator',
     template: '%s | StoryQuestor',
   },
-  description: 'Create free choose-your-own-adventure stories with a visual canvas. Build non-linear, branching tales where every reader choice leads somewhere different — then share them with the world.',
+  description: 'Create free choose-your-own-adventure stories with a visual canvas. Build branching tales where every reader choice leads somewhere different.',
   openGraph: {
     title: 'StoryQuestor — Free Choose Your Own Adventure Story Creator',
     description: 'Create free choose-your-own-adventure stories. Build non-linear, branching tales where every reader choice leads somewhere different.',

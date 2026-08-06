@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+const SITE_URL = 'https://www.storyquestor.com'
+
 export const metadata: Metadata = {
   title: { absolute: 'Terms of Service | StoryQuestor' },
   description: 'Terms of service for StoryQuestor — rules for using the platform.',
   robots: { index: true, follow: true },
+  alternates: { canonical: `${SITE_URL}/terms` },
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

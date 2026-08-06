@@ -9,13 +9,14 @@ import { ArrowRight, Clock } from 'lucide-react'
 import type { BlogCategory } from '@/lib/blogPosts'
 import JsonLd from '@/components/JsonLd'
 
-const SITE_URL = 'https://storyquestor.com'
+const SITE_URL = 'https://www.storyquestor.com'
 
 export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: 'Writing Tips & Interactive Fiction Guides | StoryQuestor Blog',
+  title: { absolute: 'Writing Tips & Interactive Fiction Guides | StoryQuestor' },
   description: 'Tips for writing branching stories, interactive fiction guides, choose-your-own-adventure ideas, and resources for story creators.',
+  alternates: { canonical: `${SITE_URL}/blog` },
 }
 
 const CATEGORY_PILL: Record<BlogCategory, string> = {

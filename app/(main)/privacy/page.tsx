@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+const SITE_URL = 'https://www.storyquestor.com'
+
 export const metadata: Metadata = {
-  title: { absolute: 'Privacy Policy | StoryQuestor' },
+  title: { absolute: 'Your Privacy Policy | StoryQuestor' },
   description: 'Privacy policy for StoryQuestor — how we collect, use, and protect your data.',
   robots: { index: true, follow: true },
+  alternates: { canonical: `${SITE_URL}/privacy` },
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {

@@ -9,7 +9,7 @@ import { ArrowLeft, Clock, ArrowRight, BookOpen } from 'lucide-react'
 import type { BlogSection, BlogSectionImage, BlogCategory } from '@/lib/blogPosts'
 import JsonLd from '@/components/JsonLd'
 
-const SITE_URL = 'https://storyquestor.com'
+const SITE_URL = 'https://www.storyquestor.com'
 
 export const revalidate = 300
 
@@ -44,8 +44,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .from(blogPosts).where(eq(blogPosts.slug, slug))
   if (!post) return {}
   return {
-    title: `${post.title} | StoryQuestor Blog`,
+    title: { absolute: `${post.title} | StoryQuestor Blog` },
     description: post.description,
+    alternates: { canonical: `${SITE_URL}/blog/${slug}` },
   }
 }
 

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     absolute: 'Choose Your Own Adventure — History, Books & Series Guide',
   },
   description:
-    'Explore the complete history of the Choose Your Own Adventure book series — from Edward Packard\'s 1969 origin story through 184 classic Bantam titles and the Chooseco revival. Browse iconic books and find them on Amazon.',
+    'The complete history of the Choose Your Own Adventure book series — from Edward Packard\'s 1969 origin through 184 Bantam titles and the Chooseco revival.',
   keywords: [
     'Choose Your Own Adventure', 'CYOA books', 'Edward Packard', 'R.A. Montgomery',
     'Bantam Books', 'Chooseco', 'interactive fiction books', 'branching story books',

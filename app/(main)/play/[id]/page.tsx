@@ -35,12 +35,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!adventure) return { title: 'Story Not Found' }
 
   const title = `${adventure.title} | StoryQuestor`
-  const description = adventure.description || `Play "${adventure.title}" — a branching interactive story on StoryQuestor.`
+  const description = adventure.description || `Play "${adventure.title}" — a free branching interactive story on StoryQuestor. Make choices and shape how it ends.`
   const tags: string[] = (() => { try { return JSON.parse(adventure.tags ?? '[]') } catch { return [] } })()
   const ogImage = `${SITE_URL}/play/${id}/opengraph-image`
 
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords: ['interactive story', 'choose your own adventure', 'branching story', ...tags],
     alternates: { canonical: `${SITE_URL}/play/${id}` },

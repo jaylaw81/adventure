@@ -8,9 +8,12 @@ import { getPricingConfig, formatCents } from '@/lib/pricing'
 import Link from 'next/link'
 import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock, Sword, Users, BarChart2, Link2 } from 'lucide-react'
 
+const SITE_URL = 'https://www.storyquestor.com'
+
 export const metadata: Metadata = {
-  title: 'Pricing',
+  title: 'Story Creator Pricing',
   description: 'Simple, affordable plans for interactive story creators. Start free, upgrade when you\'re ready.',
+  alternates: { canonical: `${SITE_URL}/pricing` },
 }
 
 const FEATURES: {

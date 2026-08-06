@@ -177,9 +177,9 @@ function FeaturedCard({ story, selectedTag, onTagClick, onReviewClick }: CardPro
             </span>
           </div>
 
-          <h2 className="text-2xl font-bold leading-snug" style={{ color: '#1e0a3c' }}>
+          <h3 className="text-2xl font-bold leading-snug" style={{ color: '#1e0a3c' }}>
             {story.title}
-          </h2>
+          </h3>
 
           <Byline story={story} />
 
@@ -298,7 +298,7 @@ function StoryCard({ story, cardIndex, selectedTag, onTagClick, onReviewClick }:
                 Popular
               </span>
             )}
-            <h2 className="text-lg font-bold" style={{ color: '#1e0a3c' }}>{story.title}</h2>
+            <h3 className="text-lg font-bold" style={{ color: '#1e0a3c' }}>{story.title}</h3>
             <Byline story={story} />
           </div>
           <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 whitespace-nowrap">
@@ -568,6 +568,7 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
         <div className="flex gap-8 items-start">
           {/* Desktop sidebar */}
           <aside className="hidden md:flex flex-col gap-6 w-52 shrink-0 sticky top-6">
+            <h2 className="sr-only">Filters</h2>
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#7c3aed' }}>Audience</h3>
               <div className="flex flex-col gap-1">
@@ -664,6 +665,7 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
 
           {/* Main content */}
           <div className="flex-1 min-w-0">
+            <h2 className="sr-only">Stories</h2>
             {/* Active filter chips + count */}
             <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
               <div className="flex flex-wrap items-center gap-2">

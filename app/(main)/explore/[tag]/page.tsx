@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${label} Interactive Stories — StoryQuestor`
   const description = `Browse free ${label.toLowerCase()} choose-your-own-adventure stories. Every story branches — your choices shape the ending.`
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords: ['interactive story', 'choose your own adventure', label.toLowerCase(), `${label.toLowerCase()} stories`],
     alternates: { canonical: `${SITE_URL}/explore/${tag}` },

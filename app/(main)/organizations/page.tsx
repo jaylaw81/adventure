@@ -13,9 +13,12 @@ import {
 } from 'lucide-react'
 import WaitlistForm from './WaitlistForm'
 
+const SITE_URL = 'https://www.storyquestor.com'
+
 export const metadata: Metadata = {
-  title: 'Organizations — StoryQuestor for Educators & Schools',
-  description: 'Bring interactive branching stories to your classroom. Manage students, review content, and create a private space for your school — coming soon to StoryQuestor.',
+  title: { absolute: 'Organizations — StoryQuestor for Educators & Schools' },
+  description: 'Bring interactive branching stories to your classroom. Manage students, review content, and create a private space for your school.',
+  alternates: { canonical: `${SITE_URL}/organizations` },
 }
 
 const features = [

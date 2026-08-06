@@ -9,9 +9,12 @@ import {
   Users, Sword, Package, Shield, Heart, Zap,
 } from 'lucide-react'
 
+const SITE_URL = 'https://www.storyquestor.com'
+
 export const metadata: Metadata = {
-  title: { absolute: 'How to Create Choose Your Own Adventure Stories | StoryQuestor Guide' },
+  title: { absolute: 'How to Create a Choose Your Own Adventure | StoryQuestor' },
   description: 'Learn how to create branching interactive stories and how to play them on StoryQuestor.',
+  alternates: { canonical: `${SITE_URL}/how-to` },
 }
 
 /* ── UI Mockups (pure JSX, no client JS needed) ──────────────────── */
