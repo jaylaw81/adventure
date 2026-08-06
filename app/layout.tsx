@@ -67,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }catch(e){}
 })();
         `}} />
-        <script defer data-site-id="cmsfdb4p20004saohbodqsczs" src="https://marketman-six.vercel.app/track.js"></script>
+        <script defer data-site-id="cmsgsls630001sabrg13toxp3" src="https://marketman-six.vercel.app/track.js"></script>
       </head>
       <body className={`${geist.variable} ${geist.className} antialiased min-h-screen`} style={{ background: '#faf5ff' }}>
         <JsonLd data={{
