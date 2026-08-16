@@ -63,7 +63,13 @@ export async function POST(_req: Request, { params }: { params: Promise<{ userna
       status,
       respondedAt: status === 'accepted' ? new Date() : null,
     })
-    .onConflictDoNothing()
+    .onConflictDoUpdate({
+      target: [follows.followerEmail, follows.followingEmail],
+      set: {
+        status,
+        respondedAt: status === 'accepted' ? new Date() : null,
+      },
+    })
 
   if (status === 'pending') {
     sendFollowRequestEmail({

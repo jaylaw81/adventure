@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { UserPlus, Clock, UserCheck } from 'lucide-react'
 
-type FollowStatus = 'none' | 'pending' | 'accepted'
+type FollowStatus = 'none' | 'pending' | 'accepted' | 'denied'
 
 interface Props {
   username: string
@@ -26,7 +26,7 @@ export default function FollowButton({ username, initialStatus }: Props) {
     if (loading) return
     setLoading(true)
     try {
-      if (status === 'none') {
+      if (status === 'none' || status === 'denied') {
         const res = await fetch(`/api/profile/follow/${username}`, { method: 'POST' })
         const data = await res.json()
         if (res.ok) settle(data.status)
@@ -42,7 +42,7 @@ export default function FollowButton({ username, initialStatus }: Props) {
 
   const popStyle = pulse ? { animation: 'follow-pop 220ms cubic-bezier(0.16,1,0.3,1) both' } : undefined
 
-  if (status === 'none') {
+  if (status === 'none' || status === 'denied') {
     return (
       <button
         onClick={handleClick}

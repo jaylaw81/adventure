@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, follows } from '@/lib/schema'
 
+// Removes a pending or denied follow request outright — clears it from the Denied list entirely.
 export async function DELETE(_req: Request, { params }: { params: Promise<{ username: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -19,7 +20,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ user
       .where(and(
         eq(follows.followerEmail, follower.email),
         eq(follows.followingEmail, session.user.email),
-        eq(follows.status, 'pending'),
+        inArray(follows.status, ['pending', 'denied']),
       ))
   }
 

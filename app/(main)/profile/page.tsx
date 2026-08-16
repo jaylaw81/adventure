@@ -13,8 +13,7 @@ import Link from 'next/link'
 import PageBanner from '@/components/shared/PageBanner'
 import OnboardingProgress from '@/components/shared/OnboardingProgress'
 import ProfileVisibilityToggle from '@/components/shared/ProfileVisibilityToggle'
-import BlockedUsersSection from '@/components/shared/BlockedUsersSection'
-import FollowRequestsSection from '@/components/shared/FollowRequestsSection'
+import FollowManagementSection from '@/components/shared/FollowManagementSection'
 import { calcAge } from '@/lib/age'
 import { analytics } from '@/lib/analytics'
 import { formatCents, getEnabledIntervals } from '@/lib/pricing'
@@ -782,8 +781,7 @@ function ProfileContent() {
               {activeTab === 'privacy' && (
                 <div>
                   <ProfileVisibilityToggle initialVisible={profileVisible} onChange={setProfileVisible} />
-                  <FollowRequestsSection />
-                  <BlockedUsersSection />
+                  <FollowManagementSection />
                 </div>
               )}
 

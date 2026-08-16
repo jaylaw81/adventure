@@ -162,6 +162,8 @@ export default async function UserProfilePage({ params }: Props) {
             <p className="text-gray-500">
               {viewerFollowStatus === 'pending'
                 ? 'Your follow request is pending approval.'
+                : viewerFollowStatus === 'denied'
+                ? "Your follow request wasn't approved. You can send another request."
                 : 'Follow this user to see their public stories once approved.'}
             </p>
           </div>

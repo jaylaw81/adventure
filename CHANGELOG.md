@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-08-16
+
+- **Follow request management**: Private-profile owners now get a "Manage Followers" panel in Profile → Privacy with three tabs — Follow Requests, Denied, and Blocked. Incoming requests can be Allowed, Denied, or Blocked directly from the list; denied users can be re-approved or removed later, and blocked users can be unblocked. Denying a request no longer just deletes it — the requester can send a new request later, and their Follow button correctly reflects the denial in the meantime.
+
 ## 2026-08-03
 
 - **Dismissible feedback button**: The floating feedback button can now be hidden by clicking the small × badge on its corner. The choice is remembered across visits, and a "Feedback" link in the site footer brings it back at any time.

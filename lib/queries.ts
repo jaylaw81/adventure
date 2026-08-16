@@ -337,12 +337,12 @@ export async function isBlocked(blockerEmail: string, blockedEmail: string): Pro
   return !!row
 }
 
-export async function getFollowStatus(followerEmail: string, followingEmail: string): Promise<'none' | 'pending' | 'accepted'> {
+export async function getFollowStatus(followerEmail: string, followingEmail: string): Promise<'none' | 'pending' | 'accepted' | 'denied'> {
   const [row] = await db
     .select({ status: follows.status })
     .from(follows)
     .where(and(eq(follows.followerEmail, followerEmail), eq(follows.followingEmail, followingEmail)))
-  return (row?.status as 'pending' | 'accepted') ?? 'none'
+  return (row?.status as 'pending' | 'accepted' | 'denied') ?? 'none'
 }
 
 export async function getFollowerCount(email: string): Promise<number> {
@@ -372,6 +372,19 @@ export async function getIncomingFollowRequests(email: string) {
     .innerJoin(users, eq(users.email, follows.followerEmail))
     .where(and(eq(follows.followingEmail, email), eq(follows.status, 'pending')))
     .orderBy(desc(follows.createdAt))
+}
+
+export async function getDeniedFollowRequests(email: string) {
+  return db
+    .select({
+      username: users.username,
+      displayName: users.displayName,
+      deniedAt: follows.respondedAt,
+    })
+    .from(follows)
+    .innerJoin(users, eq(users.email, follows.followerEmail))
+    .where(and(eq(follows.followingEmail, email), eq(follows.status, 'denied')))
+    .orderBy(desc(follows.respondedAt))
 }
 
 export async function getBlockedUsers(blockerEmail: string) {

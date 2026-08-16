@@ -216,7 +216,7 @@ export const follows = pgTable('follows', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   followerEmail: text('follower_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
   followingEmail: text('following_email').notNull().references(() => users.email, { onDelete: 'cascade' }),
-  status: text('status').notNull().default('pending'), // 'pending' | 'accepted'
+  status: text('status').notNull().default('pending'), // 'pending' | 'accepted' | 'denied'
   createdAt: timestamp('created_at').defaultNow().notNull(),
   respondedAt: timestamp('responded_at'),
 }, (t) => [
