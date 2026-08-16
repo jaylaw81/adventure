@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { MessageCircle, CheckCircle2, Eye, Filter } from 'lucide-react'
+import { MessageCircle, CheckCircle2, Eye, Filter, Reply, Send, X, CornerDownRight } from 'lucide-react'
 
 interface FeedbackItem {
   id: string
@@ -11,6 +11,119 @@ interface FeedbackItem {
   pageUrl: string | null
   status: string
   createdAt: string
+  replyCount: number
+}
+
+function truncateForQuote(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text
+}
+
+function ReplyModal({
+  item,
+  onClose,
+  onSent,
+}: {
+  item: FeedbackItem
+  onClose: () => void
+  onSent: () => void
+}) {
+  const [subject, setSubject] = useState(`Re: "${truncateForQuote(item.message, 60)}"`)
+  const [message, setMessage] = useState(`Hi,\n\nThanks for reaching out about:\n"${item.message}"\n\n`)
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSend() {
+    if (!subject.trim() || !message.trim()) {
+      setError('Both subject and message are required.')
+      return
+    }
+    setSending(true)
+    setError('')
+    const res = await fetch(`/api/admin/feedback/${item.id}/reply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject, message }),
+    })
+    if (res.ok) {
+      setSent(true)
+      onSent()
+    } else {
+      const data = await res.json().catch(() => ({}))
+      setError(data.error ?? 'Failed to send reply.')
+    }
+    setSending(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Reply to Feedback</h2>
+            <p className="text-xs text-gray-500 font-mono mt-0.5">{item.userEmail}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        {sent ? (
+          <div className="text-center py-8">
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <CheckCircle2 size={24} className="text-green-600" />
+            </div>
+            <p className="font-semibold text-gray-900">Reply sent!</p>
+            <p className="text-sm text-gray-500 mt-1">Your reply was delivered to {item.userEmail}.</p>
+            <button
+              onClick={onClose}
+              className="mt-5 px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Subject</label>
+              <input
+                type="text"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Message</label>
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                rows={9}
+                className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none"
+              />
+            </div>
+            {error && <p className="text-xs text-red-600">{error}</p>}
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSend}
+                disabled={sending}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Send size={14} />
+                {sending ? 'Sending…' : 'Send Reply'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -32,6 +145,7 @@ export default function AdminFeedbackPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterType, setFilterType]     = useState<string>('all')
   const [updating, setUpdating]   = useState<string | null>(null)
+  const [replyTarget, setReplyTarget] = useState<FeedbackItem | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/feedback')
@@ -73,6 +187,16 @@ export default function AdminFeedbackPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
+      {replyTarget && (
+        <ReplyModal
+          item={replyTarget}
+          onClose={() => setReplyTarget(null)}
+          onSent={() => {
+            setItems(prev => prev.map(i => i.id === replyTarget.id ? { ...i, replyCount: i.replyCount + 1 } : i))
+          }}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center">
@@ -153,6 +277,12 @@ export default function AdminFeedbackPage() {
                     {!item.userEmail && (
                       <span className="text-xs text-gray-400 italic">anonymous</span>
                     )}
+                    {item.replyCount > 0 && (
+                      <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600">
+                        <CornerDownRight size={10} />
+                        Replied{item.replyCount > 1 ? ` ×${item.replyCount}` : ''}
+                      </span>
+                    )}
                   </div>
 
                   {/* Message */}
@@ -176,6 +306,16 @@ export default function AdminFeedbackPage() {
 
                 {/* Actions */}
                 <div className="flex gap-1.5 shrink-0">
+                  {item.userEmail && (
+                    <button
+                      onClick={() => setReplyTarget(item)}
+                      title="Reply to this feedback"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-violet-50 text-violet-700 hover:bg-violet-100 transition-colors"
+                    >
+                      <Reply size={12} />
+                      Reply
+                    </button>
+                  )}
                   {item.status === 'new' && (
                     <button
                       onClick={() => updateStatus(item.id, 'reviewed')}

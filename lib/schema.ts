@@ -539,6 +539,17 @@ export const siteFeedback = pgTable('site_feedback', {
 
 export type SiteFeedback = typeof siteFeedback.$inferSelect
 
+export const feedbackReplies = pgTable('feedback_replies', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  feedbackId: uuid('feedback_id').notNull().references(() => siteFeedback.id, { onDelete: 'cascade' }),
+  sentByEmail: text('sent_by_email').notNull(),
+  subject: text('subject').notNull(),
+  message: text('message').notNull(),
+  sentAt: timestamp('sent_at').defaultNow().notNull(),
+}, (t) => [
+  index('feedback_replies_feedback_id_idx').on(t.feedbackId),
+])
+
 export const storyReferrers = pgTable('story_referrers', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   adventureId: uuid('adventure_id').notNull().references(() => adventures.id, { onDelete: 'cascade' }),
