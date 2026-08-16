@@ -225,6 +225,18 @@ export const follows = pgTable('follows', {
   index('follows_following_idx').on(t.followingEmail),
 ])
 
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userEmail: text('user_email').notNull().references(() => users.email, { onDelete: 'cascade' }), // recipient
+  actorEmail: text('actor_email').notNull().references(() => users.email, { onDelete: 'cascade' }), // who triggered it
+  type: text('type').notNull(), // 'follow_request' | 'new_follower'
+  read: boolean('read').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('notifications_user_idx').on(t.userEmail, t.createdAt),
+  index('notifications_user_unread_idx').on(t.userEmail, t.read),
+])
+
 export const organizations = pgTable('organizations', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull(),

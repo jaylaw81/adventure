@@ -9,6 +9,7 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 ## 2026-08-16
 
 - **Follow request management**: Private-profile owners now get a "Manage Followers" panel in Profile → Privacy with three tabs — Follow Requests, Denied, and Blocked. Incoming requests can be Allowed, Denied, or Blocked directly from the list; denied users can be re-approved or removed later, and blocked users can be unblocked. Denying a request no longer just deletes it — the requester can send a new request later, and their Follow button correctly reflects the denial in the meantime.
+- **Notification bell**: A bell icon in the top nav now alerts users when someone follows them or requests to follow them, with an unread-count badge and a dropdown listing recent activity. Opening the dropdown marks notifications as read; each entry links to the follower's profile or, for pending requests, straight to the Manage Followers panel.
 
 ## 2026-08-03
 

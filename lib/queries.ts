@@ -1,6 +1,6 @@
 import { eq, sql, and, inArray, isNotNull, desc } from 'drizzle-orm'
 import { db } from './db'
-import { adventures, nodes, choices, chapters, storyReviews, worldCharacters, worldItems, users, userBlocks, follows } from './schema'
+import { adventures, nodes, choices, chapters, storyReviews, worldCharacters, worldItems, users, userBlocks, follows, notifications } from './schema'
 
 export type AdventureWithCounts = Awaited<ReturnType<typeof getAdventures>>[number]
 
@@ -385,6 +385,37 @@ export async function getDeniedFollowRequests(email: string) {
     .innerJoin(users, eq(users.email, follows.followerEmail))
     .where(and(eq(follows.followingEmail, email), eq(follows.status, 'denied')))
     .orderBy(desc(follows.respondedAt))
+}
+
+export async function getRecentNotifications(userEmail: string, limit = 20) {
+  return db
+    .select({
+      id: notifications.id,
+      type: notifications.type,
+      actorUsername: users.username,
+      actorDisplayName: users.displayName,
+      createdAt: notifications.createdAt,
+    })
+    .from(notifications)
+    .innerJoin(users, eq(users.email, notifications.actorEmail))
+    .where(eq(notifications.userEmail, userEmail))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit)
+}
+
+export async function getUnreadNotificationCount(userEmail: string): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(notifications)
+    .where(and(eq(notifications.userEmail, userEmail), eq(notifications.read, false)))
+  return row?.count ?? 0
+}
+
+export async function markNotificationsRead(userEmail: string): Promise<void> {
+  await db
+    .update(notifications)
+    .set({ read: true })
+    .where(and(eq(notifications.userEmail, userEmail), eq(notifications.read, false)))
 }
 
 export async function getBlockedUsers(blockerEmail: string) {

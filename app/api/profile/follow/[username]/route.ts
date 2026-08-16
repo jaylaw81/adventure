@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { eq, and } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { users, follows } from '@/lib/schema'
+import { users, follows, notifications } from '@/lib/schema'
 import { getFollowStatus, isBlocked } from '@/lib/queries'
 import { sendFollowRequestEmail } from '@/lib/email'
 
@@ -70,6 +70,12 @@ export async function POST(_req: Request, { params }: { params: Promise<{ userna
         respondedAt: status === 'accepted' ? new Date() : null,
       },
     })
+
+  await db.insert(notifications).values({
+    userEmail: target.email,
+    actorEmail: session.user.email!,
+    type: status === 'pending' ? 'follow_request' : 'new_follower',
+  })
 
   if (status === 'pending') {
     sendFollowRequestEmail({

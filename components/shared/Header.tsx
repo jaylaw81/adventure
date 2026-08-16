@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { getGlobalMuted, setGlobalMuted, onGlobalMuteChange } from '@/lib/globalMute'
 import { analytics } from '@/lib/analytics'
+import NotificationBell from './NotificationBell'
 
 interface OrgMembership {
   orgName: string
@@ -139,10 +140,13 @@ export default function Header() {
           )}
         </nav>
 
+        {/* Notification bell */}
+        {session && <NotificationBell />}
+
         {/* Global mute — mobile */}
         <button
           onClick={handleGlobalMuteToggle}
-          className="sm:hidden ml-auto p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+          className={`sm:hidden p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors ${session ? '' : 'ml-auto'}`}
           aria-label={globalMuted ? 'Unmute sounds' : 'Mute sounds'}
         >
           {globalMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
@@ -158,7 +162,7 @@ export default function Header() {
         </button>
 
         {/* Global mute toggle — desktop */}
-        <div className="hidden sm:block relative group ml-auto">
+        <div className={`hidden sm:block relative group ${session ? '' : 'ml-auto'}`}>
           <button
             onClick={handleGlobalMuteToggle}
             className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
