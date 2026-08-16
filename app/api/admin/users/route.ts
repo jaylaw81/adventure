@@ -23,6 +23,8 @@ export async function GET() {
         grandfathered: users.grandfathered,
         subscriptionStatus: users.subscriptionStatus,
         subscriptionAmountCents: users.subscriptionAmountCents,
+        subscriptionInterval: users.subscriptionInterval,
+        profileVisible: users.profileVisible,
         trialEndsAt: users.trialEndsAt,
         gracePeriodEndsAt: users.gracePeriodEndsAt,
         stripeCustomerId: users.stripeCustomerId,

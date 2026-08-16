@@ -5,7 +5,9 @@ import Link from 'next/link'
 import {
   Search, X, ShieldOff, Trash2, ChevronRight, UserCheck, UserX,
   Clock, CheckCircle2, AlertTriangle, CreditCard, Building2, Gift,
+  Eye, EyeOff,
 } from 'lucide-react'
+import { formatCents } from '@/lib/pricing'
 
 interface AdminUser {
   id: string
@@ -18,6 +20,8 @@ interface AdminUser {
   grandfathered: boolean
   subscriptionStatus: string | null
   subscriptionAmountCents: number | null
+  subscriptionInterval: string | null
+  profileVisible: boolean
   trialEndsAt: string | null
   gracePeriodEndsAt: string | null
   stripeCustomerId: string | null
@@ -82,7 +86,7 @@ function getBillingInfo(u: AdminUser): BillingInfo {
     return {
       category: 'active',
       label: 'Active',
-      detail: amt ? `$${(amt / 100).toFixed(0)}/mo` : null,
+      detail: amt ? `${formatCents(amt)}/${u.subscriptionInterval ?? 'month'}` : null,
       chipClass: 'bg-green-100 text-green-700',
       icon: <CheckCircle2 size={11} />,
     }
@@ -212,6 +216,21 @@ export default function AdminUsersPage() {
     if (res.ok) {
       const updated = await res.json()
       setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: updated.status } : u))
+    }
+    setActing(null)
+  }
+
+  async function toggleProfileVisibility(user: AdminUser) {
+    setActing(user.id)
+    const action = user.profileVisible ? 'set_profile_private' : 'set_profile_public'
+    const res = await fetch(`/api/admin/users/${user.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action }),
+    })
+    if (res.ok) {
+      const updated = await res.json()
+      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, profileVisible: updated.profileVisible } : u))
     }
     setActing(null)
   }
@@ -375,6 +394,14 @@ export default function AdminUsersPage() {
                       {/* Actions */}
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2 justify-end">
+                          <button
+                            onClick={() => toggleProfileVisibility(user)}
+                            disabled={acting === user.id}
+                            title={user.profileVisible ? 'Make profile private' : 'Make profile public'}
+                            className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors disabled:opacity-40"
+                          >
+                            {user.profileVisible ? <Eye size={14} /> : <EyeOff size={14} />}
+                          </button>
                           <button
                             onClick={() => toggleSuspend(user)}
                             disabled={acting === user.id}

@@ -6,6 +6,7 @@ import {
   CheckCircle2, Clock, AlertTriangle, CreditCard,
   Building2, Gift, ArrowRight,
 } from 'lucide-react'
+import { formatCents } from '@/lib/pricing'
 
 interface EarningsData {
   mrrCents: number
@@ -23,11 +24,12 @@ interface EarningsData {
   avgAmountCents: number
   avgTrialAmountCents: number
   buckets: Record<string, number>
-  activeSubscribers: { email: string; displayName: string; amountCents: number; status: string }[]
+  activeSubscribers: { email: string; displayName: string; amountCents: number; interval: string; monthlyCents: number; status: string }[]
 }
 
-function fmt(cents: number, decimals = 0) {
-  return `$${(cents / 100).toFixed(decimals)}`
+// MRR/ARR and averages are monthly-equivalent figures normalized across billing intervals — always "/mo".
+function fmt(cents: number) {
+  return formatCents(Math.round(cents))
 }
 
 function StatCard({
@@ -254,8 +256,8 @@ export default function AdminEarningsPage() {
                       <p className="text-xs text-slate-400 font-mono">{s.email}</p>
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <span className="font-semibold text-slate-900">{fmt(s.amountCents)}</span>
-                      <span className="text-xs text-slate-400">/mo</span>
+                      <span className="font-semibold text-slate-900">{formatCents(s.amountCents)}</span>
+                      <span className="text-xs text-slate-400">/{s.interval}</span>
                     </td>
                   </tr>
                 ))}

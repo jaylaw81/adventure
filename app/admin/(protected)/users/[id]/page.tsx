@@ -7,6 +7,7 @@ import {
   ArrowLeft, Play, ExternalLink, Globe, Lock, ShieldOff,
   Trash2, UserCheck, UserX, BookOpen, PauseCircle, CheckCircle2,
   Mail, X, Send, MessageSquare, ChevronDown, ChevronUp, Clock,
+  Eye, EyeOff,
 } from 'lucide-react'
 
 const AUDIENCE_LABEL: Record<string, string> = {
@@ -29,6 +30,7 @@ interface AdminUser {
   status: string
   createdAt: string
   storyCount: number
+  profileVisible: boolean
   trialEndsAt: string | null
 }
 
@@ -265,6 +267,22 @@ export default function AdminUserDetailPage() {
     setActingUser(false)
   }
 
+  async function toggleProfileVisibility() {
+    if (!user) return
+    setActingUser(true)
+    const action = user.profileVisible ? 'set_profile_private' : 'set_profile_public'
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action }),
+    })
+    if (res.ok) {
+      const updated = await res.json()
+      setUser(u => u ? { ...u, profileVisible: updated.profileVisible } : null)
+    }
+    setActingUser(false)
+  }
+
   async function deleteUserAccount() {
     if (!confirm(`Permanently delete ${user?.email} and all their stories? This cannot be undone.`)) return
     setActingUser(true)
@@ -375,6 +393,15 @@ export default function AdminUserDetailPage() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-40"
             >
               <Clock size={14} /> Grant 7-day Trial
+            </button>
+            <button
+              onClick={toggleProfileVisibility}
+              disabled={actingUser}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-40"
+            >
+              {user.profileVisible
+                ? <><EyeOff size={14} /> Make Profile Private</>
+                : <><Eye size={14} /> Make Profile Public</>}
             </button>
             <button
               onClick={toggleSuspendUser}

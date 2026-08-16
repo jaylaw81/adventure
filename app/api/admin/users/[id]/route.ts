@@ -16,7 +16,7 @@ export async function PATCH(req: Request, { params }: Params) {
   const { id } = await params
   const { action } = await req.json()
 
-  if (!['suspend', 'unsuspend', 'grant_trial'].includes(action)) {
+  if (!['suspend', 'unsuspend', 'grant_trial', 'set_profile_public', 'set_profile_private'].includes(action)) {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   }
 
@@ -30,6 +30,15 @@ export async function PATCH(req: Request, { params }: Params) {
       .set({ trialEndsAt })
       .where(eq(users.id, id))
       .returning({ id: users.id, email: users.email, trialEndsAt: users.trialEndsAt })
+    return NextResponse.json(updated)
+  }
+
+  if (action === 'set_profile_public' || action === 'set_profile_private') {
+    const [updated] = await db
+      .update(users)
+      .set({ profileVisible: action === 'set_profile_public' })
+      .where(eq(users.id, id))
+      .returning({ id: users.id, email: users.email, profileVisible: users.profileVisible })
     return NextResponse.json(updated)
   }
 

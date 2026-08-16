@@ -52,7 +52,7 @@ export async function PUT(req: Request) {
   const body = await req.json()
   const { displayName, birthDate, acquisitionSource, languagePreference, username, profileVisible } = body
 
-  if (typeof displayName !== 'string' || !displayName.trim()) {
+  if (displayName !== undefined && (typeof displayName !== 'string' || !displayName.trim())) {
     return NextResponse.json({ error: 'displayName is required' }, { status: 400 })
   }
   if (birthDate !== undefined && (typeof birthDate !== 'string' || !birthDate.match(/^\d{4}-\d{2}-\d{2}$/))) {
@@ -88,13 +88,14 @@ export async function PUT(req: Request) {
   }
 
   const updateData: {
-    displayName: string
+    displayName?: string
     birthDate?: string
     acquisitionSource?: string | null
     languagePreference?: string
     username?: string
     profileVisible?: boolean
-  } = { displayName: displayName.trim() }
+  } = {}
+  if (displayName !== undefined) updateData.displayName = displayName.trim()
   if (birthDate !== undefined) updateData.birthDate = birthDate
   if (acquisitionSource !== undefined) updateData.acquisitionSource = acquisitionSource || null
   if (languagePreference !== undefined) updateData.languagePreference = languagePreference || 'en'
