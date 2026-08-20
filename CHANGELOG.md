@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-08-20
+
+- **Trial-aware homepage messaging**: The homepage hero now checks the admin-configured trial period before choosing its subhead — it shows "Free to start — no credit card required" only when a trial is actually active, and switches to "Start today — plans start at just $X/week" when the trial period is set to 0 days, so visitors are never told a trial exists when one doesn't.
+
 ## 2026-08-16
 
 - **Follow request management**: Private-profile owners now get a "Manage Followers" panel in Profile → Privacy with three tabs — Follow Requests, Denied, and Blocked. Incoming requests can be Allowed, Denied, or Blocked directly from the list; denied users can be re-approved or removed later, and blocked users can be unblocked. Denying a request no longer just deletes it — the requester can send a new request later, and their Follow button correctly reflects the denial in the meantime.

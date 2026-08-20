@@ -20,8 +20,8 @@ type LatestPost = {
   heroImageUrl: string | null
 }
 
-function usePricingText(): { amount: string; interval: string } {
-  const [val, setVal] = useState({ amount: '$2', interval: 'week' })
+function usePricingText(): { amount: string; interval: string; trialDays: number } {
+  const [val, setVal] = useState({ amount: '$2', interval: 'week', trialDays: 0 })
   useEffect(() => {
     fetch('/api/pricing')
       .then(r => r.json())
@@ -33,6 +33,7 @@ function usePricingText(): { amount: string; interval: string } {
         setVal({
           amount: Number.isInteger(d) ? `$${d}` : `$${d.toFixed(2)}`,
           interval: ic.interval,
+          trialDays: c.trialDays,
         })
       })
       .catch(() => {})
@@ -222,7 +223,7 @@ function ReaderMockup() {
 /* ── Landing Page ────────────────────────────────────────────────── */
 
 export default function LandingPage() {
-  const { amount: minPrice, interval: minInterval } = usePricingText()
+  const { amount: minPrice, interval: minInterval, trialDays } = usePricingText()
   const [latestPost, setLatestPost] = useState<LatestPost | null>(null)
 
   useEffect(() => {
@@ -268,7 +269,9 @@ export default function LandingPage() {
                 Design branching adventures on a visual canvas — from classic choose-your-own stories to full RPG worlds with characters and combat.
               </p>
               <p className="text-sm mb-8 max-w-lg" style={{ color: 'rgba(167,139,250,0.6)' }}>
-                Free to start — no credit card required.
+                {trialDays > 0
+                  ? 'Free to start — no credit card required.'
+                  : `Start today — plans start at just ${minPrice}/${minInterval}.`}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link
