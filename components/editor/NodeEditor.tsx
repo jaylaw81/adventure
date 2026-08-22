@@ -7,6 +7,7 @@ import type { Node, Chapter } from '@/lib/schema'
 import { analytics } from '@/lib/analytics'
 import type { AnalyzeResult } from '@/app/api/adventures/[id]/nodes/[nodeId]/analyze/route'
 import SoundPicker from './SoundPicker'
+import PhotoSourcePicker from './PhotoSourcePicker'
 import SceneItemsEditor from './WorldBuilder/SceneItemsEditor'
 import type { WBCharacter, WorldItem, SceneItemPickup } from '@/lib/worldBuilder'
 
@@ -29,7 +30,7 @@ interface Props {
 export default function NodeEditor({ node, adventureId, chapters, nodes, onClose, onUpdate, onDelete, onDirtyChange, externalSaveRef, storyType, worldItems = [], characters = [] }: Props) {
   const { data: session } = useSession()
   const isOrgTier = session?.user?.tier === 'organization'
-  const canUseMedia = isOrgTier || session?.user?.subscriptionInterval === 'month'
+  const canUseMedia = isOrgTier || session?.user?.subscriptionInterval === 'month' || session?.user?.isAdmin || session?.user?.grandfathered
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -55,6 +56,8 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
   const [sceneItems, setSceneItems] = useState<SceneItemPickup[]>([])
   const [sceneFoeId, setSceneFoeId] = useState<string | null>(null)
   const [foeRunAwayNodeId, setFoeRunAwayNodeId] = useState<string | null>(null)
+  const [imagePosition, setImagePosition] = useState<'left' | 'right'>('right')
+  const isStorybook = storyType === 'storybook'
 
   const isDirty = title !== savedTitle || content !== savedContent
 
@@ -79,6 +82,7 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
       setSceneItems((node.sceneItems as SceneItemPickup[]) ?? [])
       setSceneFoeId((node as Record<string, unknown>).sceneFoeId as string ?? null)
       setFoeRunAwayNodeId((node as Record<string, unknown>).foeRunAwayNodeId as string ?? null)
+      setImagePosition(((node as Record<string, unknown>).imagePosition as 'left' | 'right') ?? 'right')
       setRegenCount(0)
       setSaveError(null)
       setShowDeleteConfirm(false)
@@ -161,6 +165,27 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
     onUpdate({ ...node, imageUrl: null })
   }
 
+  const handleSetImage = async (dataUrl: string) => {
+    if (!node) return
+    setGeneratingImage(true)
+    try {
+      const source = dataUrl.startsWith('data:image/png') ? 'draw' : 'upload'
+      const res = await fetch(`/api/adventures/${adventureId}/nodes/${node.id}/image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source, dataUrl }),
+      })
+      if (!res.ok) throw new Error(`${res.status}`)
+      const updated: Node = await res.json()
+      setImageUrl(updated.imageUrl ?? null)
+      onUpdate(updated)
+    } catch {
+      // Save failed silently — user can retry from the picker
+    } finally {
+      setGeneratingImage(false)
+    }
+  }
+
   const handleDeleteConfirm = async () => {
     if (!node) return
     await fetch(`/api/adventures/${adventureId}/nodes/${node.id}`, { method: 'DELETE' })
@@ -205,7 +230,7 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
   if (!node) return null
 
   return (
-    <div className="w-80 h-full bg-white border-l border-gray-200 shadow-xl flex flex-col">
+    <div className="w-[26rem] shrink-0 h-full bg-white border-l border-gray-200 shadow-xl flex flex-col">
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 min-h-[52px]">
@@ -269,12 +294,26 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
 
         {/* Scene Image */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Scene Image</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            {isStorybook ? 'Page Image' : 'Scene Image'}
+          </label>
           {!canUseMedia ? (
             <div className="w-full flex items-center gap-2.5 py-3 px-3.5 border border-gray-200 rounded-lg bg-gray-50 text-xs text-gray-400">
               <Sparkles size={13} className="shrink-0 text-gray-300" />
               AI image generation is available on the monthly plan
             </div>
+          ) : isStorybook ? (
+            <PhotoSourcePicker
+              imageUrl={imageUrl}
+              aspect="square"
+              generating={generatingImage}
+              canGenerate={!!content.trim()}
+              regenCount={regenCount}
+              generateDisabledHint="Add page content first to generate an image"
+              onGenerate={isRegen => handleGenerateImage(isRegen)}
+              onImageReady={dataUrl => handleSetImage(dataUrl)}
+              onRemove={handleRemoveImage}
+            />
           ) : imageUrl ? (
             <div className="relative rounded-lg overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -311,10 +350,32 @@ export default function NodeEditor({ node, adventureId, chapters, nodes, onClose
               {generatingImage ? 'Generating…' : 'Generate Image with AI'}
             </button>
           )}
-          {canUseMedia && !content.trim() && !imageUrl && (
+          {canUseMedia && !isStorybook && !content.trim() && !imageUrl && (
             <p className="text-xs text-gray-400 mt-1">Add scene content first to generate an image</p>
           )}
         </div>
+
+        {/* Page layout — Storybook only */}
+        {canUseMedia && isStorybook && imageUrl && (
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Image Position</label>
+            <div className="flex gap-2">
+              {(['left', 'right'] as const).map(pos => (
+                <button
+                  key={pos}
+                  onClick={() => { setImagePosition(pos); save({ imagePosition: pos }) }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-colors capitalize ${
+                    imagePosition === pos
+                      ? 'border-teal-400 bg-teal-50 text-teal-700'
+                      : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  Image {pos}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {canUseMedia && (
           <SoundPicker

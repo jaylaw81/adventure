@@ -60,6 +60,7 @@ interface Props {
   allBlocks: Node[]
   adventureId: string
   isSelected: boolean
+  isStorybook?: boolean
   onSelect: () => void
   onBlockUpdate: (updated: Partial<Node> & { id: string }) => void
   onBlockDelete: (id: string) => void
@@ -74,6 +75,7 @@ export default function SceneBlock({
   allBlocks,
   adventureId,
   isSelected,
+  isStorybook = false,
   onSelect,
   onBlockUpdate,
   onBlockDelete,
@@ -228,8 +230,8 @@ export default function SceneBlock({
           </div>
         </div>
 
-        {/* Choices section — not shown for endings */}
-        {!isEnding && (
+        {/* Choices section — not shown for endings or storybook pages, which flow in order automatically */}
+        {!isEnding && !isStorybook && (
           <div className={`border-t border-gray-100 px-5 py-3.5 ${cfg.bodyBg} flex flex-col gap-2.5`}>
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -266,6 +268,12 @@ export default function SceneBlock({
               <Plus size={13} />
               Add choice
             </button>
+          </div>
+        )}
+
+        {!isEnding && isStorybook && (
+          <div className="border-t border-gray-100 px-5 py-2.5 bg-gray-50">
+            <p className="text-xs text-gray-400">→ Flows to the next page below</p>
           </div>
         )}
       </div>

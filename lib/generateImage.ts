@@ -43,7 +43,8 @@ export async function generateCharacterAvatar(
 export async function generateSceneImage(
   title: string,
   content: string,
-  audience: string = 'all'
+  audience: string = 'all',
+  dimensions: { width: number; height: number } = { width: 1024, height: 576 }
 ): Promise<string> {
   const text = `${title} ${content}`.trim().slice(0, 200)
   const config = audienceConfig[audience] ?? audienceConfig.all
@@ -52,7 +53,38 @@ export async function generateSceneImage(
   const result = await hf.textToImage({
     model: 'stabilityai/stable-diffusion-xl-base-1.0',
     inputs: prompt,
-    parameters: { width: 1024, height: 576, negative_prompt: config.negativePrompt },
+    parameters: { ...dimensions, negative_prompt: config.negativePrompt },
+  })
+
+  const arrayBuf = await (result as unknown as Blob).arrayBuffer()
+  const buffer = Buffer.from(arrayBuf)
+  return `data:image/jpeg;base64,${buffer.toString('base64')}`
+}
+
+// Storybook page illustrations: square, so they read well in either the
+// left or right half of a page spread.
+export async function generateStorybookPageImage(
+  title: string,
+  content: string,
+  audience: string = 'all'
+): Promise<string> {
+  return generateSceneImage(title, content, audience, { width: 1024, height: 1024 })
+}
+
+// Storybook cover art: portrait, book-cover proportions.
+export async function generateStorybookCoverImage(
+  title: string,
+  description: string,
+  audience: string = 'all'
+): Promise<string> {
+  const text = `${title} ${description}`.trim().slice(0, 200)
+  const config = audienceConfig[audience] ?? audienceConfig.all
+  const prompt = `book cover art, ${text}, elegant illustrated cover, title composition, painterly, professional book cover design${config.suffix}`
+
+  const result = await hf.textToImage({
+    model: 'stabilityai/stable-diffusion-xl-base-1.0',
+    inputs: prompt,
+    parameters: { width: 768, height: 1024, negative_prompt: config.negativePrompt },
   })
 
   const arrayBuf = await (result as unknown as Blob).arrayBuffer()

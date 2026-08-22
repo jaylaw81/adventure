@@ -13,7 +13,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, storyReferrers } from '@/lib/schema'
 import { parseReferrer } from '@/lib/referrerUtils'
-import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter, getAdventureCharacters, getAdventureItems, getStartNode } from '@/lib/queries'
+import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter, getAdventureCharacters, getAdventureItems, getStartNode, getStorybookNextNode } from '@/lib/queries'
 import { canViewMemberStory, getAuthorOrgPrivacy } from '@/lib/orgAccess'
 import SceneTranslationWrapper from '@/components/reader/SceneTranslationWrapper'
 import CopySceneButton from '@/components/reader/CopySceneButton'
@@ -24,6 +24,7 @@ import ReportButton from '@/components/reader/ReportButton'
 import EndingView from '@/components/reader/EndingView'
 import SceneEntrance from '@/components/reader/SceneEntrance'
 import WorldBuilderSceneWrapper from '@/components/reader/WorldBuilderSceneWrapper'
+import StorybookPageSpread from '@/components/reader/StorybookPageSpread'
 import type { WBCharacter, WorldItem, SceneItemPickup } from '@/lib/worldBuilder'
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string; nodeId: string }> }) {
@@ -78,6 +79,11 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
   const isEnding = node.nodeType === 'ending'
   const isStart = node.nodeType === 'start'
   const isChapterEnd = node.nodeType === 'chapter_end'
+  const isStorybook = adventure?.storyType === 'storybook'
+
+  // Storybook pages have no choices — the next page is just the next block in
+  // author-defined order (positionY), regardless of any choices that may exist.
+  const nextStorybookNode = isStorybook ? await getStorybookNextNode(id, nodeId) : null
 
   // For chapter_end nodes: resolve the next chapter and the specific entry node.
   const nextChapter = isChapterEnd && node.nextChapterId ? await getChapter(node.nextChapterId) : null
@@ -260,6 +266,91 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
             </div>
           </WorldBuilderSceneWrapper>
         </SceneEntrance>
+      </>
+    )
+  }
+
+  // ── Storybook ───────────────────────────────────────────────────────────
+  if (isStorybook) {
+    return (
+      <>
+      <div className="-mt-16 h-16 w-full"
+        style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 60%, #0f172a 100%)' }}
+      />
+      <SceneEntrance>
+      <div className="max-w-4xl mx-auto px-6 py-10">
+        <SceneTracker
+          adventureId={id}
+          adventureTitle={adventure?.title ?? ''}
+          nodeId={nodeId}
+          nodeType={node.nodeType}
+        />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            {!isStart && <BackButton />}
+            <Link
+              href="/explore"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:text-teal-900 px-3 py-1.5 rounded-lg border border-teal-200 hover:border-teal-400 hover:bg-teal-50 transition-all"
+            >
+              <Compass size={13} />
+              Back to Explore
+            </Link>
+          </div>
+          <div className="flex items-center gap-3">
+            {canShare && <CopySceneButton content={node.content} choices={choices} adventureId={id} />}
+            {isOwner && (
+              <Link href={`/edit/${id}`} className="text-xs text-gray-400 hover:text-gray-600">
+                Edit
+              </Link>
+            )}
+          </div>
+        </div>
+
+        <StorybookPageSpread node={node} />
+
+        <div className="mt-10">
+          {isEnding ? (
+            <EndingView adventureId={id} restartHref={`/play/${id}`} />
+          ) : nextStorybookNode ? (
+            <div className="flex justify-center pt-4">
+              <Link
+                href={`/play/${id}/${nextStorybookNode.id}`}
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all"
+              >
+                Turn the page →
+              </Link>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-400">The story ends here.</p>
+              <div className="mt-4">
+                <RestartButton href={`/play/${id}`} adventureId={id} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-10 pt-6 border-t border-gray-100">
+          {!isOwner && (
+            <div className="mb-4 flex items-center justify-between gap-4 rounded-xl border border-teal-100 bg-teal-50/70 px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-teal-900">Write your own storybook</p>
+                <p className="text-xs text-teal-600 mt-0.5">From $2/week · cancel anytime</p>
+              </div>
+              <Link
+                href="/sign-up"
+                className="shrink-0 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition-colors"
+              >
+                Start writing →
+              </Link>
+            </div>
+          )}
+          <div className="flex justify-end">
+            <ReportButton adventureId={id} />
+          </div>
+        </div>
+      </div>
+      </SceneEntrance>
       </>
     )
   }

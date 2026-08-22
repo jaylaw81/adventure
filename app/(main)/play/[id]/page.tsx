@@ -151,19 +151,23 @@ export default async function StoryLandingPage({ params }: Props) {
       <JsonLd data={storySchema} />
 
       <div className="bg-white rounded-2xl shadow-sm border border-violet-100 overflow-hidden">
-        {/* Color accent strip when no image */}
-        {!startNode.imageUrl && (
-          <div className="h-2" style={{ background: 'linear-gradient(90deg, #7c3aed, #a78bfa)' }} />
-        )}
-        {/* Cover image from start node */}
-        {startNode.imageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={startNode.imageUrl}
-            alt={adventure.title}
-            className="w-full h-56 object-cover"
-          />
-        )}
+        {(() => {
+          const isStorybook = adventure.storyType === 'storybook'
+          const coverUrl = isStorybook ? (adventure as { coverImageUrl?: string | null }).coverImageUrl : startNode.imageUrl
+          if (!coverUrl) {
+            return (
+              <div className="h-2" style={{ background: isStorybook ? 'linear-gradient(90deg, #14b8a6, #5eead4)' : 'linear-gradient(90deg, #7c3aed, #a78bfa)' }} />
+            )
+          }
+          return (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={coverUrl}
+              alt={adventure.title}
+              className={isStorybook ? 'w-full aspect-[3/4] object-cover' : 'w-full h-56 object-cover'}
+            />
+          )
+        })()}
 
         <div className="p-8">
           <div className="flex items-start justify-between gap-4 mb-3">

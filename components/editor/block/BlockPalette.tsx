@@ -12,68 +12,39 @@ interface Props {
 
 export default function BlockPalette({ onAddScene, onAddEnding, sceneCount, endingCount, loading }: Props) {
   return (
-    <div className="w-52 shrink-0 bg-white border-r border-gray-200 flex flex-col">
-      <div className="px-4 py-4 border-b border-gray-100">
+    <div className="w-full shrink-0 bg-white border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.05)] flex items-center gap-3 px-4 py-2 overflow-x-auto">
+      <div className="flex items-center gap-2 shrink-0 pr-3 border-r border-gray-200">
         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Add Block</p>
       </div>
 
-      <div className="flex-1 p-3 flex flex-col gap-2 overflow-y-auto">
-        {/* Scene block */}
-        <button
-          onClick={onAddScene}
-          disabled={loading}
-          className="group text-left rounded-xl overflow-hidden border-2 border-transparent hover:border-indigo-400 transition-all disabled:opacity-50 shadow-sm"
-        >
-          <div className="px-3 py-2 bg-indigo-500 flex items-center gap-1.5">
-            <BookOpen size={11} className="text-white" />
-            <span className="text-xs font-bold text-white">Scene</span>
-          </div>
-          <div className="px-3 py-2 bg-indigo-50 border-x border-indigo-100">
-            <div className="h-1.5 bg-indigo-200 rounded mb-1.5 w-3/4" />
-            <div className="h-1 bg-indigo-100 rounded mb-1 w-full" />
-            <div className="h-1 bg-indigo-100 rounded w-2/3" />
-          </div>
-          <div className="px-3 py-1.5 flex items-center gap-1 text-indigo-600 text-xs font-medium bg-indigo-50 border border-indigo-100 group-hover:bg-indigo-100 transition-colors">
-            <Plus size={11} />
-            Add Scene
-          </div>
-        </button>
+      <button
+        onClick={onAddScene}
+        disabled={loading}
+        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600 transition-colors disabled:opacity-50"
+      >
+        <BookOpen size={14} />
+        Add Scene
+      </button>
 
-        {/* Ending block */}
-        <button
-          onClick={onAddEnding}
-          disabled={loading}
-          className="group text-left rounded-xl overflow-hidden border-2 border-transparent hover:border-purple-400 transition-all disabled:opacity-50 shadow-sm"
-        >
-          <div className="px-3 py-2 bg-purple-500 flex items-center gap-1.5">
-            <Flag size={11} className="text-white" />
-            <span className="text-xs font-bold text-white">The End</span>
-          </div>
-          <div className="px-3 py-2 bg-purple-50 border-x border-purple-100">
-            <div className="h-1.5 bg-purple-200 rounded mb-1.5 w-3/4" />
-            <div className="h-1 bg-purple-100 rounded mb-1 w-full" />
-            <div className="h-1 bg-purple-100 rounded w-2/3" />
-          </div>
-          <div className="px-3 py-1.5 flex items-center gap-1 text-purple-600 text-xs font-medium bg-purple-50 border border-purple-100 group-hover:bg-purple-100 transition-colors">
-            <Plus size={11} />
-            Add Ending
-          </div>
-        </button>
+      <button
+        onClick={onAddEnding}
+        disabled={loading}
+        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-purple-500 text-white rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors disabled:opacity-50"
+      >
+        <Flag size={14} />
+        Add Ending
+      </button>
 
-        <div className="mt-3 border-t border-gray-100 pt-3">
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Click a block type to add it to your story. Drag the handle to reorder.
-          </p>
-        </div>
-      </div>
+      <p className="hidden md:block text-xs text-gray-400 shrink-0">
+        Drag the handle to reorder blocks.
+      </p>
 
-      {/* Stats */}
-      <div className="px-4 py-3 border-t border-gray-100 flex flex-col gap-0.5">
-        <p className="text-xs text-gray-500">
+      <div className="ml-auto flex items-center gap-3 shrink-0 pl-3 border-l border-gray-200">
+        <p className="text-xs text-gray-500 whitespace-nowrap">
           <span className="font-semibold text-indigo-600">{sceneCount}</span>{' '}
           {sceneCount === 1 ? 'scene' : 'scenes'}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 whitespace-nowrap">
           <span className="font-semibold text-purple-600">{endingCount}</span>{' '}
           {endingCount === 1 ? 'ending' : 'endings'}
         </p>

@@ -130,6 +130,7 @@ export const authOptions: NextAuthOptions = {
               token.tier = await resolveEffectiveTier(token.email as string, user.tier)
               token.subscriptionStatus = user.subscriptionStatus ?? null
               token.subscriptionInterval = user.subscriptionInterval ?? null
+              token.grandfathered = user.grandfathered ?? false
               token.languagePreference = user.languagePreference ?? 'en'
               token.username = user.username ?? null
             }
@@ -152,6 +153,7 @@ export const authOptions: NextAuthOptions = {
             token.tier = await resolveEffectiveTier(token.email as string, user.tier)
             token.subscriptionStatus = user.subscriptionStatus ?? null
             token.subscriptionInterval = user.subscriptionInterval ?? null
+            token.grandfathered = user.grandfathered ?? false
             token.languagePreference = user.languagePreference ?? 'en'
             token.username = user.username ?? null
           }
@@ -178,6 +180,7 @@ export const authOptions: NextAuthOptions = {
         session.user.tier = token.tier ?? 'free'
         session.user.subscriptionStatus = token.subscriptionStatus ?? null
         session.user.subscriptionInterval = token.subscriptionInterval ?? null
+        session.user.grandfathered = token.grandfathered ?? false
         session.user.languagePreference = (token.languagePreference as string) ?? 'en'
         session.user.username = token.username ?? null
       }

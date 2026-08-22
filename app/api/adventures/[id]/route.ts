@@ -34,6 +34,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (editorMode !== undefined) updateData.editorMode = editorMode
     if (storyType !== undefined) updateData.storyType = storyType
     if (language !== undefined) updateData.language = language || 'en'
+
+    // Storybook is always Block Builder — its linear page flow has no use for a
+    // freeform canvas — regardless of what the client sent.
+    const effectiveStoryType = storyType !== undefined ? storyType : owned.adventure.storyType
+    if (effectiveStoryType === 'storybook') updateData.editorMode = 'block'
     const [updated] = await db
       .update(adventures)
       .set(updateData)

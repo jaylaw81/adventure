@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react'
 import { X, Sparkles, RefreshCw, ImageOff, BookOpen, Flag } from 'lucide-react'
 import type { Node } from '@/lib/schema'
 import SoundPicker from '@/components/editor/SoundPicker'
+import PhotoSourcePicker from '@/components/editor/PhotoSourcePicker'
 
 interface Props {
   block: Node
   adventureId: string
+  storyType?: string | null
   onClose: () => void
   onBlockUpdate: (updated: Partial<Node> & { id: string }) => void
 }
@@ -24,16 +26,19 @@ const SWITCHABLE_TYPES = [
   { value: 'ending', label: 'The End', icon: Flag, description: 'A terminal scene that ends the story' },
 ] as const
 
-export default function BlockSidebar({ block, adventureId, onClose, onBlockUpdate }: Props) {
+export default function BlockSidebar({ block, adventureId, storyType, onClose, onBlockUpdate }: Props) {
   const [imageUrl, setImageUrl] = useState<string | null>(block.imageUrl ?? null)
+  const [imagePosition, setImagePosition] = useState<'left' | 'right'>((block.imagePosition as 'left' | 'right') ?? 'right')
   const [soundUrl, setSoundUrl] = useState<string | null>(block.soundUrl ?? null)
   const [soundTitle, setSoundTitle] = useState<string | null>(block.soundTitle ?? null)
   const [nodeType, setNodeType] = useState<Node['nodeType']>(block.nodeType)
   const [generatingImage, setGeneratingImage] = useState(false)
   const [regenCount, setRegenCount] = useState(0)
+  const isStorybook = storyType === 'storybook'
 
   useEffect(() => {
     setImageUrl(block.imageUrl ?? null)
+    setImagePosition((block.imagePosition as 'left' | 'right') ?? 'right')
     setSoundUrl(block.soundUrl ?? null)
     setSoundTitle(block.soundTitle ?? null)
     setNodeType(block.nodeType)
@@ -61,6 +66,35 @@ export default function BlockSidebar({ block, adventureId, onClose, onBlockUpdat
     await fetch(`/api/adventures/${adventureId}/nodes/${block.id}/image`, { method: 'DELETE' })
     setImageUrl(null)
     onBlockUpdate({ id: block.id, imageUrl: null })
+  }
+
+  async function handleSetImage(dataUrl: string) {
+    setGeneratingImage(true)
+    try {
+      const source = dataUrl.startsWith('data:image/png') ? 'draw' : 'upload'
+      const res = await fetch(`/api/adventures/${adventureId}/nodes/${block.id}/image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source, dataUrl }),
+      })
+      if (res.ok) {
+        const updated: Node = await res.json()
+        setImageUrl(updated.imageUrl ?? null)
+        onBlockUpdate({ id: block.id, imageUrl: updated.imageUrl ?? null })
+      }
+    } finally {
+      setGeneratingImage(false)
+    }
+  }
+
+  async function handleImagePositionChange(pos: 'left' | 'right') {
+    setImagePosition(pos)
+    await fetch(`/api/adventures/${adventureId}/nodes/${block.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imagePosition: pos }),
+    })
+    onBlockUpdate({ id: block.id, imagePosition: pos })
   }
 
   async function handleSoundSelect(url: string, title: string) {
@@ -101,7 +135,7 @@ export default function BlockSidebar({ block, adventureId, onClose, onBlockUpdat
   const hasContent = !!block.content?.trim()
 
   return (
-    <div className="w-80 shrink-0 h-full bg-white border-l border-gray-200 shadow-xl flex flex-col">
+    <div className="w-[26rem] shrink-0 h-full bg-white border-l border-gray-200 shadow-xl flex flex-col">
 
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 min-h-[52px]">
@@ -163,8 +197,20 @@ export default function BlockSidebar({ block, adventureId, onClose, onBlockUpdat
 
         {/* Scene Image */}
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-2">Scene Image</label>
-          {imageUrl ? (
+          <label className="block text-xs font-medium text-gray-600 mb-2">{isStorybook ? 'Page Image' : 'Scene Image'}</label>
+          {isStorybook ? (
+            <PhotoSourcePicker
+              imageUrl={imageUrl}
+              aspect="square"
+              generating={generatingImage}
+              canGenerate={hasContent}
+              regenCount={regenCount}
+              generateDisabledHint="Add page text first to generate an image"
+              onGenerate={isRegen => handleGenerateImage(isRegen)}
+              onImageReady={handleSetImage}
+              onRemove={handleRemoveImage}
+            />
+          ) : imageUrl ? (
             <div className="relative rounded-lg overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imageUrl} alt="Scene illustration" className="w-full object-cover rounded-lg" />
@@ -196,10 +242,32 @@ export default function BlockSidebar({ block, adventureId, onClose, onBlockUpdat
               {generatingImage ? 'Generating…' : 'Generate Image with AI'}
             </button>
           )}
-          {!hasContent && !imageUrl && (
+          {!isStorybook && !hasContent && !imageUrl && (
             <p className="text-xs text-gray-400 mt-1.5">Add scene text first to generate an image</p>
           )}
         </div>
+
+        {/* Page layout — Storybook only */}
+        {isStorybook && imageUrl && (
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-2">Image Position</label>
+            <div className="flex gap-2">
+              {(['left', 'right'] as const).map(pos => (
+                <button
+                  key={pos}
+                  onClick={() => handleImagePositionChange(pos)}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium border-2 transition-colors capitalize ${
+                    imagePosition === pos
+                      ? 'border-teal-400 bg-teal-50 text-teal-700'
+                      : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  Image {pos}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Scene Sound */}
         <SoundPicker

@@ -56,6 +56,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     issues.push({ severity: 'error', code: 'no_start', message: 'No start scene. Set one scene as "Start" so readers know where to begin.' })
   }
 
+  // Storybook pages flow in order automatically — there's no choices graph to
+  // validate, so skip straight to the ending check below.
+  if (adventure.storyType === 'storybook') {
+    const hasEnding = allNodes.some(n => n.nodeType === 'ending')
+    if (!hasEnding) {
+      issues.push({ severity: 'warning', code: 'no_endings', message: 'No page is marked "The End". The story will just stop after the last page.' })
+    }
+    const canPublish = !issues.some(i => i.severity === 'error')
+    return NextResponse.json({ issues, canPublish } satisfies ValidationResult)
+  }
+
   if (startNode) {
     const startChoices = allChoices.filter(c => c.sourceNodeId === startNode.id)
     if (startChoices.length === 0) {

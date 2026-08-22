@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, BookOpen, LayoutTemplate, AlignLeft, BookMarked, Check, Layers, GitBranch, Globe, Map } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, LayoutTemplate, AlignLeft, BookMarked, Check, Layers, GitBranch, Globe, Map, BookImage } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 import PageBanner from '@/components/shared/PageBanner'
 
-type StoryType = 'path' | 'world'
+type StoryType = 'path' | 'world' | 'storybook'
 type EditorMode = 'node' | 'block'
 type Mode = 'template' | 'blank'
 type TemplateSize = 'small' | 'medium' | 'large'
@@ -50,11 +50,13 @@ function StepDots({ current, editorMode, storyType }: { current: Step; editorMod
   // storyType step is the entry — no dots yet
   if (current === 'storyType') return null
 
-  const steps: Step[] = storyType === 'world'
-    ? ['mode', 'size', 'details']
-    : editorMode === 'block'
+  const steps: Step[] = storyType === 'storybook'
+    ? ['details']
+    : storyType === 'world'
       ? ['mode', 'size', 'details']
-      : ['mode', 'size', 'chapters', 'details']
+      : editorMode === 'block'
+        ? ['mode', 'size', 'details']
+        : ['mode', 'size', 'chapters', 'details']
 
   return (
     <div className="flex items-center gap-2 justify-center mb-8">
@@ -83,7 +85,7 @@ function StepDots({ current, editorMode, storyType }: { current: Step; editorMod
   )
 }
 
-export default function CreateStoryForm({ isFreeTier = false }: { isFreeTier?: boolean }) {
+export default function CreateStoryForm({ isFreeTier = false, canUseStorybook = false }: { isFreeTier?: boolean; canUseStorybook?: boolean }) {
   const router = useRouter()
   const [step, setStep] = useState<Step>('storyType')
   const [storyType, setStoryType] = useState<StoryType | null>(null)
@@ -106,7 +108,8 @@ export default function CreateStoryForm({ isFreeTier = false }: { isFreeTier?: b
     else if (step === 'size') setStep('mode')
     else if (step === 'chapters') setStep('size')
     else if (step === 'details') {
-      if (mode === 'blank') setStep('mode')
+      if (storyType === 'storybook') setStep('storyType')
+      else if (mode === 'blank') setStep('mode')
       else if (storyType === 'world' || editorMode === 'block') setStep('size')
       else setStep('chapters')
     }
@@ -256,6 +259,45 @@ export default function CreateStoryForm({ isFreeTier = false }: { isFreeTier?: b
                 </p>
               </button>
             </div>
+
+            {/* Storybook — always Block Builder, since its linear page flow has no use for a freeform canvas */}
+            <button
+              onClick={canUseStorybook
+                ? () => { setStoryType('storybook'); setEditorMode('block'); setStep('details') }
+                : () => router.push('/pricing')
+              }
+              className={`group text-left w-full mt-4 p-5 bg-white rounded-2xl border-2 transition-all relative flex items-center gap-5 ${
+                canUseStorybook
+                  ? 'border-teal-200 hover:border-teal-500 hover:shadow-md'
+                  : 'border-gray-100 opacity-60 cursor-pointer'
+              }`}
+            >
+              {!canUseStorybook && (
+                <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
+                  Monthly plan
+                </span>
+              )}
+              <div className="w-24 h-24 shrink-0 bg-teal-50 rounded-xl flex items-center justify-center overflow-hidden">
+                <svg viewBox="0 0 90 90" className="w-16 h-16" aria-hidden>
+                  <rect x="10" y="14" width="32" height="62" rx="2" fill="#5eead4" />
+                  <rect x="48" y="14" width="32" height="62" rx="2" fill="#0d9488" />
+                  <rect x="40" y="14" width="4" height="62" fill="#134e4a" opacity="0.3" />
+                  <rect x="16" y="24" width="20" height="4" rx="2" fill="#ffffff" opacity="0.7" />
+                  <rect x="16" y="32" width="14" height="4" rx="2" fill="#ffffff" opacity="0.5" />
+                  <circle cx="63" cy="34" r="9" fill="#ffffff" opacity="0.8" />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <BookImage size={15} className="text-teal-600" />
+                  <h3 className="font-bold text-base" style={{ color: '#1e0a3c' }}>Storybook</h3>
+                  {canUseStorybook && <span className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-700">New</span>}
+                </div>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  A traditional page-by-page story with a cover, illustrations you generate, upload, or draw, and sound on every page.
+                </p>
+              </div>
+            </button>
           </div>
         )}
 
@@ -274,7 +316,7 @@ export default function CreateStoryForm({ isFreeTier = false }: { isFreeTier?: b
               <button
                 onClick={isFreeTier
                   ? () => router.push('/pricing')
-                  : () => { setEditorMode('node'); setStep('mode') }
+                  : () => { setEditorMode('node'); setStep(storyType === 'storybook' ? 'details' : 'mode') }
                 }
                 className={`group text-left p-6 bg-white rounded-2xl border-2 transition-all relative ${
                   isFreeTier
@@ -316,7 +358,7 @@ export default function CreateStoryForm({ isFreeTier = false }: { isFreeTier?: b
 
               {/* Block Builder */}
               <button
-                onClick={() => { setEditorMode('block'); setStep('mode') }}
+                onClick={() => { setEditorMode('block'); setStep(storyType === 'storybook' ? 'details' : 'mode') }}
                 className="group text-left p-6 bg-white rounded-2xl border-2 border-gray-200 hover:border-indigo-400 hover:shadow-md transition-all"
               >
                 <div className="w-full h-28 bg-slate-50 rounded-xl mb-4 flex items-center justify-center overflow-hidden px-8 py-3">
@@ -513,6 +555,12 @@ export default function CreateStoryForm({ isFreeTier = false }: { isFreeTier?: b
 
             {/* Summary badges */}
             <div className="flex items-center gap-2 flex-wrap mb-5">
+              {storyType === 'storybook' && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-100 text-teal-700">
+                  <BookImage size={11} />
+                  Storybook
+                </span>
+              )}
               {storyType === 'world' ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
                   <Globe size={11} />

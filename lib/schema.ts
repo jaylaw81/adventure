@@ -49,7 +49,8 @@ export const adventures = pgTable('adventures', {
   status: text('status').notNull().default('active'), // 'active' | 'suspended'
   editorMode: text('editor_mode').notNull().default('node'), // 'node' | 'block'
   language: text('language').notNull().default('en'), // ISO 639-1 story language
-  storyType: text('story_type'), // 'path' | 'world' — null treated as 'path'
+  storyType: text('story_type'), // 'path' | 'world' | 'storybook' — null treated as 'path'
+  coverImageUrl: text('cover_image_url'), // Storybook: book cover art
   createdFrom: text('created_from'), // 'blank' | 'template' — null for stories created before tracking
   readCount: integer('read_count').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -79,6 +80,7 @@ export const nodes = pgTable('nodes', {
   nodeType: text('node_type').notNull().default('scene'), // 'start' | 'scene' | 'ending' | 'chapter_end'
   status: text('status').notNull().default('in_progress'), // 'in_progress' | 'completed'
   imageUrl: text('image_url'),
+  imagePosition: text('image_position').notNull().default('right'), // Storybook: 'left' | 'right' page layout
   soundUrl: text('sound_url'),
   soundTitle: text('sound_title'),
   positionX: doublePrecision('position_x').notNull().default(0),

@@ -23,7 +23,9 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
     if (!allowed) redirect(`/subscribe?from=/edit/${id}`)
   }
 
-  if (adventure.editorMode === 'block') {
+  // Storybook is always Block Builder — its linear page flow has no use for a
+  // freeform canvas, so this overrides any stale editorMode on older stories.
+  if (adventure.editorMode === 'block' || adventure.storyType === 'storybook') {
     return (
       <BlockCanvas
         adventure={adventure}

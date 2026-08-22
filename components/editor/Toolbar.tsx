@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, Plus, Save, Settings } from 'lucide-react'
+import { ArrowLeft, Save, Settings } from 'lucide-react'
 import PublishStatusButton from './PublishStatusButton'
 
 interface Props {
@@ -9,14 +9,13 @@ interface Props {
   adventureId: string
   adventureStatus: string
   adventureIsPublic: boolean
-  onAddNode: () => void
   onSave: () => void
   onSettings: () => void
   saving: boolean
   dirty: boolean
 }
 
-export default function Toolbar({ adventureTitle, adventureId, adventureStatus, adventureIsPublic, onAddNode, onSave, onSettings, saving, dirty }: Props) {
+export default function Toolbar({ adventureTitle, adventureId, adventureStatus, adventureIsPublic, onSave, onSettings, saving, dirty }: Props) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 shadow-sm z-10">
       <Link
@@ -43,13 +42,6 @@ export default function Toolbar({ adventureTitle, adventureId, adventureStatus, 
         >
           <Settings size={16} />
           Settings
-        </button>
-        <button
-          onClick={onAddNode}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors"
-        >
-          <Plus size={16} />
-          Add Scene
         </button>
         <button
           onClick={onSave}

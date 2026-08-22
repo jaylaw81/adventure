@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { X, GitBranch, Layers, Swords, MapPin, Globe, Link2, Copy, Check as CheckIcon, RefreshCw } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import { X, GitBranch, Layers, Swords, MapPin, Globe, Link2, Copy, Check as CheckIcon, RefreshCw, BookImage, Sparkles } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { analytics } from '@/lib/analytics'
 import { STORY_TAGS } from '@/lib/tags'
 import { LANGUAGES } from '@/lib/languages'
 import { titleToSlug } from '@/lib/slugUtils'
+import PhotoSourcePicker from '@/components/editor/PhotoSourcePicker'
 
 interface Props {
   adventure: AdventureWithCounts
@@ -22,6 +24,10 @@ const AUDIENCE_OPTIONS = [
 ]
 
 export default function AdventureSettingsModal({ adventure, onClose, onSave, canUseCustomSlug = false }: Props) {
+  const { data: session } = useSession()
+  const isOrgTier = session?.user?.tier === 'organization'
+  const canUseMedia = isOrgTier || session?.user?.subscriptionInterval === 'month' || session?.user?.isAdmin || session?.user?.grandfathered
+
   const [title, setTitle] = useState(adventure.title)
   const [description, setDescription] = useState(adventure.description ?? '')
   const [audience, setAudience] = useState(adventure.audience ?? 'all')
@@ -31,18 +37,64 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave, can
   const [editorMode, setEditorMode] = useState<'node' | 'block'>(
     (adventure as { editorMode?: string }).editorMode === 'block' ? 'block' : 'node'
   )
+  const isStorybook = (adventure as { storyType?: string | null }).storyType === 'storybook'
   const [storyType, setStoryType] = useState<'path' | 'world'>(
     (adventure as { storyType?: string | null }).storyType === 'world' ? 'world' : 'path'
   )
   const [language, setLanguage] = useState<string>(
     (adventure as { language?: string | null }).language ?? 'en'
   )
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(
+    (adventure as { coverImageUrl?: string | null }).coverImageUrl ?? null
+  )
+  const [generatingCover, setGeneratingCover] = useState(false)
+  const [coverRegenCount, setCoverRegenCount] = useState(0)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [slug, setSlug] = useState<string | null>((adventure as { storySlug?: string | null }).storySlug ?? null)
   const [generatingSlug, setGeneratingSlug] = useState(false)
   const [slugCopied, setSlugCopied] = useState(false)
   const [slugError, setSlugError] = useState('')
+
+  async function handleGenerateCover(isRegen: boolean) {
+    setGeneratingCover(true)
+    if (isRegen) setCoverRegenCount(c => c + 1)
+    try {
+      const res = await fetch(`/api/adventures/${adventure.id}/cover`, { method: 'POST' })
+      if (res.ok) {
+        const updated = await res.json() as { coverImageUrl: string | null }
+        setCoverImageUrl(updated.coverImageUrl ?? null)
+        onSave({ coverImageUrl: updated.coverImageUrl } as Partial<AdventureWithCounts>)
+      }
+    } finally {
+      setGeneratingCover(false)
+    }
+  }
+
+  async function handleCoverReady(dataUrl: string) {
+    setGeneratingCover(true)
+    try {
+      const source = dataUrl.startsWith('data:image/png') ? 'draw' : 'upload'
+      const res = await fetch(`/api/adventures/${adventure.id}/cover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source, dataUrl }),
+      })
+      if (res.ok) {
+        const updated = await res.json() as { coverImageUrl: string | null }
+        setCoverImageUrl(updated.coverImageUrl ?? null)
+        onSave({ coverImageUrl: updated.coverImageUrl } as Partial<AdventureWithCounts>)
+      }
+    } finally {
+      setGeneratingCover(false)
+    }
+  }
+
+  async function handleRemoveCover() {
+    await fetch(`/api/adventures/${adventure.id}/cover`, { method: 'DELETE' })
+    setCoverImageUrl(null)
+    onSave({ coverImageUrl: null } as Partial<AdventureWithCounts>)
+  }
 
   const toggleTag = (tag: string) => {
     setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
@@ -71,7 +123,7 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave, can
   }
 
   const originalStoryType = (adventure as { storyType?: string | null }).storyType === 'world' ? 'world' : 'path'
-  const storyTypeChanged = storyType !== originalStoryType
+  const storyTypeChanged = !isStorybook && storyType !== originalStoryType
 
   const handleSave = async () => {
     if (!title.trim()) { setError('Title is required'); return }
@@ -81,7 +133,15 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave, can
       const res = await fetch(`/api/adventures/${adventure.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), description: description.trim(), audience, tags, editorMode, storyType, language }),
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          audience,
+          tags,
+          editorMode: isStorybook ? 'block' : editorMode,
+          storyType: isStorybook ? 'storybook' : storyType,
+          language,
+        }),
       })
       if (!res.ok) throw new Error('Failed to save')
       analytics.adventureSettingsSaved(adventure.id, audience)
@@ -165,27 +225,37 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave, can
         {/* Story Mode */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-gray-700">Story Mode</label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: 'path' as const, label: 'Story Path', description: 'Linear or branching narrative with choices', icon: MapPin },
-              { value: 'world' as const, label: 'World Builder', description: 'Tracks character stats that change with choices', icon: Swords },
-            ].map(({ value, label, description, icon: Icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setStoryType(value)}
-                className={`flex items-start gap-2.5 p-3 rounded-lg border text-left transition-colors ${
-                  storyType === value ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <Icon size={15} className={`mt-0.5 shrink-0 ${storyType === value ? 'text-amber-600' : 'text-gray-400'}`} />
-                <div>
-                  <p className="text-xs font-semibold text-gray-800">{label}</p>
-                  <p className="text-xs text-gray-500 leading-tight mt-0.5">{description}</p>
-                </div>
-              </button>
-            ))}
-          </div>
+          {isStorybook ? (
+            <div className="flex items-start gap-2.5 p-3 rounded-lg border border-teal-300 bg-teal-50">
+              <BookImage size={15} className="mt-0.5 shrink-0 text-teal-600" />
+              <div>
+                <p className="text-xs font-semibold text-gray-800">Storybook</p>
+                <p className="text-xs text-gray-500 leading-tight mt-0.5">Illustrated page-by-page reading, image on one side and text on the other</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: 'path' as const, label: 'Story Path', description: 'Linear or branching narrative with choices', icon: MapPin },
+                { value: 'world' as const, label: 'World Builder', description: 'Tracks character stats that change with choices', icon: Swords },
+              ].map(({ value, label, description, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setStoryType(value)}
+                  className={`flex items-start gap-2.5 p-3 rounded-lg border text-left transition-colors ${
+                    storyType === value ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon size={15} className={`mt-0.5 shrink-0 ${storyType === value ? 'text-amber-600' : 'text-gray-400'}`} />
+                  <div>
+                    <p className="text-xs font-semibold text-gray-800">{label}</p>
+                    <p className="text-xs text-gray-500 leading-tight mt-0.5">{description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
           {storyTypeChanged && (
             <p className="text-xs text-amber-600">
               Changing story mode will reload the page after saving. All story data is preserved.
@@ -193,36 +263,65 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave, can
           )}
         </div>
 
-        {/* Editor Style */}
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-gray-700">Editor Style</label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: 'node' as const, label: 'Node Graph', description: 'Freeform canvas with drag connectors', icon: GitBranch },
-              { value: 'block' as const, label: 'Block Builder', description: 'Stacked blocks, Scratch-inspired', icon: Layers },
-            ].map(({ value, label, description, icon: Icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setEditorMode(value)}
-                className={`flex items-start gap-2.5 p-3 rounded-lg border text-left transition-colors ${
-                  editorMode === value ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <Icon size={15} className={`mt-0.5 shrink-0 ${editorMode === value ? 'text-amber-600' : 'text-gray-400'}`} />
-                <div>
-                  <p className="text-xs font-semibold text-gray-800">{label}</p>
-                  <p className="text-xs text-gray-500 leading-tight mt-0.5">{description}</p>
-                </div>
-              </button>
-            ))}
+        {/* Cover Image — Storybook only */}
+        {isStorybook && (
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-700">Cover Image</label>
+            {!canUseMedia ? (
+              <div className="w-full flex items-center gap-2.5 py-3 px-3.5 border border-gray-200 rounded-lg bg-gray-50 text-xs text-gray-400">
+                <Sparkles size={13} className="shrink-0 text-gray-300" />
+                Cover art is available on the monthly plan
+              </div>
+            ) : (
+              <div className="max-w-[220px]">
+                <PhotoSourcePicker
+                  imageUrl={coverImageUrl}
+                  aspect="portrait"
+                  generating={generatingCover}
+                  canGenerate
+                  regenCount={coverRegenCount}
+                  onGenerate={handleGenerateCover}
+                  onImageReady={handleCoverReady}
+                  onRemove={handleRemoveCover}
+                />
+              </div>
+            )}
+            <p className="text-xs text-gray-400">Shown on your story's landing page, like a book cover</p>
           </div>
-          {editorMode !== ((adventure as { editorMode?: string }).editorMode === 'block' ? 'block' : 'node') && (
-            <p className="text-xs text-amber-600">
-              Switching editor styles will reload the page after saving. All story data is preserved.
-            </p>
-          )}
-        </div>
+        )}
+
+        {/* Editor Style — storybook is always Block Builder, since its linear page flow has no use for a freeform canvas */}
+        {!isStorybook && (
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">Editor Style</label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: 'node' as const, label: 'Node Graph', description: 'Freeform canvas with drag connectors', icon: GitBranch },
+                { value: 'block' as const, label: 'Block Builder', description: 'Stacked blocks, Scratch-inspired', icon: Layers },
+              ].map(({ value, label, description, icon: Icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setEditorMode(value)}
+                  className={`flex items-start gap-2.5 p-3 rounded-lg border text-left transition-colors ${
+                    editorMode === value ? 'border-amber-400 bg-amber-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon size={15} className={`mt-0.5 shrink-0 ${editorMode === value ? 'text-amber-600' : 'text-gray-400'}`} />
+                  <div>
+                    <p className="text-xs font-semibold text-gray-800">{label}</p>
+                    <p className="text-xs text-gray-500 leading-tight mt-0.5">{description}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+            {editorMode !== ((adventure as { editorMode?: string }).editorMode === 'block' ? 'block' : 'node') && (
+              <p className="text-xs text-amber-600">
+                Switching editor styles will reload the page after saving. All story data is preserved.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Audience */}
         <div className="flex flex-col gap-2">

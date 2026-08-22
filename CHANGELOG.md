@@ -6,6 +6,15 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-08-22
+
+- **Bottom-docked Add Block bar**: In both the Node Graph and Block Builder editors, the "Add Scene"/"Add Ending" controls now live in a bar docked to the bottom of the screen instead of a left sidebar or top toolbar button, so they stay reachable without scrolling — especially on mobile.
+- **Storybook pages now flow automatically**: Storybook is purely linear, so pages no longer need a choice drawn between them — readers just turn the page in the order the author arranged the blocks. Storybook is now always built in Block Builder (its ordered page list is what makes this possible), and any existing Storybook story still on Node Graph opens in Block Builder automatically.
+
+## 2026-08-21
+
+- **Storybook story type**: A new third story type — alongside Story Path and World Builder — for traditional page-by-page illustrated stories, available to monthly subscribers. Each page pairs one image with its text in a mirrorable left/right layout, page images and the story cover can be AI-generated, uploaded, or hand-drawn on a built-in canvas tool, and sound can be added per page. Storybook still uses the existing Node Graph or Block Builder editor to structure pages, and readers move through it with book-style "Turn the page" navigation.
+
 ## 2026-08-20
 
 - **Trial-aware homepage messaging**: The homepage hero now checks the admin-configured trial period before choosing its subhead — it shows "Free to start — no credit card required" only when a trial is actually active, and switches to "Start today — plans start at just $X/week" when the trial period is set to 0 days, so visitors are never told a trial exists when one doesn't.

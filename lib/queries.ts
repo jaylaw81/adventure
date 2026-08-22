@@ -149,6 +149,19 @@ export async function getNodeChoices(nodeId: string) {
   return db.select().from(choices).where(eq(choices.sourceNodeId, nodeId)).orderBy(choices.orderIndex)
 }
 
+// Storybook pages have no choices — they simply flow in the same order the
+// author arranges blocks in the Block Builder (positionY), regardless of chapter.
+export async function getStorybookNextNode(adventureId: string, currentNodeId: string) {
+  const ordered = await db
+    .select()
+    .from(nodes)
+    .where(eq(nodes.adventureId, adventureId))
+    .orderBy(nodes.positionY, nodes.id)
+  const idx = ordered.findIndex(n => n.id === currentNodeId)
+  if (idx === -1) return null
+  return ordered[idx + 1] ?? null
+}
+
 export async function getChapterStartNode(adventureId: string, chapterId: string) {
   const [startNode] = await db
     .select()

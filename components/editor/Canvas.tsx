@@ -25,6 +25,7 @@ import StoryNode, { type StoryNodeData } from './StoryNode'
 import EditableEdge from './EditableEdge'
 import NodeEditor from './NodeEditor'
 import Toolbar from './Toolbar'
+import AddSceneBar from './AddSceneBar'
 import AdventureSettingsModal from '@/components/shared/AdventureSettingsModal'
 import ConfirmModal from '@/components/shared/ConfirmModal'
 import InputModal from './InputModal'
@@ -84,9 +85,9 @@ interface Props {
   initialItems?: WorldItem[]
 }
 
-/* ── Chapter sidebar ──────────────────────────────────────────────── */
+/* ── Chapters nav bar ─────────────────────────────────────────────── */
 
-interface ChapterSidebarProps {
+interface ChaptersNavBarProps {
   chapters: Chapter[]
   activeChapterId: string | null
   onSelect: (id: string | null) => void
@@ -95,7 +96,7 @@ interface ChapterSidebarProps {
   onDelete: (id: string) => void
 }
 
-function ChapterSidebar({ chapters, activeChapterId, onSelect, onAdd, onRename, onDelete }: ChapterSidebarProps) {
+function ChaptersNavBar({ chapters, activeChapterId, onSelect, onAdd, onRename, onDelete }: ChaptersNavBarProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
 
@@ -110,109 +111,93 @@ function ChapterSidebar({ chapters, activeChapterId, onSelect, onAdd, onRename, 
   }
 
   return (
-    <div className="w-52 shrink-0 h-full bg-slate-900 border-r border-slate-700 flex flex-col">
-      <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <BookMarked size={14} className="text-teal-400" />
-          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">Chapters</span>
-        </div>
-        <button
-          onClick={onAdd}
-          title="Add chapter"
-          className="w-6 h-6 rounded-md bg-teal-500 hover:bg-teal-400 text-white flex items-center justify-center transition-colors"
-        >
-          <Plus size={13} />
-        </button>
+    <div className="w-full shrink-0 bg-slate-900 border-b border-slate-700 flex items-center gap-2 px-4 py-2 overflow-x-auto">
+      <div className="flex items-center gap-2 shrink-0 pr-3 border-r border-slate-700">
+        <BookMarked size={14} className="text-teal-400" />
+        <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">Chapters</span>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-2">
-        {chapters.length === 0 && (
-          <div className="px-4 py-6 flex flex-col items-center gap-3 text-center">
-            <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
-              <BookMarked size={16} className="text-teal-400" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-300 mb-1">No chapters yet</p>
-              <p className="text-[11px] text-slate-500 leading-relaxed">Break your story into chapters to manage longer narratives.</p>
-            </div>
-            <button
-              onClick={onAdd}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-colors"
-            >
-              <Plus size={11} />
-              Add first chapter
-            </button>
-          </div>
-        )}
-
-        {chapters.map((ch, i) => {
-          const active = activeChapterId === ch.id
-          return (
-            <div
-              key={ch.id}
-              className={`group flex items-center gap-1 mx-2 mb-0.5 rounded-lg px-2 py-2 cursor-pointer transition-colors ${
-                active ? 'bg-teal-600/30 text-teal-300' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-              }`}
-              onClick={() => { if (editingId !== ch.id) onSelect(ch.id) }}
-            >
-              <span className={`text-xs font-bold shrink-0 w-5 ${active ? 'text-teal-400' : 'text-slate-600'}`}>
-                {i + 1}
-              </span>
-
-              {editingId === ch.id ? (
-                <input
-                  autoFocus
-                  value={editValue}
-                  onChange={e => setEditValue(e.target.value)}
-                  onBlur={() => commitEdit(ch.id)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') commitEdit(ch.id)
-                    if (e.key === 'Escape') setEditingId(null)
-                  }}
-                  onClick={e => e.stopPropagation()}
-                  className="flex-1 text-xs bg-slate-700 text-white rounded px-1.5 py-0.5 outline-none min-w-0"
-                />
-              ) : (
-                <span className="flex-1 text-xs font-medium truncate">{ch.title}</span>
-              )}
-
-              {active && editingId !== ch.id && (
-                <ChevronRight size={12} className="text-teal-400 shrink-0" />
-              )}
-
-              {editingId !== ch.id && (
-                <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
-                  <button
-                    onClick={e => { e.stopPropagation(); startEdit(ch) }}
-                    className="p-0.5 hover:text-white rounded transition-colors"
-                    title="Rename"
-                  >
-                    <Pencil size={11} />
-                  </button>
-                  <button
-                    onClick={e => { e.stopPropagation(); onDelete(ch.id) }}
-                    className="p-0.5 hover:text-red-400 rounded transition-colors"
-                    title="Delete chapter"
-                  >
-                    <Trash2 size={11} />
-                  </button>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </nav>
-
-      {activeChapterId && (
-        <div className="px-3 py-3 border-t border-slate-700">
+      {chapters.length === 0 ? (
+        <button
+          onClick={onAdd}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-colors"
+        >
+          <Plus size={11} />
+          Add first chapter
+        </button>
+      ) : (
+        <>
           <button
             onClick={() => onSelect(null)}
-            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+            className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              activeChapterId === null ? 'bg-teal-600/30 text-teal-300' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+            }`}
           >
             <Check size={12} />
-            View all scenes
+            All scenes
           </button>
-        </div>
+
+          {chapters.map((ch, i) => {
+            const active = activeChapterId === ch.id
+            return (
+              <div
+                key={ch.id}
+                className={`group shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 cursor-pointer transition-colors ${
+                  active ? 'bg-teal-600/30 text-teal-300' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                }`}
+                onClick={() => { if (editingId !== ch.id) onSelect(ch.id) }}
+              >
+                <span className={`text-xs font-bold shrink-0 ${active ? 'text-teal-400' : 'text-slate-600'}`}>
+                  {i + 1}
+                </span>
+
+                {editingId === ch.id ? (
+                  <input
+                    autoFocus
+                    value={editValue}
+                    onChange={e => setEditValue(e.target.value)}
+                    onBlur={() => commitEdit(ch.id)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') commitEdit(ch.id)
+                      if (e.key === 'Escape') setEditingId(null)
+                    }}
+                    onClick={e => e.stopPropagation()}
+                    className="text-xs bg-slate-700 text-white rounded px-1.5 py-0.5 outline-none w-32"
+                  />
+                ) : (
+                  <span className="text-xs font-medium whitespace-nowrap max-w-[10rem] truncate">{ch.title}</span>
+                )}
+
+                {editingId !== ch.id && (
+                  <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
+                    <button
+                      onClick={e => { e.stopPropagation(); startEdit(ch) }}
+                      className="p-0.5 hover:text-white rounded transition-colors"
+                      title="Rename"
+                    >
+                      <Pencil size={11} />
+                    </button>
+                    <button
+                      onClick={e => { e.stopPropagation(); onDelete(ch.id) }}
+                      className="p-0.5 hover:text-red-400 rounded transition-colors"
+                      title="Delete chapter"
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          <button
+            onClick={onAdd}
+            title="Add chapter"
+            className="shrink-0 w-7 h-7 rounded-md bg-teal-500 hover:bg-teal-400 text-white flex items-center justify-center transition-colors"
+          >
+            <Plus size={13} />
+          </button>
+        </>
       )}
     </div>
   )
@@ -546,16 +531,25 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters,
         adventureId={currentAdventure.id}
         adventureStatus={currentAdventure.status ?? 'active'}
         adventureIsPublic={currentAdventure.isPublic}
-        onAddNode={handleAddNode}
         onSave={handleToolbarSave}
         onSettings={() => setShowSettings(true)}
         saving={saving}
         dirty={nodeEditorDirty}
       />
+      {adventure.storyType !== 'world' && (
+        <ChaptersNavBar
+          chapters={dbChapters}
+          activeChapterId={activeChapterId}
+          onSelect={handleSelectChapter}
+          onAdd={handleAddChapter}
+          onRename={handleRenameChapter}
+          onDelete={handleDeleteChapter}
+        />
+      )}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Left sidebar: WorldBuilder panel (with chapters) or Chapter-only panel */}
-        {adventure.storyType === 'world' ? (
+        {/* Left sidebar: WorldBuilder panel (characters, items, and its own chapters) */}
+        {adventure.storyType === 'world' && (
           <WorldBuilderPanel
             adventureId={adventure.id}
             characters={dbCharacters}
@@ -568,15 +562,6 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters,
             onChapterAdd={handleAddChapter}
             onChapterRename={handleRenameChapter}
             onChapterDelete={handleDeleteChapter}
-          />
-        ) : (
-          <ChapterSidebar
-            chapters={dbChapters}
-            activeChapterId={activeChapterId}
-            onSelect={handleSelectChapter}
-            onAdd={handleAddChapter}
-            onRename={handleRenameChapter}
-            onDelete={handleDeleteChapter}
           />
         )}
 
@@ -665,6 +650,9 @@ function CanvasInner({ adventure, initialNodes, initialChoices, initialChapters,
           />
         )}
       </div>
+
+      {/* Add block bar — docked to the bottom so it's always reachable, no scrolling needed */}
+      <AddSceneBar onAddNode={() => handleAddNode()} />
 
       {choiceModalId && (() => {
         const choice = dbChoices.find(c => c.id === choiceModalId)

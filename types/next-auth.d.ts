@@ -13,6 +13,7 @@ declare module 'next-auth' {
       tier: string
       subscriptionStatus: string | null
       subscriptionInterval: string | null
+      grandfathered: boolean
       languagePreference: string
       username: string | null
     }
@@ -28,6 +29,7 @@ declare module 'next-auth/jwt' {
     tier?: string
     subscriptionStatus?: string | null
     subscriptionInterval?: string | null
+    grandfathered?: boolean
     username?: string | null
   }
 }

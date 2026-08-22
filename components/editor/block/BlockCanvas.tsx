@@ -175,14 +175,6 @@ export default function BlockCanvas({ adventure, initialNodes, initialChoices }:
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        <BlockPalette
-          onAddScene={() => handleAddBlock('scene')}
-          onAddEnding={() => handleAddBlock('ending')}
-          sceneCount={sceneCount}
-          endingCount={endingCount}
-          loading={adding}
-        />
-
         {/* Workspace */}
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto px-6 py-8">
@@ -190,7 +182,7 @@ export default function BlockCanvas({ adventure, initialNodes, initialChoices }:
               <div className="text-center py-24 text-gray-400">
                 <Layers size={32} className="mx-auto mb-3 opacity-30" />
                 <p className="text-sm font-medium mb-1">No blocks yet</p>
-                <p className="text-xs">Add a Scene or Ending from the palette on the left.</p>
+                <p className="text-xs">Add a Scene or Ending from the bar below.</p>
               </div>
             ) : (
               <DndContext
@@ -208,6 +200,7 @@ export default function BlockCanvas({ adventure, initialNodes, initialChoices }:
                           allBlocks={blocks}
                           adventureId={adventure.id}
                           isSelected={selectedBlockId === block.id}
+                          isStorybook={adventure.storyType === 'storybook'}
                           onSelect={() => setSelectedBlockId(block.id)}
                           onBlockUpdate={handleBlockUpdate}
                           onBlockDelete={handleDeleteBlock}
@@ -233,12 +226,22 @@ export default function BlockCanvas({ adventure, initialNodes, initialChoices }:
             <BlockSidebar
               block={selectedBlock}
               adventureId={adventure.id}
+              storyType={adventure.storyType}
               onClose={() => setSelectedBlockId(null)}
               onBlockUpdate={handleBlockUpdate}
             />
           )
         })()}
       </div>
+
+      {/* Add block bar — docked to the bottom so it's always reachable, no scrolling needed */}
+      <BlockPalette
+        onAddScene={() => handleAddBlock('scene')}
+        onAddEnding={() => handleAddBlock('ending')}
+        sceneCount={sceneCount}
+        endingCount={endingCount}
+        loading={adding}
+      />
 
       {showSettings && (
         <AdventureSettingsModal

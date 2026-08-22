@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, chapters, nodes, choices } from '@/lib/schema'
 import { getAdventures } from '@/lib/queries'
-import { canCreateStories, canHavePrivateStories } from '@/lib/subscription'
+import { canCreateStories, canHavePrivateStories, canGenerateImages } from '@/lib/subscription'
 
 const ORIGINAL_OWNER = 'jaylaw81@gmail.com'
 
@@ -190,16 +190,16 @@ export async function POST(req: Request) {
       template?: 'small' | 'medium' | 'large'
       chapterCount?: number
       editorMode?: 'node' | 'block'
-      storyType?: 'path' | 'world'
+      storyType?: 'path' | 'world' | 'storybook'
     }
 
     if (!title) return NextResponse.json({ error: 'Title required' }, { status: 400 })
 
     // Free tier enforcement: block builder only, no world builder
     if (isFree) {
-      if (storyType === 'world') {
+      if (storyType === 'world' || storyType === 'storybook') {
         return NextResponse.json(
-          { error: 'World Builder requires a subscription.', code: 'subscription_required' },
+          { error: 'This story type requires a subscription.', code: 'subscription_required' },
           { status: 402 },
         )
       }
@@ -211,6 +211,21 @@ export async function POST(req: Request) {
       }
     }
 
+    // Storybook requires specifically a monthly plan (matches its image/sound/cover gating).
+    if (storyType === 'storybook' && !await canGenerateImages(session.user.email)) {
+      return NextResponse.json(
+        { error: 'Storybook requires a monthly subscription.', code: 'subscription_required' },
+        { status: 402 },
+      )
+    }
+
+    // Storybook has no ready-made templates — the "blank story" scaffold below applies.
+    const effectiveTemplate = storyType === 'storybook' ? undefined : template
+
+    // Storybook is always Block Builder — its linear page flow has no use for a
+    // freeform canvas — regardless of what the client sent.
+    const effectiveEditorMode = storyType === 'storybook' ? 'block' : editorMode
+
     // All stories start as drafts — the author must explicitly publish to make a story
     // visible on Explore. This applies to every plan (free, trial, paid).
     const [adventure] = await db
@@ -219,18 +234,18 @@ export async function POST(req: Request) {
         title,
         description: description ?? '',
         userEmail: session.user.email,
-        editorMode,
+        editorMode: effectiveEditorMode,
         storyType: storyType ?? null,
-        createdFrom: template ? 'template' : 'blank',
+        createdFrom: effectiveTemplate ? 'template' : 'blank',
         status: 'draft',
         isPublic: false,
       })
       .returning()
 
-    const tpl = template ? TEMPLATES[template] : null
+    const tpl = effectiveTemplate ? TEMPLATES[effectiveTemplate] : null
 
     if (!tpl) {
-      if (editorMode === 'block') {
+      if (effectiveEditorMode === 'block') {
         // Block editor: no chapters, just a bare start node
         await db.insert(nodes).values({
           adventureId: adventure.id,
