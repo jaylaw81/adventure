@@ -2,11 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Play, BookOpen, Search, X, Flame, Sword, Eye } from 'lucide-react'
+import { Play, BookOpen, Search, X, Flame, Sword, Eye, ArrowUpRight } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 import ReviewsModal from '@/components/explore/ReviewsModal'
 import PageBanner from '@/components/shared/PageBanner'
 import ShareButtons from '@/components/shared/ShareButtons'
+import { tagToSlug } from '@/lib/tags'
 import type { ExploreStory } from '@/lib/exploreData'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -567,7 +568,7 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
 
         <div className="flex gap-8 items-start">
           {/* Desktop sidebar */}
-          <aside className="hidden md:flex flex-col gap-6 w-52 shrink-0 sticky top-6">
+          <aside className="hidden md:flex flex-col gap-6 w-52 shrink-0 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
             <h2 className="sr-only">Filters</h2>
             <div>
               <h3 className="text-xs font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#7c3aed' }}>Audience</h3>
@@ -632,21 +633,34 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
                 <h3 className="text-xs font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#7c3aed' }}>Tags</h3>
                 <div className="flex flex-col gap-1">
                   {tagStats.map(({ tag, count, popular }) => (
-                    <button
+                    <div
                       key={tag}
-                      onClick={() => handleTagClick(tag)}
-                      className={`flex items-center justify-between gap-2 text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                      className={`flex items-center gap-1 rounded-lg text-sm transition-colors ${
                         selectedTag === tag ? 'bg-violet-100 text-violet-800 font-semibold' : 'text-gray-600 hover:bg-violet-50'
                       }`}
                     >
-                      <span className="flex items-center gap-1.5 truncate">
-                        {popular && <Flame size={11} className="text-orange-400 shrink-0" />}
-                        <span className="truncate">{tag}</span>
-                      </span>
-                      <span className={`text-xs shrink-0 ${selectedTag === tag ? 'text-violet-600' : 'text-gray-400'}`}>
-                        {count}
-                      </span>
-                    </button>
+                      <button
+                        onClick={() => handleTagClick(tag)}
+                        className="flex-1 min-w-0 flex items-center justify-between gap-2 text-left pl-3 pr-1 py-1.5"
+                      >
+                        <span className="flex items-center gap-1.5 truncate">
+                          {popular && <Flame size={11} className="text-orange-400 shrink-0" />}
+                          <span className="truncate">{tag}</span>
+                        </span>
+                        <span className={`text-xs shrink-0 ${selectedTag === tag ? 'text-violet-600' : 'text-gray-400'}`}>
+                          {count}
+                        </span>
+                      </button>
+                      <Link
+                        href={`/explore/${tagToSlug(tag)}`}
+                        title={`Browse all ${tag} stories`}
+                        className={`shrink-0 pr-2.5 py-1.5 transition-colors ${
+                          selectedTag === tag ? 'text-violet-500 hover:text-violet-700' : 'text-gray-300 hover:text-violet-500'
+                        }`}
+                      >
+                        <ArrowUpRight size={13} />
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </div>

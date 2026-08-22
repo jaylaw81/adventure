@@ -4,11 +4,12 @@ import { Tag, Users, ShieldOff } from 'lucide-react'
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getAdventure, getStartNode, getAuthorByEmail } from '@/lib/queries'
+import { getAdventure, getStartNode, getAuthorByEmail, getRelatedStories } from '@/lib/queries'
 import { canViewMemberStory } from '@/lib/orgAccess'
 import StartStoryButton from '@/components/reader/StartStoryButton'
 import ReportButton from '@/components/reader/ReportButton'
 import ReviewsSection from '@/components/reader/ReviewsSection'
+import RelatedStories from '@/components/reader/RelatedStories'
 import JsonLd from '@/components/JsonLd'
 
 const SITE_URL = 'https://www.storyquestor.com'
@@ -112,6 +113,8 @@ export default async function StoryLandingPage({ params }: Props) {
     try { return JSON.parse(adventure.tags ?? '[]') } catch { return [] }
   })()
 
+  const relatedStories = await getRelatedStories(id, tags, !!session?.user?.isAdult)
+
   const audienceLabel = AUDIENCE_LABEL[adventure.audience ?? 'all'] ?? adventure.audience
 
   const storySchema = {
@@ -142,7 +145,7 @@ export default async function StoryLandingPage({ params }: Props) {
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse at 20% 80%, rgba(124,58,237,0.2) 0%, transparent 65%)' }} />
       <div className="relative max-w-2xl mx-auto pt-16">
-        <Link href="/" className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
+        <Link href="/explore" className="inline-flex items-center gap-1 text-violet-300 hover:text-white text-sm transition-colors">
           ← Back to stories
         </Link>
       </div>
@@ -209,6 +212,8 @@ export default async function StoryLandingPage({ params }: Props) {
           />
         </div>
       </div>
+
+      <RelatedStories stories={relatedStories} />
 
       <ReviewsSection adventureId={id} />
 

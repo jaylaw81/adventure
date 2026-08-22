@@ -13,7 +13,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, storyReferrers } from '@/lib/schema'
 import { parseReferrer } from '@/lib/referrerUtils'
-import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter, getAdventureCharacters, getAdventureItems, getStartNode, getStorybookNextNode } from '@/lib/queries'
+import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter, getAdventureCharacters, getAdventureItems, getStartNode, getStorybookNextNode, getRelatedStories } from '@/lib/queries'
 import { canViewMemberStory, getAuthorOrgPrivacy } from '@/lib/orgAccess'
 import SceneTranslationWrapper from '@/components/reader/SceneTranslationWrapper'
 import CopySceneButton from '@/components/reader/CopySceneButton'
@@ -22,6 +22,7 @@ import SceneTracker from '@/components/reader/SceneTracker'
 import RestartButton from '@/components/reader/RestartButton'
 import ReportButton from '@/components/reader/ReportButton'
 import EndingView from '@/components/reader/EndingView'
+import RelatedStories from '@/components/reader/RelatedStories'
 import SceneEntrance from '@/components/reader/SceneEntrance'
 import WorldBuilderSceneWrapper from '@/components/reader/WorldBuilderSceneWrapper'
 import StorybookPageSpread from '@/components/reader/StorybookPageSpread'
@@ -110,6 +111,12 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         getStartNode(id),
       ])
     : [[], [], null] as [WBCharacter[], WorldItem[], null]
+
+  const relatedStories = isEnding
+    ? await getRelatedStories(id, (() => {
+        try { return JSON.parse(adventure?.tags ?? '[]') } catch { return [] }
+      })(), !!session?.user?.isAdult)
+    : []
 
   const sceneItemPickups = (node.sceneItems as SceneItemPickup[] | null) ?? []
 
@@ -228,6 +235,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
     const endingContent = isEnding ? (
       <div className="mt-10">
         <EndingView adventureId={id} restartHref={`/play/${id}`} />
+        <RelatedStories stories={relatedStories} dark />
       </div>
     ) : null
 
@@ -310,7 +318,10 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
 
         <div className="mt-10">
           {isEnding ? (
-            <EndingView adventureId={id} restartHref={`/play/${id}`} />
+            <>
+              <EndingView adventureId={id} restartHref={`/play/${id}`} />
+              <RelatedStories stories={relatedStories} />
+            </>
           ) : nextStorybookNode ? (
             <div className="flex justify-center pt-4">
               <Link
@@ -450,7 +461,10 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
             )}
           </div>
         ) : isEnding ? (
-          <EndingView adventureId={id} restartHref={`/play/${id}`} />
+          <>
+            <EndingView adventureId={id} restartHref={`/play/${id}`} />
+            <RelatedStories stories={relatedStories} />
+          </>
         ) : choices.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-400">No choices available. This story ends here.</p>

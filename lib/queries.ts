@@ -1,4 +1,4 @@
-import { eq, sql, and, or, inArray, isNotNull, desc } from 'drizzle-orm'
+import { eq, sql, and, or, ne, inArray, notInArray, isNotNull, desc } from 'drizzle-orm'
 import { db } from './db'
 import { adventures, nodes, choices, chapters, storyReviews, worldCharacters, worldItems, users, userBlocks, follows, notifications } from './schema'
 
@@ -272,6 +272,79 @@ export async function getPublicAdventuresByTag(tagVariants: string[]) {
     reviewCount: ratingMap.get(s.id)?.reviewCount ?? 0,
     coverImageUrl: coverMap.get(s.id) ?? null,
   }))
+}
+
+export interface RelatedStory {
+  id: string
+  title: string
+  description: string | null
+  audience: string
+  storySlug: string | null
+  coverImageUrl: string | null
+}
+
+/**
+ * Public stories to recommend alongside `excludeId` — prefers stories sharing a tag,
+ * then backfills with other popular public stories so a full set is always returned.
+ */
+export async function getRelatedStories(
+  excludeId: string,
+  tags: string[],
+  isAdult: boolean,
+  limit = 4
+): Promise<RelatedStory[]> {
+  const baseFilter = and(
+    eq(adventures.isPublic, true),
+    eq(adventures.status, 'active'),
+    ne(adventures.id, excludeId),
+    isAdult ? undefined : ne(adventures.audience, 'adults'),
+  )
+
+  const selectCols = {
+    id: adventures.id,
+    title: adventures.title,
+    description: adventures.description,
+    audience: adventures.audience,
+    storySlug: adventures.storySlug,
+  }
+
+  let results: Omit<RelatedStory, 'coverImageUrl'>[] = []
+
+  if (tags.length > 0) {
+    const tagFilter = or(...tags.map(t => sql`${adventures.tags}::jsonb @> ${JSON.stringify([t])}::jsonb`))
+    results = await db
+      .select(selectCols)
+      .from(adventures)
+      .where(and(baseFilter, tagFilter))
+      .orderBy(desc(adventures.readCount))
+      .limit(limit)
+  }
+
+  if (results.length < limit) {
+    const excludeIds = [excludeId, ...results.map(r => r.id)]
+    const backfill = await db
+      .select(selectCols)
+      .from(adventures)
+      .where(and(baseFilter, notInArray(adventures.id, excludeIds)))
+      .orderBy(desc(adventures.readCount))
+      .limit(limit - results.length)
+    results = [...results, ...backfill]
+  }
+
+  if (results.length === 0) return []
+
+  const ids = results.map(r => r.id)
+  const coverImages = await db
+    .select({ adventureId: nodes.adventureId, imageUrl: nodes.imageUrl })
+    .from(nodes)
+    .where(and(inArray(nodes.adventureId, ids), eq(nodes.nodeType, 'start'), isNotNull(nodes.imageUrl)))
+
+  const coverMap = new Map<string, string>()
+  for (const row of coverImages) {
+    if (!coverMap.has(row.adventureId) && row.imageUrl) coverMap.set(row.adventureId, row.imageUrl)
+  }
+
+  return results.map(r => ({ ...r, coverImageUrl: coverMap.get(r.id) ?? null }))
 }
 
 export async function getAuthorByEmail(email: string) {

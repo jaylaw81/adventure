@@ -79,9 +79,6 @@ export default async function TagPage({ params }: Props) {
             <ArrowLeft size={14} />
             All stories
           </Link>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold text-amber-300 border border-amber-400/30 bg-amber-400/10 mb-4">
-            #{label}
-          </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3">
             {label} Stories
           </h1>
