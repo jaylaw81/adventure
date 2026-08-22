@@ -6,6 +6,7 @@ import { requireOwner } from '@/lib/requireOwner'
 import { generateSceneImage, generateStorybookPageImage } from '@/lib/generateImage'
 import { canGenerateImages } from '@/lib/subscription'
 import { validateImageDataUrl } from '@/lib/imageValidation'
+import { uploadDataUrlToBlob, deleteBlobImage } from '@/lib/blobStorage'
 
 export const maxDuration = 60
 
@@ -28,12 +29,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (body.source === 'upload' || body.source === 'draw') {
       const validated = validateImageDataUrl(body.dataUrl)
       if (!validated) return NextResponse.json({ error: 'Invalid image data' }, { status: 400 })
-      imageUrl = validated
+      const uploaded = await uploadDataUrlToBlob(validated, 'scenes')
+      if (!uploaded) return NextResponse.json({ error: 'Invalid image data' }, { status: 400 })
+      imageUrl = uploaded
     } else if (owned.adventure.storyType === 'storybook') {
       imageUrl = await generateStorybookPageImage(node.title, node.content, owned.adventure.audience ?? 'all')
     } else {
       imageUrl = await generateSceneImage(node.title, node.content, owned.adventure.audience ?? 'all')
     }
+
+    await deleteBlobImage(node.imageUrl)
 
     const [updated] = await db
       .update(nodes)
@@ -53,6 +58,10 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const { id, nodeId } = await params
     const owned = await requireOwner(id)
     if (owned.error) return owned.error
+
+    const [node] = await db.select().from(nodes).where(and(eq(nodes.id, nodeId), eq(nodes.adventureId, id)))
+    await deleteBlobImage(node?.imageUrl)
+
     const [updated] = await db
       .update(nodes)
       .set({ imageUrl: null })

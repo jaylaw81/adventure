@@ -5,6 +5,7 @@ import { worldCharacters } from '@/lib/schema'
 import { requireOwner } from '@/lib/requireOwner'
 import { canGenerateImages } from '@/lib/subscription'
 import { generateCharacterAvatar } from '@/lib/generateImage'
+import { deleteBlobImage } from '@/lib/blobStorage'
 
 export const maxDuration = 60
 
@@ -33,6 +34,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       owned.adventure.audience ?? 'all'
     )
 
+    await deleteBlobImage(char.avatarUrl)
+
     const [updated] = await db
       .update(worldCharacters)
       .set({ avatarUrl })
@@ -51,6 +54,13 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const { id, charId } = await params
     const owned = await requireOwner(id)
     if (owned.error) return owned.error
+
+    const [char] = await db
+      .select()
+      .from(worldCharacters)
+      .where(and(eq(worldCharacters.id, charId), eq(worldCharacters.adventureId, id)))
+      .limit(1)
+    await deleteBlobImage(char?.avatarUrl)
 
     const [updated] = await db
       .update(worldCharacters)

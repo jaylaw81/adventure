@@ -1,4 +1,5 @@
 import { HfInference } from '@huggingface/inference'
+import { uploadImageBuffer } from './blobStorage'
 
 const hf = new HfInference(process.env.HUGGING_FACE_API_KEY!)
 
@@ -37,7 +38,7 @@ export async function generateCharacterAvatar(
 
   const arrayBuf = await (result as unknown as Blob).arrayBuffer()
   const buffer = Buffer.from(arrayBuf)
-  return `data:image/jpeg;base64,${buffer.toString('base64')}`
+  return uploadImageBuffer(buffer, 'image/jpeg', 'avatars')
 }
 
 export async function generateSceneImage(
@@ -58,7 +59,7 @@ export async function generateSceneImage(
 
   const arrayBuf = await (result as unknown as Blob).arrayBuffer()
   const buffer = Buffer.from(arrayBuf)
-  return `data:image/jpeg;base64,${buffer.toString('base64')}`
+  return uploadImageBuffer(buffer, 'image/jpeg', 'scenes')
 }
 
 // Storybook page illustrations: square, so they read well in either the
@@ -89,5 +90,5 @@ export async function generateStorybookCoverImage(
 
   const arrayBuf = await (result as unknown as Blob).arrayBuffer()
   const buffer = Buffer.from(arrayBuf)
-  return `data:image/jpeg;base64,${buffer.toString('base64')}`
+  return uploadImageBuffer(buffer, 'image/jpeg', 'covers')
 }

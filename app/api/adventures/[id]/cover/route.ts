@@ -6,6 +6,7 @@ import { requireOwner } from '@/lib/requireOwner'
 import { generateStorybookCoverImage } from '@/lib/generateImage'
 import { canGenerateImages } from '@/lib/subscription'
 import { validateImageDataUrl } from '@/lib/imageValidation'
+import { uploadDataUrlToBlob, deleteBlobImage } from '@/lib/blobStorage'
 
 export const maxDuration = 60
 
@@ -24,7 +25,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (body.source === 'upload' || body.source === 'draw') {
       const validated = validateImageDataUrl(body.dataUrl)
       if (!validated) return NextResponse.json({ error: 'Invalid image data' }, { status: 400 })
-      coverImageUrl = validated
+      const uploaded = await uploadDataUrlToBlob(validated, 'covers')
+      if (!uploaded) return NextResponse.json({ error: 'Invalid image data' }, { status: 400 })
+      coverImageUrl = uploaded
     } else {
       coverImageUrl = await generateStorybookCoverImage(
         owned.adventure.title,
@@ -32,6 +35,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         owned.adventure.audience ?? 'all'
       )
     }
+
+    await deleteBlobImage(owned.adventure.coverImageUrl)
 
     const [updated] = await db
       .update(adventures)
@@ -51,6 +56,8 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const { id } = await params
     const owned = await requireOwner(id)
     if (owned.error) return owned.error
+
+    await deleteBlobImage(owned.adventure.coverImageUrl)
 
     const [updated] = await db
       .update(adventures)
