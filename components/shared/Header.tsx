@@ -127,6 +127,7 @@ export default function Header() {
             <>
               <NavLink href="/explore">Explore</NavLink>
               <NavLink href="/how-to">Guide</NavLink>
+              <NavLink href="/guide">Learn</NavLink>
               <NavLink href="/blog">Blog</NavLink>
             </>
           )}
@@ -136,7 +137,7 @@ export default function Header() {
           {!session && <NavLink href="/pricing">Pricing</NavLink>}
           {!session && <NavLink href="/organizations">For Schools</NavLink>}
           {(!session || session.user.profileComplete) && (
-            <NavLink href="/choose-your-own-adventure">CYOA History</NavLink>
+            <NavLink href="/resources">Resources</NavLink>
           )}
         </nav>
 
@@ -349,6 +350,10 @@ export default function Header() {
                 className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/how-to' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                 Guide
               </Link>
+              <Link href="/guide" onClick={() => setMobileOpen(false)}
+                className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname.startsWith('/guide') ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+                Learn
+              </Link>
               <Link href="/blog" onClick={() => setMobileOpen(false)}
                 className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname.startsWith('/blog') ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
                 Blog
@@ -374,9 +379,9 @@ export default function Header() {
             </Link>
           )}
           {(!session || session.user.profileComplete) && (
-            <Link href="/choose-your-own-adventure" onClick={() => setMobileOpen(false)}
-              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/choose-your-own-adventure' ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
-              CYOA History
+            <Link href="/resources" onClick={() => setMobileOpen(false)}
+              className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname.startsWith('/resources') ? 'bg-white/10 text-violet-300' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}>
+              Resources
             </Link>
           )}
 

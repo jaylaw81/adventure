@@ -3,8 +3,10 @@ import Link from 'next/link'
 import { ExternalLink, BookOpen, Pencil } from 'lucide-react'
 import JsonLd from '@/components/JsonLd'
 import TimelineScroller from '@/components/cyoa/TimelineScroller'
+import RelatedReading from '@/components/content/RelatedReading'
 
 const SITE_URL = 'https://www.storyquestor.com'
+const PAGE_URL = `${SITE_URL}/resources/choose-your-own-adventure-history`
 const AMZN_TAG = 'storyquestor-20'
 
 function amzn(query: string) {
@@ -22,12 +24,12 @@ export const metadata: Metadata = {
     'Bantam Books', 'Chooseco', 'interactive fiction books', 'branching story books',
     'choose your own adventure history', '1980s books',
   ],
-  alternates: { canonical: `${SITE_URL}/choose-your-own-adventure` },
+  alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'Choose Your Own Adventure — History, Books & Series Guide',
     description:
       'The complete history of the Choose Your Own Adventure book series: 184 books, 250 million copies sold, and a generation of readers who shaped the endings themselves.',
-    url: `${SITE_URL}/choose-your-own-adventure`,
+    url: PAGE_URL,
     type: 'article',
     siteName: 'StoryQuestor',
     images: [{ url: `${SITE_URL}/storyquestor-fb.png`, width: 1200, height: 630, alt: 'StoryQuestor' }],
@@ -199,10 +201,10 @@ export default function CYOAHistoryPage() {
     '@type': 'Article',
     headline: 'Choose Your Own Adventure — History, Books & Series Guide',
     description: 'The complete history of the Choose Your Own Adventure book series, from its 1969 origin to the Chooseco revival.',
-    url: `${SITE_URL}/choose-your-own-adventure`,
+    url: PAGE_URL,
     image: `${SITE_URL}/opengraph-image`,
     datePublished: '2026-06-14',
-    dateModified: '2026-06-14',
+    dateModified: '2026-08-22',
     author: { '@type': 'Organization', name: 'StoryQuestor', url: SITE_URL },
     publisher: {
       '@type': 'Organization',
@@ -210,7 +212,7 @@ export default function CYOAHistoryPage() {
       url: SITE_URL,
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/icon.png` },
     },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/choose-your-own-adventure` },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
     about: {
       '@type': 'BookSeries',
       name: 'Choose Your Own Adventure',
@@ -218,9 +220,20 @@ export default function CYOAHistoryPage() {
     },
   }
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Resources', item: `${SITE_URL}/resources` },
+      { '@type': 'ListItem', position: 3, name: 'Choose Your Own Adventure History', item: PAGE_URL },
+    ],
+  }
+
   return (
     <div className="flex flex-col">
       <JsonLd data={schema} />
+      <JsonLd data={breadcrumbSchema} />
 
       {/* ── Hero ── */}
       <section
@@ -421,7 +434,7 @@ export default function CYOAHistoryPage() {
               Today the format is more alive than ever. Chooseco continues publishing classic titles. Digital platforms let anyone build branching stories without writing a line of code. What was once a specialty children&apos;s format is now a universal medium.
             </p>
             <p className="text-gray-300">
-              StoryQuestor was built on this same conviction — that the best stories are ones where you have a say in what happens next. If the series inspired you as a kid, you already understand what we&apos;re building.
+              StoryQuestor was built on this same conviction — that the best stories are ones where you have a say in what happens next. If the series inspired you as a kid, you already understand what we&apos;re building. Curious how the format evolved beyond the printed page? Read our guide to <Link href="/guide/what-is-interactive-fiction" className="text-amber-300 underline underline-offset-2">what interactive fiction is</Link> or the broader <Link href="/resources/interactive-fiction-history" className="text-amber-300 underline underline-offset-2">history of interactive fiction</Link>.
             </p>
           </div>
 
@@ -442,6 +455,41 @@ export default function CYOAHistoryPage() {
               Play community stories
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ── Related reading ── */}
+      <section className="px-6 py-20 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <RelatedReading
+            heading="Keep Reading"
+            items={[
+              {
+                href: '/resources',
+                title: 'Resources — Interactive Fiction History',
+                description: 'The full library of history and craft resources — text adventures, visual novels, and more.',
+                tag: 'Resources',
+              },
+              {
+                href: '/resources/interactive-fiction-history',
+                title: 'The History of Interactive Fiction',
+                description: 'How gamebooks, text adventures, and visual novels all trace back to the same core idea.',
+                tag: 'Resources',
+              },
+              {
+                href: '/guide/what-is-interactive-fiction',
+                title: 'What Is Interactive Fiction?',
+                description: 'A complete introduction to the medium and the major forms it takes today.',
+                tag: 'Guide',
+              },
+              {
+                href: '/how-to',
+                title: 'How to Use StoryQuestor',
+                description: 'Build your own branching story on a visual canvas — no code required.',
+                tag: 'Product Guide',
+              },
+            ]}
+          />
         </div>
       </section>
     </div>

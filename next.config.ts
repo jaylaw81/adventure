@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/choose-your-own-adventure',
+        destination: '/resources/choose-your-own-adventure-history',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {
