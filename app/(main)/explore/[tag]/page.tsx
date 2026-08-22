@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Play, ArrowLeft, Pencil } from 'lucide-react'
-import { getPublicAdventuresByTag } from '@/lib/queries'
+import { getAllPublicTags, getPublicAdventuresByTag } from '@/lib/queries'
+import { tagToSlug } from '@/lib/tags'
 
 const SITE_URL = 'https://www.storyquestor.com'
 
@@ -16,38 +17,49 @@ interface Props {
   params: Promise<{ tag: string }>
 }
 
-function slugToTag(slug: string): string {
-  return decodeURIComponent(slug)
+/**
+ * Resolves a URL slug (e.g. "sci-fi") back to the tag string(s) stories are stored under.
+ * Multiple raw tags can share a slug (e.g. "Adventure" and "adventure"), so this returns all of them.
+ */
+async function resolveTagFromSlug(slug: string): Promise<string[]> {
+  const allTags = await getAllPublicTags()
+  return allTags.filter(t => tagToSlug(t) === slug)
 }
 
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
+/** Several raw tag spellings can share a slug (e.g. "Adventure" and "adventure") — prefer the Title Case one for display. */
+function pickDisplayLabel(variants: string[]): string {
+  return variants.find(v => /^[A-Z]/.test(v)) ?? variants[0]
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { tag } = await params
-  const label = capitalize(slugToTag(tag))
+  const { tag: slug } = await params
+  const variants = await resolveTagFromSlug(slug)
+  if (variants.length === 0) return { title: 'Category Not Found' }
+  const label = pickDisplayLabel(variants)
+
   const title = `${label} Interactive Stories — StoryQuestor`
   const description = `Browse free ${label.toLowerCase()} choose-your-own-adventure stories. Every story branches — your choices shape the ending.`
   return {
     title: { absolute: title },
     description,
     keywords: ['interactive story', 'choose your own adventure', label.toLowerCase(), `${label.toLowerCase()} stories`],
-    alternates: { canonical: `${SITE_URL}/explore/${tag}` },
+    alternates: { canonical: `${SITE_URL}/explore/${slug}` },
     openGraph: {
       title,
       description,
-      url: `${SITE_URL}/explore/${tag}`,
+      url: `${SITE_URL}/explore/${slug}`,
       images: [{ url: `${SITE_URL}/storyquestor-fb.png`, width: 1200, height: 630, alt: 'StoryQuestor' }],
     },
   }
 }
 
 export default async function TagPage({ params }: Props) {
-  const { tag } = await params
-  const label = slugToTag(tag)
-  const stories = await getPublicAdventuresByTag(label)
+  const { tag: slug } = await params
+  const variants = await resolveTagFromSlug(slug)
+  if (variants.length === 0) notFound()
+  const label = pickDisplayLabel(variants)
 
+  const stories = await getPublicAdventuresByTag(variants)
   if (stories.length === 0) notFound()
 
   return (
@@ -71,7 +83,7 @@ export default async function TagPage({ params }: Props) {
             #{label}
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3">
-            {capitalize(label)} Stories
+            {label} Stories
           </h1>
           <p className="text-white/50 text-base">
             {stories.length} {stories.length === 1 ? 'story' : 'stories'} · free to read
@@ -124,13 +136,13 @@ export default async function TagPage({ params }: Props) {
                       {tags.map(t => (
                         <Link
                           key={t}
-                          href={`/explore/${encodeURIComponent(t)}`}
+                          href={`/explore/${tagToSlug(t)}`}
                           className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
-                            t === label
+                            tagToSlug(t) === slug
                               ? 'text-white'
                               : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                           }`}
-                          style={t === label ? { background: '#7c3aed' } : undefined}
+                          style={tagToSlug(t) === slug ? { background: '#7c3aed' } : undefined}
                         >
                           {t}
                         </Link>

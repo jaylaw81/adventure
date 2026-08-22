@@ -2,6 +2,7 @@ import { getOrgAdminContext, unauthorized } from '@/lib/orgAuth'
 import { db } from '@/lib/db'
 import { adventures, organizationMembers } from '@/lib/schema'
 import { eq, and } from 'drizzle-orm'
+import { generateUniqueSlug } from '@/lib/ensureStorySlug'
 
 async function resolveAdminAndStory(email: string, storyId: string) {
   const ctx = await getOrgAdminContext()
@@ -44,6 +45,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ email:
   if (typeof isPublic === 'boolean') patch.isPublic = isPublic
   if (typeof title === 'string' && title.trim()) patch.title = title.trim()
   if (typeof description === 'string') patch.description = description.trim()
+  if (isPublic === true && !result.story.storySlug) {
+    patch.storySlug = await generateUniqueSlug((patch.title as string) ?? result.story.title, storyId)
+  }
 
   const [updated] = await db.update(adventures).set(patch).where(eq(adventures.id, storyId)).returning()
   return Response.json(updated)

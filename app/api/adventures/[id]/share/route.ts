@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, organizationMembers, organizations } from '@/lib/schema'
 import { canHavePrivateStories } from '@/lib/subscription'
+import { generateUniqueSlug } from '@/lib/ensureStorySlug'
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -43,6 +44,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const token = adventure.shareToken ?? crypto.randomUUID().replace(/-/g, '')
     const updateSet: Partial<typeof adventures.$inferInsert> = { isPublic: true, shareToken: token }
     if (adventure.status === 'draft') updateSet.status = 'active'
+    if (!adventure.storySlug) updateSet.storySlug = await generateUniqueSlug(adventure.title, id)
     const [updated] = await db
       .update(adventures)
       .set(updateSet)

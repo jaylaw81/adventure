@@ -3,6 +3,7 @@ import { eq, desc } from 'drizzle-orm'
 import { getPublicAdventures, getAllPublicTags } from '@/lib/queries'
 import { db } from '@/lib/db'
 import { blogPosts } from '@/lib/schema'
+import { tagToSlug } from '@/lib/tags'
 
 const SITE_URL = 'https://www.storyquestor.com'
 
@@ -140,8 +141,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  const tagPages: MetadataRoute.Sitemap = tags.map(tag => ({
-    url: `${SITE_URL}/explore/${encodeURIComponent(tag)}`,
+  // Multiple raw tag spellings can share a slug (e.g. "Adventure" and "adventure") — de-dupe by URL.
+  const tagPages: MetadataRoute.Sitemap = [...new Set(tags.map(tagToSlug))].map(slug => ({
+    url: `${SITE_URL}/explore/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly',
     priority: 0.7,

@@ -15,7 +15,6 @@ interface Props {
   canMakePublic?: boolean
   canMakePrivate?: boolean
   canViewAnalytics?: boolean
-  canUseCustomSlug?: boolean
 }
 
 function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onConfirm: () => void; onCancel: () => void }) {
@@ -70,7 +69,7 @@ function DeleteConfirmModal({ title, onConfirm, onCancel }: { title: string; onC
   )
 }
 
-export default function AdventureCard({ adventure, onDelete, canMakePublic = true, canMakePrivate = true, canViewAnalytics = false, canUseCustomSlug = false }: Props) {
+export default function AdventureCard({ adventure, onDelete, canMakePublic = true, canMakePrivate = true, canViewAnalytics = false }: Props) {
   const [current, setCurrent] = useState(adventure)
   const [isDraft, setIsDraft] = useState(adventure.status === 'draft')
   const [showSettings, setShowSettings] = useState(false)
@@ -231,7 +230,6 @@ export default function AdventureCard({ adventure, onDelete, canMakePublic = tru
           adventure={current}
           onClose={() => setShowSettings(false)}
           onSave={updated => setCurrent(prev => ({ ...prev, ...updated }))}
-          canUseCustomSlug={canUseCustomSlug}
         />
       )}
 

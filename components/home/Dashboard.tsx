@@ -84,7 +84,6 @@ export default function Dashboard() {
     session.user.subscriptionInterval === 'month' ||
     !!session.user.isAdmin
   )
-  const canUseCustomSlug = canViewAnalytics
 
   const atFreeLimit = !loading && isFreeTier && adventures.length >= 1
 
@@ -178,7 +177,7 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {adventures.map(adventure => (
-              <AdventureCard key={adventure.id} adventure={adventure} onDelete={handleDelete} canMakePublic={canMakePublic} canMakePrivate={canMakePrivate} canViewAnalytics={canViewAnalytics} canUseCustomSlug={canUseCustomSlug} />
+              <AdventureCard key={adventure.id} adventure={adventure} onDelete={handleDelete} canMakePublic={canMakePublic} canMakePrivate={canMakePrivate} canViewAnalytics={canViewAnalytics} />
             ))}
           </div>
         )}

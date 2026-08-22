@@ -1,7 +1,7 @@
 import { db } from '@/lib/db'
 import { adventures } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
-import { redirect, notFound } from 'next/navigation'
+import { permanentRedirect, notFound } from 'next/navigation'
 
 export default async function StorySlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -12,5 +12,5 @@ export default async function StorySlugPage({ params }: { params: Promise<{ slug
     .limit(1)
 
   if (!adventure) notFound()
-  redirect(`/play/${adventure.id}`)
+  permanentRedirect(`/play/${adventure.id}`)
 }

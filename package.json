@@ -9,6 +9,7 @@
     "lint": "eslint",
     "generate-images": "tsx scripts/bulk-generate-images.ts",
     "migrate-images-to-blob": "tsx scripts/migrate-images-to-blob.ts",
+    "backfill-story-slugs": "tsx scripts/backfill-story-slugs.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",

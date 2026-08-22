@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { isNull, eq, inArray, sql } from 'drizzle-orm'
+import { isNull, eq, sql } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, chapters, nodes, choices } from '@/lib/schema'
 import { getAdventures } from '@/lib/queries'
 import { canCreateStories, canHavePrivateStories, canGenerateImages } from '@/lib/subscription'
+import { generateUniqueSlug } from '@/lib/ensureStorySlug'
 
 const ORIGINAL_OWNER = 'jaylaw81@gmail.com'
 
@@ -143,11 +144,16 @@ export async function GET() {
     // Draft stories (status: 'draft') are intentionally private until explicitly published.
     const canPrivate = await canHavePrivateStories(email)
     if (!canPrivate) {
-      const privateActiveIds = all.filter(a => !a.isPublic && a.status === 'active').map(a => a.id)
-      if (privateActiveIds.length > 0) {
-        await db.update(adventures).set({ isPublic: true }).where(inArray(adventures.id, privateActiveIds))
+      const toPublish = all.filter(a => !a.isPublic && a.status === 'active')
+      if (toPublish.length > 0) {
+        const slugById = new Map<string, string>()
+        for (const a of toPublish) {
+          const slug = a.storySlug ?? await generateUniqueSlug(a.title, a.id)
+          slugById.set(a.id, slug)
+          await db.update(adventures).set({ isPublic: true, storySlug: slug }).where(eq(adventures.id, a.id))
+        }
         return NextResponse.json(all.map(a =>
-          !a.isPublic && a.status === 'active' ? { ...a, isPublic: true } : a
+          slugById.has(a.id) ? { ...a, isPublic: true, storySlug: slugById.get(a.id) } : a
         ))
       }
     }

@@ -14,7 +14,6 @@ interface Props {
   adventure: AdventureWithCounts
   onClose: () => void
   onSave: (updated: Partial<AdventureWithCounts>) => void
-  canUseCustomSlug?: boolean
 }
 
 const AUDIENCE_OPTIONS = [
@@ -23,7 +22,7 @@ const AUDIENCE_OPTIONS = [
   { value: 'adults', label: 'Adults Only', description: 'Mature themes, adults only' },
 ]
 
-export default function AdventureSettingsModal({ adventure, onClose, onSave, canUseCustomSlug = false }: Props) {
+export default function AdventureSettingsModal({ adventure, onClose, onSave }: Props) {
   const { data: session } = useSession()
   const isOrgTier = session?.user?.tier === 'organization'
   const canUseMedia = isOrgTier || session?.user?.subscriptionInterval === 'month' || session?.user?.isAdmin || session?.user?.grandfathered
@@ -109,7 +108,7 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave, can
       const data = await res.json() as { slug: string }
       setSlug(data.slug)
     } catch {
-      setSlugError('Failed to generate custom URL')
+      setSlugError('Failed to generate URL')
     } finally {
       setGeneratingSlug(false)
     }
@@ -366,12 +365,12 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave, can
           <p className="text-xs text-gray-400">Helps readers find and translate your story</p>
         </div>
 
-        {/* Custom Story URL — monthly subscribers only */}
-        {canUseCustomSlug && (
+        {/* Story URL — every public story gets an SEO-friendly slug automatically */}
+        {adventure.isPublic && (
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
               <Link2 size={14} className="text-gray-400" />
-              Custom Story URL
+              Story URL
             </label>
             {slug ? (
               <div className="flex flex-col gap-2">
@@ -413,9 +412,9 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave, can
                   className="flex items-center justify-center gap-1.5 px-3 py-2 bg-violet-600 text-white rounded-lg text-xs font-medium hover:bg-violet-700 transition-colors disabled:opacity-50 w-fit"
                 >
                   <Link2 size={12} />
-                  {generatingSlug ? 'Generating…' : 'Generate Custom URL'}
+                  {generatingSlug ? 'Generating…' : 'Generate URL'}
                 </button>
-                <p className="text-xs text-gray-400">Creates a memorable link for sharing your story.</p>
+                <p className="text-xs text-gray-400">Creates a memorable, SEO-friendly link for sharing your story.</p>
               </div>
             )}
             {slugError && <p className="text-xs text-red-500">{slugError}</p>}

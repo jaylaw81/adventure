@@ -1,4 +1,4 @@
-import { eq, sql, and, inArray, isNotNull, desc } from 'drizzle-orm'
+import { eq, sql, and, or, inArray, isNotNull, desc } from 'drizzle-orm'
 import { db } from './db'
 import { adventures, nodes, choices, chapters, storyReviews, worldCharacters, worldItems, users, userBlocks, follows, notifications } from './schema'
 
@@ -216,8 +216,8 @@ export async function getAllPublicTags(): Promise<string[]> {
   return [...tagSet].sort()
 }
 
-export async function getPublicAdventuresByTag(tag: string) {
-  const tagFilter = sql`${adventures.tags}::jsonb @> ${JSON.stringify([tag])}::jsonb`
+export async function getPublicAdventuresByTag(tagVariants: string[]) {
+  const tagFilter = or(...tagVariants.map(t => sql`${adventures.tags}::jsonb @> ${JSON.stringify([t])}::jsonb`))
 
   const [stories, ratingRows] = await Promise.all([
     db
