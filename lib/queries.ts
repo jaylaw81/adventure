@@ -228,6 +228,7 @@ export async function getPublicAdventuresByTag(tagVariants: string[]) {
         audience: adventures.audience,
         tags: adventures.tags,
         shareToken: adventures.shareToken,
+        readCount: adventures.readCount,
         updatedAt: adventures.updatedAt,
         createdAt: adventures.createdAt,
       })
