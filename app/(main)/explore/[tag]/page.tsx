@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 function StoryCard({ story, currentSlug }: { story: TagStory; currentSlug: string }) {
   const tags: string[] = (() => { try { return JSON.parse(story.tags ?? '[]') } catch { return [] } })()
-  const playUrl = story.shareToken ? `${SITE_URL}/s/${story.shareToken}` : `/play/${story.id}`
+  const playUrl = story.storySlug ? `/story/${story.storySlug}` : `/play/${story.id}`
 
   return (
     <div className="bg-white rounded-2xl shadow-sm flex flex-col border border-violet-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 overflow-hidden">

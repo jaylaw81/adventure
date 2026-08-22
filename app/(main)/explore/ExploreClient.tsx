@@ -480,7 +480,7 @@ export default function ExploreClient({ initialStories, isAdult, isSignedIn }: P
         {!isSignedIn && (
           <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3">
             <p className="text-sm text-violet-800">
-              <span className="font-semibold">Sign in for full access</span> — some stories and tags are only visible to registered members.
+              <span className="font-semibold">Public stories are fully accessible without an account</span> — sign in to unlock adults-only stories and tags.
             </p>
             <Link
               href="/sign-in"
