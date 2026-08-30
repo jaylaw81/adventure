@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-08-30
+
+- **Disposable email blocking at signup**: Sign-up with a known throwaway/temporary email address (e.g. Mailinator, Guerrilla Mail) is now rejected, closing off one common way people repeatedly claimed new free trials.
+
 ## 2026-08-22
 
 - **Guide and Resources sections**: Two new content hubs — `/guide` for practical writing craft and `/resources` for the history of the medium. `/guide` now has six full articles (What Is Interactive Fiction?, How to Write Branching Stories, How to Create Meaningful Choices, How to Write Multiple Endings, Branching Story Structure Explained, Interactive Fiction Genres) and `/resources` has four (Choose Your Own Adventure History, The History of Interactive Fiction, Text Adventure History, The Visual Novel Guide). All ten are heavily cross-linked with each other, the blog, and the product how-to guide. The existing Choose Your Own Adventure history page moved from `/choose-your-own-adventure` to `/resources/choose-your-own-adventure-history` (old links redirect automatically) so it lives alongside the new resource articles. The header and footer nav were updated with "Learn" and "Resources" links to match.

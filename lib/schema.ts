@@ -31,6 +31,7 @@ export const users = pgTable('users', {
   lastLoginAt: timestamp('last_login_at'),
   languagePreference: text('language_preference').notNull().default('en'), // ISO 639-1 reader language
   acquisitionSource: text('acquisition_source'), // how the user found StoryQuestor
+  signupIp: text('signup_ip'), // IP at registration — trial-abuse signal, not a hard gate
   invitedByToken: text('invited_by_token'), // friend invite token this user signed up through
   pendingFriendRewardWeeks: integer('pending_friend_reward_weeks').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),

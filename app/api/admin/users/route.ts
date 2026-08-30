@@ -29,6 +29,7 @@ export async function GET() {
         gracePeriodEndsAt: users.gracePeriodEndsAt,
         stripeCustomerId: users.stripeCustomerId,
         lastLoginAt: users.lastLoginAt,
+        signupIp: users.signupIp,
       })
       .from(users)
       .orderBy(desc(users.createdAt)),
@@ -40,7 +41,18 @@ export async function GET() {
 
   const countMap = new Map(storyCounts.map(r => [r.userEmail, r.count]))
 
+  // How many accounts (including this one) share this signup IP — a soft
+  // trial-abuse signal, not proof; shared wifi/offices/mobile NAT produce it too.
+  const ipCounts = new Map<string, number>()
+  for (const u of allUsers) {
+    if (u.signupIp) ipCounts.set(u.signupIp, (ipCounts.get(u.signupIp) ?? 0) + 1)
+  }
+
   return NextResponse.json(
-    allUsers.map(u => ({ ...u, storyCount: countMap.get(u.email) ?? 0 }))
+    allUsers.map(u => ({
+      ...u,
+      storyCount: countMap.get(u.email) ?? 0,
+      sharedIpCount: u.signupIp ? ipCounts.get(u.signupIp)! : 0,
+    }))
   )
 }

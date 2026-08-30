@@ -9,6 +9,7 @@ import { users, organizationMembers, deletedAccounts } from '@/lib/schema'
 import { isAdult } from '@/lib/age'
 import { sendWelcomeEmail } from '@/lib/email'
 import { getPricingConfig } from '@/lib/pricing'
+import { getIpFromServerHeaders } from '@/lib/signupAbuse'
 
 async function resolveEffectiveTier(email: string, storedTier: string): Promise<string> {
   if (storedTier !== 'free') return storedTier
@@ -87,6 +88,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             displayName: user.name ?? '',
             trialEndsAt,
+            signupIp: await getIpFromServerHeaders(),
             lastLoginAt: new Date(),
           }).returning({
             unsubscribeToken: users.unsubscribeToken,

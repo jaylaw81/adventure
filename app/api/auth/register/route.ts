@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { users, deletedAccounts, friendInvites } from '@/lib/schema'
 import { sendWelcomeEmail } from '@/lib/email'
 import { getPricingConfig } from '@/lib/pricing'
+import { isDisposableEmail, getIpFromRequest } from '@/lib/signupAbuse'
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +19,13 @@ export async function POST(req: Request) {
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
+    }
+
+    if (isDisposableEmail(normalizedEmail)) {
+      return NextResponse.json(
+        { error: 'Please use a permanent email address to sign up' },
+        { status: 400 }
+      )
     }
 
     if (password.length < 8) {
@@ -68,6 +76,7 @@ export async function POST(req: Request) {
       displayName: displayName?.trim() || '',
       passwordHash,
       trialEndsAt,
+      signupIp: getIpFromRequest(req),
       invitedByToken: validInvite ? inviteToken : null,
     }).returning({
       unsubscribeToken: users.unsubscribeToken,

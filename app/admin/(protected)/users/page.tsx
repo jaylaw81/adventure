@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   Search, X, ShieldOff, Trash2, ChevronRight, UserCheck, UserX,
   Clock, CheckCircle2, AlertTriangle, CreditCard, Building2, Gift,
-  Eye, EyeOff,
+  Eye, EyeOff, Network,
 } from 'lucide-react'
 import { formatCents } from '@/lib/pricing'
 
@@ -26,6 +26,8 @@ interface AdminUser {
   gracePeriodEndsAt: string | null
   stripeCustomerId: string | null
   lastLoginAt: string | null
+  signupIp: string | null
+  sharedIpCount: number
 }
 
 // ── Billing classification ────────────────────────────────────────────────
@@ -166,6 +168,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterKey>('all')
+  const [flaggedOnly, setFlaggedOnly] = useState(false)
   const [acting, setActing] = useState<string | null>(null)
 
   useEffect(() => {
@@ -190,19 +193,21 @@ export default function AdminUsersPage() {
   const filtered = useMemo(() => {
     let list = usersWithBilling
     if (filter !== 'all') list = list.filter(u => u.billing.category === filter)
+    if (flaggedOnly) list = list.filter(u => u.sharedIpCount > 1)
     const q = search.trim().toLowerCase()
     if (q) list = list.filter(u =>
       u.email.toLowerCase().includes(q) ||
       u.displayName.toLowerCase().includes(q)
     )
     return list
-  }, [usersWithBilling, filter, search])
+  }, [usersWithBilling, filter, flaggedOnly, search])
 
   const stats = useMemo(() => ({
     total: users.length,
     suspended: users.filter(u => u.status === 'suspended').length,
     needsSetup: counts['needs_setup'] ?? 0,
     inTrial: counts['trial'] ?? 0,
+    sharedIp: users.filter(u => u.sharedIpCount > 1).length,
   }), [users, counts])
 
   async function toggleSuspend(user: AdminUser) {
@@ -267,24 +272,42 @@ export default function AdminUsersPage() {
               <span className="font-semibold text-blue-600">{stats.inTrial}</span> in trial
             </span>
           )}
+          {stats.sharedIp > 0 && (
+            <span className="text-sm text-slate-500">
+              <span className="font-semibold text-orange-600">{stats.sharedIp}</span> shared-IP signups
+            </span>
+          )}
         </div>
       </div>
 
       {/* Search */}
-      <div className="relative mb-3">
-        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search by email or display name…"
-          className="w-full pl-9 pr-9 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 shadow-sm"
-        />
-        {search && (
-          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-            <X size={14} />
-          </button>
-        )}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by email or display name…"
+            className="w-full pl-9 pr-9 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 shadow-sm"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <button
+          onClick={() => setFlaggedOnly(v => !v)}
+          title="Show only accounts that share a signup IP with another account — a soft trial-abuse signal, not proof (shared wifi/offices produce it too)"
+          className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-medium border transition-colors ${
+            flaggedOnly
+              ? 'bg-orange-600 border-orange-600 text-white'
+              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          <Network size={13} /> Shared IP{stats.sharedIp > 0 ? ` (${stats.sharedIp})` : ''}
+        </button>
       </div>
 
       {/* Filter tabs */}
@@ -341,7 +364,17 @@ export default function AdminUsersPage() {
                     <tr key={user.id} className="hover:bg-slate-50 transition-colors">
                       {/* User */}
                       <td className="px-5 py-4">
-                        <p className="font-medium text-slate-900">{user.displayName || '(no name)'}</p>
+                        <p className="font-medium text-slate-900 flex items-center gap-1.5">
+                          {user.displayName || '(no name)'}
+                          {user.sharedIpCount > 1 && (
+                            <span
+                              title={`${user.sharedIpCount} accounts share signup IP ${user.signupIp} — soft signal, not proof`}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700"
+                            >
+                              <Network size={10} /> {user.sharedIpCount}
+                            </span>
+                          )}
+                        </p>
                         <p className="text-xs text-slate-400 font-mono mt-0.5">{user.email}</p>
                       </td>
 
