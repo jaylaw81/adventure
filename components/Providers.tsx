@@ -7,6 +7,7 @@ import CookieBanner from './gdpr/CookieBanner'
 import CookiePreferencesModal from './gdpr/CookiePreferencesModal'
 import ConsentScripts from './gdpr/ConsentScripts'
 import FeedbackWidget from './shared/FeedbackWidget'
+import WebMCP from './webmcp/WebMCP'
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <ConsentProvider>
         <ConsentScripts />
         {children}
+        <WebMCP />
         <FeedbackWidget />
         <SurveyModalV2 />
         <CookieBanner />
