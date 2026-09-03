@@ -1,6 +1,10 @@
+import { unstable_cache, revalidateTag } from 'next/cache'
 import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import { db } from './db'
 import { adventures, nodes, storyReviews, users } from './schema'
+
+/** Cache tag for the public Explore listing — see `revalidateExploreStories()`. */
+export const EXPLORE_STORIES_TAG = 'explore-stories'
 
 export interface ExploreStory {
   id: string
@@ -22,7 +26,7 @@ export interface ExploreStory {
   authorProfileVisible: boolean | null
 }
 
-export async function getExploreStories(): Promise<ExploreStory[]> {
+async function fetchExploreStories(): Promise<ExploreStory[]> {
   const [stories, ratingRows] = await Promise.all([
     db
       .select({
@@ -83,4 +87,22 @@ export async function getExploreStories(): Promise<ExploreStory[]> {
     reviewCount: ratingMap.get(s.id)?.reviewCount ?? 0,
     coverImageUrl: coverMap.get(s.id) ?? null,
   }))
+}
+
+/**
+ * Public Explore listing. This runs 3+ DB queries and is hit by every visitor
+ * and crawler, so it's cached — served fresh at most once every few minutes,
+ * and invalidated immediately when a story is published, unpublished, edited,
+ * or deleted via `revalidateExploreStories()`.
+ */
+export const getExploreStories = unstable_cache(
+  fetchExploreStories,
+  ['explore-stories-v1'],
+  { revalidate: 300, tags: [EXPLORE_STORIES_TAG] },
+)
+
+/** Mark the cached Explore listing stale so the next request rebuilds it. */
+export function revalidateExploreStories(): void {
+  // Second arg required since Next 16; 'max' = serve stale while revalidating.
+  revalidateTag(EXPLORE_STORIES_TAG, 'max')
 }

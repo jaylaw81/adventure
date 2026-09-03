@@ -13,6 +13,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, storyReferrers } from '@/lib/schema'
 import { parseReferrer } from '@/lib/referrerUtils'
+import { isBotUserAgent } from '@/lib/isBot'
 import { getNode, getNodeChoices, getAdventure, getChapterStartNode, getChapter, getAdventureCharacters, getAdventureItems, getStartNode, getStorybookNextNode, getRelatedStories } from '@/lib/queries'
 import { canViewMemberStory, getAuthorOrgPrivacy } from '@/lib/orgAccess'
 import SceneTranslationWrapper from '@/components/reader/SceneTranslationWrapper'
@@ -56,9 +57,12 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
   // Block suspended stories — org admins can still view
   if (adventure?.status === 'suspended' && !isOrgAdmin && !isAdmin) notFound()
 
-  // Count a read and capture referrer whenever a non-owner lands on the start node
-  if (node.nodeType === 'start' && !isOwner && !isAdmin && adventure) {
-    const reqHeaders = await headers()
+  // Count a read and capture referrer whenever a non-owner lands on the start node.
+  // Skip crawlers/scrapers — they'd otherwise keep the DB compute awake and inflate
+  // both the read count and the referrer analytics.
+  const reqHeaders = await headers()
+  const fromBot = isBotUserAgent(reqHeaders.get('user-agent'))
+  if (node.nodeType === 'start' && !isOwner && !isAdmin && !fromBot && adventure) {
     const { domain, category } = parseReferrer(reqHeaders.get('referer'))
 
     db.update(adventures)

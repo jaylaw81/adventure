@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { adventures } from '@/lib/schema'
 import { getAdventureWithData } from '@/lib/queries'
 import { requireOwner } from '@/lib/requireOwner'
+import { revalidateExploreStories } from '@/lib/exploreData'
 import { eq } from 'drizzle-orm'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -45,6 +46,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       .where(eq(adventures.id, id))
       .returning()
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (updated.isPublic) revalidateExploreStories()
     return NextResponse.json(updated)
   } catch (e) {
     return NextResponse.json({ error: 'Failed to update adventure' }, { status: 500 })
@@ -58,6 +60,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     if (owned.error) return owned.error
 
     await db.delete(adventures).where(eq(adventures.id, id))
+    revalidateExploreStories()
     return NextResponse.json({ success: true })
   } catch (e) {
     return NextResponse.json({ error: 'Failed to delete adventure' }, { status: 500 })

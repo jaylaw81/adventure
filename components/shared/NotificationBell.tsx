@@ -12,7 +12,7 @@ interface NotificationItem {
   createdAt: string
 }
 
-const POLL_MS = 30_000
+const POLL_MS = 120_000
 
 function formatRelative(dateStr: string): string {
   const ms = Date.now() - new Date(dateStr).getTime()
@@ -46,8 +46,22 @@ export default function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications()
-    const interval = setInterval(fetchNotifications, POLL_MS)
-    return () => clearInterval(interval)
+
+    // Only poll while the tab is actually visible — a backgrounded tab left open
+    // otherwise keeps the DB compute from ever suspending.
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchNotifications()
+    }, POLL_MS)
+
+    const onVisibility = () => {
+      if (!document.hidden) fetchNotifications()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
   }, [])
 
   useEffect(() => {

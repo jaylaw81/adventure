@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { adventures, organizationMembers, organizations } from '@/lib/schema'
 import { canHavePrivateStories } from '@/lib/subscription'
 import { generateUniqueSlug } from '@/lib/ensureStorySlug'
+import { revalidateExploreStories } from '@/lib/exploreData'
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -51,6 +52,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       .where(eq(adventures.id, id))
       .returning()
 
+    revalidateExploreStories()
     return NextResponse.json(updated)
   } catch (e) {
     return NextResponse.json({ error: 'Failed to enable sharing' }, { status: 500 })
@@ -76,6 +78,7 @@ export async function PATCH(_req: Request, { params }: { params: Promise<{ id: s
       .where(eq(adventures.id, id))
       .returning()
 
+    revalidateExploreStories()
     return NextResponse.json(updated)
   } catch {
     return NextResponse.json({ error: 'Failed to move to draft' }, { status: 500 })
@@ -109,6 +112,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
       .where(eq(adventures.id, id))
       .returning()
 
+    revalidateExploreStories()
     return NextResponse.json(updated)
   } catch (e) {
     return NextResponse.json({ error: 'Failed to disable sharing' }, { status: 500 })

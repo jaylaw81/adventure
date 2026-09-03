@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from 'react'
 import { getGlobalMuted, setGlobalMuted, onGlobalMuteChange } from '@/lib/globalMute'
 import { analytics } from '@/lib/analytics'
 import NotificationBell from './NotificationBell'
+import { fetchOrgMe } from '@/lib/orgMeClient'
 
 interface OrgMembership {
   orgName: string
@@ -54,11 +55,10 @@ export default function Header() {
 
   useEffect(() => {
     if (!session?.user?.email || session.user.tier === 'organization') return
-    fetch('/api/org/me')
-      .then(r => r.json())
-      .then(data => { if (data?.orgName) setOrgMembership(data) })
+    fetchOrgMe()
+      .then(data => { if (data?.orgName) setOrgMembership(data as OrgMembership) })
       .catch(() => {})
-  }, [session])
+  }, [session?.user?.email, session?.user?.tier])
 
   useEffect(() => {
     function handler(e: MouseEvent) {

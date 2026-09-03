@@ -7,6 +7,10 @@ import { tagToSlug } from '@/lib/tags'
 
 const SITE_URL = 'https://www.storyquestor.com'
 
+// Regenerate at most once an hour — crawlers hit this often and it runs several
+// DB queries. An hour-stale sitemap has no practical downside.
+export const revalidate = 3600
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     {

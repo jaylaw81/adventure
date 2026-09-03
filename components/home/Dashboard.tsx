@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import AdventureCard from '@/components/shared/AdventureCard'
 import PageBanner from '@/components/shared/PageBanner'
 import type { AdventureWithCounts } from '@/lib/queries'
+import { fetchOrgMe } from '@/lib/orgMeClient'
 
 export default function Dashboard() {
   const { data: session } = useSession()
@@ -29,7 +30,7 @@ export default function Dashboard() {
   useEffect(() => {
     Promise.all([
       fetch('/api/adventures').then(r => r.json()),
-      fetch('/api/org/me').then(r => r.json()),
+      fetchOrgMe(),
     ]).then(([data, orgData]) => {
       setAdventures(data)
       const canPublish = !(orgData?.orgPrivacyLevel && orgData.orgPrivacyLevel !== 'public')

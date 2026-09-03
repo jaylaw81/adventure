@@ -8,6 +8,7 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ## 2026-09-02
 
+- **More accurate story read counts**: Reads from search-engine crawlers, social-media link scrapers, and AI bots are no longer counted toward a story's read total or its referrer analytics, so the numbers authors see reflect real readers. Existing totals aren't restated — the change applies going forward.
 - **WebMCP browser-agent tools**: StoryQuestor now exposes a set of WebMCP tools (via the browser's `navigator.modelContext` API, supported in Edge 147+ and Chrome's origin trial) so an in-browser AI agent can work with the site on the user's behalf. Anyone gets discovery tools — search the public library, look up a story's details, list genres. Signed-in authors also get authoring tools — list their stories, create a story, read its scene graph, add and edit scenes, link scenes with choices, run pre-publish validation, publish or unpublish, and pull read analytics. Every tool runs as the logged-in user and goes through the same API and permission checks as the normal UI; publish/unpublish and other account actions ask for confirmation first. Browsers without WebMCP are unaffected.
 
 ## 2026-08-30
