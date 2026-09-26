@@ -57,11 +57,23 @@ export async function POST(req: Request) {
             subscriptionStatus: 'active',
             subscriptionAmountCents: amountCents,
             subscriptionInterval: interval,
+            // Paying ends any free trial immediately
+            trialEndsAt: new Date(),
             ...(pendingWeeksUsed > 0
               ? { pendingFriendRewardWeeks: sql`GREATEST(0, pending_friend_reward_weeks - ${pendingWeeksUsed})` }
               : {}),
           })
           .where(eq(users.email, email))
+
+        // Banked friend-reward weeks become a balance credit (same value as rewardInviter
+        // gives active subscribers) rather than free trial time
+        if (pendingWeeksUsed > 0 && amountCents) {
+          await stripe.customers.createBalanceTransaction(customerId, {
+            amount: -(amountCents * pendingWeeksUsed),
+            currency: 'usd',
+            description: `Friend invite rewards — ${pendingWeeksUsed} free week${pendingWeeksUsed > 1 ? 's' : ''}`,
+          })
+        }
 
         // If this new subscriber came from a friend invite, reward the inviter
         if (user?.invitedByToken) {

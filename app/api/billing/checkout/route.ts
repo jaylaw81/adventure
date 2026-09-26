@@ -39,8 +39,9 @@ export async function POST(req: Request) {
       .from(users)
       .where(eq(users.email, email))
 
+    // Subscribing charges immediately — no Stripe trial. Banked friend-reward weeks
+    // are converted to a customer balance credit by the webhook once checkout completes.
     const pendingWeeks = user?.pendingFriendRewardWeeks ?? 0
-    const trialDays = (pricing.trialDays ?? 0) + (pendingWeeks * 7)
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -58,7 +59,6 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
-      ...(trialDays > 0 ? { subscription_data: { trial_period_days: trialDays } } : {}),
       metadata: {
         email,
         pendingFriendRewardWeeks: String(pendingWeeks),

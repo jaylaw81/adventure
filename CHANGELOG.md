@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-09-26
+
+- **Subscribing now starts your paid membership immediately**: Choosing a plan charges you right away and moves you straight into a paying member — there is no second trial period at checkout, and any free trial you had ends as soon as you subscribe. Free weeks earned from friend invites now arrive as account credit applied to your bill instead of extra trial days.
+
 ## 2026-09-02
 
 - **More accurate story read counts**: Reads from search-engine crawlers, social-media link scrapers, and AI bots are no longer counted toward a story's read total or its referrer analytics, so the numbers authors see reflect real readers. Existing totals aren't restated — the change applies going forward.
