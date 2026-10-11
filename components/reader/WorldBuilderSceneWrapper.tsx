@@ -1399,17 +1399,23 @@ export default function WorldBuilderSceneWrapper({
     )
   }
 
+  // No heroes: same dark shell (scene content uses light-on-dark text), just no sidebar
   if (!showSidebar) {
     return (
-      <>
-        {children}
-        {foeSection}
-        {itemSection}
-        {choicesReady && !isChapterEnd && !isEnding && visibleChoices.length > 0 && (
-          <ChoiceList choices={visibleChoices} allCount={choices.length} onChoose={handleChoice} />
-        )}
-        {footer}
-      </>
+      <div
+        className="min-h-screen"
+        style={{ background: 'linear-gradient(135deg, #3d0d7e 0%, #1e1040 60%, #0f172a 100%)' }}
+      >
+        <div className="max-w-2xl mx-auto px-4 py-10">
+          {children}
+          {foeSection}
+          {itemSection}
+          {choicesReady && !isChapterEnd && !isEnding && (
+            <ChoiceList choices={visibleChoices} allCount={choices.length} onChoose={handleChoice} />
+          )}
+          {footer}
+        </div>
+      </div>
     )
   }
 
