@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { X, GitBranch, Layers, Swords, MapPin, Globe, Link2, Copy, Check as CheckIcon, RefreshCw, BookImage, Sparkles } from 'lucide-react'
+import { X, GitBranch, Layers, Swords, MapPin, Globe, Link2, Copy, Check as CheckIcon, RefreshCw, BookImage, Sparkles, Download } from 'lucide-react'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { analytics } from '@/lib/analytics'
 import { STORY_TAGS } from '@/lib/tags'
@@ -54,6 +54,8 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
   const [generatingSlug, setGeneratingSlug] = useState(false)
   const [slugCopied, setSlugCopied] = useState(false)
   const [slugError, setSlugError] = useState('')
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<'upgrade' | 'failed' | null>(null)
 
   async function handleGenerateCover(isRegen: boolean) {
     setGeneratingCover(true)
@@ -119,6 +121,27 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
     await navigator.clipboard.writeText(`https://www.storyquestor.com/story/${slug}`)
     setSlugCopied(true)
     setTimeout(() => setSlugCopied(false), 2000)
+  }
+
+  const handleExportTwine = async () => {
+    setExporting(true)
+    setExportError(null)
+    try {
+      const res = await fetch(`/api/adventures/${adventure.id}/export/twine`)
+      if (res.status === 402) { setExportError('upgrade'); return }
+      if (!res.ok) throw new Error('Export failed')
+      const filename = res.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] ?? 'story-twine.html'
+      const url = URL.createObjectURL(await res.blob())
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      setExportError('failed')
+    } finally {
+      setExporting(false)
+    }
   }
 
   const originalStoryType = (adventure as { storyType?: string | null }).storyType === 'world' ? 'world' : 'path'
@@ -420,6 +443,33 @@ export default function AdventureSettingsModal({ adventure, onClose, onSave }: P
             {slugError && <p className="text-xs text-red-500">{slugError}</p>}
           </div>
         )}
+
+        {/* Export to Twine — paid plans; the API returns 402 for free accounts */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+            <Download size={14} className="text-gray-400" />
+            Export to Twine
+          </label>
+          <button
+            type="button"
+            onClick={handleExportTwine}
+            disabled={exporting}
+            className="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 w-fit"
+          >
+            <Download size={12} />
+            {exporting ? 'Preparing…' : 'Download Twine file'}
+          </button>
+          <p className="text-xs text-gray-400">
+            Saves your scenes and choices as a Twine 2 story. In Twine, choose Library → Import to open it.
+            {storyType === 'world' && !isStorybook && ' Character stats and choice conditions aren’t included.'}
+          </p>
+          {exportError === 'upgrade' && (
+            <p className="text-xs text-amber-600">
+              Exporting to Twine is available on paid plans. <a href="/pricing" className="underline font-medium">See plans</a>
+            </p>
+          )}
+          {exportError === 'failed' && <p className="text-xs text-red-500">Couldn&apos;t export this story. Please try again.</p>}
+        </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 

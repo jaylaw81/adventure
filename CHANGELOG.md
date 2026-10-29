@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-10-29
+
+- **Export to Twine**: Paid members can download any of their stories as a Twine 2 file from Story Settings and open it in Twine with Library → Import. Scenes become passages, choices become links, chapters become passage tags, scene images come along, and Node Graph stories keep their map layout. World Builder stats, items, foes and sounds aren't included.
+
 ## 2026-09-26
 
 - **Subscribing now starts your paid membership immediately**: Choosing a plan charges you right away and moves you straight into a paying member — there is no second trial period at checkout, and any free trial you had ends as soon as you subscribe. Free weeks earned from friend invites now arrive as account credit applied to your bill instead of extra trial days.
