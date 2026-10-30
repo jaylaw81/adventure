@@ -74,6 +74,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
     {
+      url: `${SITE_URL}/guide/export-to-twine`,
+      lastModified: new Date('2026-10-30'),
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
       url: `${SITE_URL}/resources`,
       lastModified: new Date('2026-08-22'),
       changeFrequency: 'weekly',

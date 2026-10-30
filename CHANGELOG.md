@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-10-30
+
+- **Twine export guide and pricing**: A new guide walks through exporting a story to Twine and what carries over, and the pricing table now lists Twine export as included in the Weekly and Monthly plans.
+
 ## 2026-10-29
 
 - **Export to Twine**: Paid members can download any of their stories as a Twine 2 file from Story Settings and open it in Twine with Library → Import. Scenes become passages, choices become links, chapters become passage tags, scene images come along, and Node Graph stories keep their map layout. World Builder stats, items, foes and sounds aren't included.

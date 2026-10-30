@@ -6,7 +6,7 @@ import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import { getPricingConfig, formatCents } from '@/lib/pricing'
 import Link from 'next/link'
-import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock, Sword, Users, BarChart2, Link2 } from 'lucide-react'
+import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock, Sword, Users, BarChart2, Link2, Download } from 'lucide-react'
 
 const SITE_URL = 'https://www.storyquestor.com'
 
@@ -31,6 +31,7 @@ const FEATURES: {
   { label: 'Private stories',                   icon: Lock,     free: false, weekly: true,  monthly: true  },
   { label: 'Tags & audience controls',          icon: Tag,      free: false, weekly: true,  monthly: true  },
   { label: 'Story ratings & reviews',           icon: Star,     free: true,  weekly: true,  monthly: true  },
+  { label: 'Export to Twine',                   icon: Download, free: false, weekly: true,  monthly: true  },
   { label: 'Scene image generation',            icon: Sparkles,   free: false, weekly: false, monthly: true  },
   { label: 'Character portraits',               icon: Sparkles,   free: false, weekly: false, monthly: true  },
   { label: 'Scene soundscapes',                 icon: Music,      free: false, weekly: false, monthly: true  },
@@ -39,7 +40,7 @@ const FEATURES: {
 ]
 
 // Index after which the "monthly-only" features start
-const PREMIUM_START = 8
+const PREMIUM_START = 9
 
 export default async function PricingPage() {
   const [session, pricing] = await Promise.all([

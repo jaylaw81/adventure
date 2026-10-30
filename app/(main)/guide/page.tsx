@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { BookOpen, ArrowRight, GitBranch, Split, Flag, Layers, Drama, Pencil } from 'lucide-react'
+import { BookOpen, ArrowRight, GitBranch, Split, Flag, Layers, Drama, Pencil, Download } from 'lucide-react'
 import JsonLd from '@/components/JsonLd'
 
 const SITE_URL = 'https://www.storyquestor.com'
@@ -60,6 +60,13 @@ const GUIDE_ENTRIES: GuideEntry[] = [
     title: 'Interactive Fiction Genres',
     description: 'How branching structure interacts with genre conventions — from horror and mystery to romance and epic fantasy.',
     icon: Drama,
+    live: true,
+  },
+  {
+    slug: 'export-to-twine',
+    title: 'How to Export Your Story to Twine',
+    description: 'Download a StoryQuestor story as a Twine 2 file, import it into Twine, and know exactly what carries over.',
+    icon: Download,
     live: true,
   },
 ]
