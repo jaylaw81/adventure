@@ -8,10 +8,10 @@ const SITE_URL = 'https://www.storyquestor.com'
 const PAGE_URL = `${SITE_URL}/guide/what-is-interactive-fiction`
 
 export const metadata: Metadata = {
-  title: { absolute: 'What Is Interactive Fiction? A Complete Guide | StoryQuestor' },
-  description: 'What interactive fiction is, how it differs from novels and video games, and the major forms it takes — from gamebooks to text adventures to modern branching apps.',
+  title: { absolute: 'What Is Interactive Fiction? Meaning, Definition & Examples | StoryQuestor' },
+  description: 'Interactive fiction meaning and definition: stories where the reader makes choices that change what happens. See how it differs from novels and games, with examples of every major form.',
   keywords: [
-    'interactive fiction', 'what is interactive fiction', 'branching stories',
+    'interactive fiction', 'what is interactive fiction', 'interactive fiction meaning', 'interactive fiction definition', 'branching stories',
     'choose your own adventure', 'text adventure', 'gamebook', 'visual novel',
   ],
   alternates: { canonical: PAGE_URL },
@@ -85,7 +85,7 @@ export default function WhatIsInteractiveFictionPage() {
     description: 'What interactive fiction is, how it differs from novels and video games, and the major forms it takes.',
     url: PAGE_URL,
     datePublished: '2026-08-22',
-    dateModified: '2026-08-22',
+    dateModified: '2026-11-01',
     author: { '@type': 'Organization', name: 'StoryQuestor', url: SITE_URL },
     publisher: {
       '@type': 'Organization', name: 'StoryQuestor', url: SITE_URL,
@@ -280,10 +280,10 @@ export default function WhatIsInteractiveFictionPage() {
                 tag: 'Resources',
               },
               {
-                href: '/how-to',
-                title: 'How to Use StoryQuestor',
-                description: 'A hands-on walkthrough of building your first branching story on the StoryQuestor canvas.',
-                tag: 'Product Guide',
+                href: '/interactive-story-maker',
+                title: 'Make Your Own Interactive Story',
+                description: 'Write interactive fiction on a visual canvas, with images, sound and RPG stats, and share it free.',
+                tag: 'Tool',
               },
             ]}
           />

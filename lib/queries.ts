@@ -90,6 +90,7 @@ export async function getPublicAdventures() {
       audience: adventures.audience,
       tags: adventures.tags,
       shareToken: adventures.shareToken,
+      storySlug: adventures.storySlug,
       createdAt: adventures.createdAt,
       updatedAt: adventures.updatedAt,
     })
@@ -174,6 +175,32 @@ export async function getChapterStartNode(adventureId: string, chapterId: string
 export async function getChapter(chapterId: string) {
   const [chapter] = await db.select().from(chapters).where(eq(chapters.id, chapterId))
   return chapter ?? null
+}
+
+/** Public story landing page stats: scene and ending counts plus the visible review average. */
+export async function getStoryLandingStats(adventureId: string) {
+  const [[counts], [reviews]] = await Promise.all([
+    db
+      .select({
+        scenes: sql<number>`count(*)::int`,
+        endings: sql<number>`count(*) filter (where ${nodes.nodeType} = 'ending')::int`,
+      })
+      .from(nodes)
+      .where(eq(nodes.adventureId, adventureId)),
+    db
+      .select({
+        count: sql<number>`count(*)::int`,
+        average: sql<number | null>`avg(${storyReviews.rating})::float`,
+      })
+      .from(storyReviews)
+      .where(and(eq(storyReviews.adventureId, adventureId), eq(storyReviews.hidden, false))),
+  ])
+  return {
+    scenes: counts?.scenes ?? 0,
+    endings: counts?.endings ?? 0,
+    reviewCount: reviews?.count ?? 0,
+    reviewAverage: reviews?.average ?? null,
+  }
 }
 
 export async function getStartNode(adventureId: string) {

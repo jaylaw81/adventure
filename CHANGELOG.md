@@ -14,6 +14,9 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 - **Write your own story prompt**: Signed-out readers who reach a story ending now get an invitation to write their own branching story for free.
 - **Subscription emails**: Creators now get a helpful email after writing their free story, a reminder if they leave checkout unfinished, a heads-up when a renewal payment fails, and a note when a subscription ends asking what we could do better.
 - **Promotion codes at checkout**: Checkout now accepts promotion codes.
+- **Richer story pages**: Each public story now lives at its readable /story/ link and shows how the story begins, how many scenes and endings it has, and its review rating.
+- **New guides for getting started**: New pages explain how to make a choose your own adventure, build an interactive story, plan a branching plot, use StoryQuestor as a Twine alternative, and bring interactive fiction to the classroom, all linked from the site footer.
+- **Links in blog posts**: Blog posts can now link to guides and other pages, and every post links to the writing guides.
 
 ## 2026-10-30
 

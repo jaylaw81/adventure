@@ -203,7 +203,7 @@ export default function HowToCreateMeaningfulChoicesPage() {
               { href: '/guide/how-to-write-branching-stories', title: 'How to Write Branching Stories', description: 'A step-by-step approach to planning and drafting a branching story from premise to first draft.', tag: 'Guide' },
               { href: '/guide/how-to-write-multiple-endings', title: 'How to Write Multiple Endings', description: 'Designing endings that all feel earned, so exploring never feels like a punishment.', tag: 'Guide' },
               { href: '/guide/branching-story-structure', title: 'Branching Story Structure Explained', description: 'Diamonds, hubs, and gauntlets — the structural patterns branching stories are built from.', tag: 'Guide' },
-              { href: '/how-to', title: 'How to Use StoryQuestor', description: 'A hands-on walkthrough of building choices, stat effects, and conditions on the canvas.', tag: 'Product Guide' },
+              { href: '/choose-your-own-adventure-maker', title: 'Choose Your Own Adventure Maker', description: 'Put these techniques to work: build and share a branching adventure free.', tag: 'Tool' },
             ]}
           />
         </div>

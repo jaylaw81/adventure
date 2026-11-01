@@ -8,9 +8,9 @@ const SITE_URL = 'https://www.storyquestor.com'
 const PAGE_URL = `${SITE_URL}/guide/how-to-write-branching-stories`
 
 export const metadata: Metadata = {
-  title: { absolute: 'How to Write Branching Stories | StoryQuestor' },
-  description: 'A practical, step-by-step approach to planning and drafting a branching story — from premise to node map to first draft — without losing track of your own plot.',
-  keywords: ['how to write a branching story', 'interactive fiction writing', 'branching narrative', 'choose your own adventure writing tips'],
+  title: { absolute: 'How to Write Branching Stories: A Step-by-Step Guide | StoryQuestor' },
+  description: 'How to write branching stories step by step: plan your premise, map the branching paths, draft one route fully, then branch — without losing track of your plot.',
+  keywords: ['branching stories', 'branching story', 'how to write a branching story', 'branching narrative', 'narrative branching paths', 'choose your own adventure writing tips'],
   alternates: { canonical: PAGE_URL },
   openGraph: {
     title: 'How to Write Branching Stories',
@@ -35,6 +35,14 @@ const PITFALLS = [
   { title: 'Forgetting what the reader knows', body: 'On a converging path, readers arrive from different histories. Reference earlier events carefully — vaguely enough to work from any incoming path, specifically enough to still feel earned.' },
 ]
 
+const FAQS = [
+  { q: 'What is a branching story?', a: 'A branching story is a story where the reader makes choices at key moments, and each choice leads down a different path to different scenes and endings. Choose your own adventure books, interactive fiction and many narrative games are branching stories.' },
+  { q: 'What is the difference between a branching narrative and a linear one?', a: 'A linear narrative has one sequence of events that every reader experiences. A branching narrative has several possible sequences: the paths split at decision points, sometimes rejoin later, and end in different places depending on what the reader chose.' },
+  { q: 'How do you keep branching paths from getting out of control?', a: 'Limit real decision points to a handful, bring some paths back together (convergence), and draft one complete path before writing the alternatives. Two choices in every scene doubles your workload at each level, so most good branching stories branch less often than you would expect.' },
+  { q: 'How many endings should a branching story have?', a: 'Three to five distinct endings is a good target for a first branching story. That is enough for choices to feel consequential without spreading your writing too thin.' },
+  { q: 'What is the best way to plan a branching story?', a: 'Plan visually. A map of scenes connected by choices shows where paths split, rejoin and end far more clearly than a written outline, and makes dead ends easy to spot.' },
+]
+
 export default function HowToWriteBranchingStoriesPage() {
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -43,7 +51,7 @@ export default function HowToWriteBranchingStoriesPage() {
     description: 'A practical, step-by-step approach to planning and drafting a branching story without losing track of your own plot.',
     url: PAGE_URL,
     datePublished: '2026-08-22',
-    dateModified: '2026-08-22',
+    dateModified: '2026-11-01',
     author: { '@type': 'Organization', name: 'StoryQuestor', url: SITE_URL },
     publisher: { '@type': 'Organization', name: 'StoryQuestor', url: SITE_URL, logo: { '@type': 'ImageObject', url: `${SITE_URL}/icon.png` } },
     mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
@@ -71,11 +79,18 @@ export default function HowToWriteBranchingStoriesPage() {
     ],
   }
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  }
+
   return (
     <div className="flex flex-col">
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
       <JsonLd data={howToSchema} />
+      <JsonLd data={faqSchema} />
 
       {/* ── Hero ── */}
       <section className="relative overflow-hidden px-6 pt-36 pb-16 -mt-16 text-center"
@@ -213,6 +228,27 @@ export default function HowToWriteBranchingStoriesPage() {
           <Lightbulb size={20} className="text-amber-500 shrink-0 mt-1" />
           <p className="text-sm text-gray-600 leading-relaxed">
             <strong className="text-gray-900">One more thing:</strong> plan your endings early, even before you&apos;ve written every branch. Knowing where each major path is <em>headed</em> keeps every scene along the way purposeful. See <Link href="/guide/how-to-write-multiple-endings" className="text-amber-700 underline underline-offset-2 font-medium">how to write multiple endings</Link> for the craft behind landing each one.
+          </p>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="px-6 py-20 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-xs font-semibold uppercase tracking-widest text-amber-600 mb-3">FAQ</p>
+          <h2 id="faq" className="text-3xl font-extrabold mb-8" style={{ color: '#1e0a3c' }}>
+            Branching Stories: Common Questions
+          </h2>
+          <div className="flex flex-col gap-6">
+            {FAQS.map(f => (
+              <div key={f.q}>
+                <h3 className="text-base font-bold mb-1.5" style={{ color: '#1e0a3c' }}>{f.q}</h3>
+                <p className="text-gray-600 leading-relaxed">{f.a}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 text-gray-600 leading-relaxed">
+            Ready to try it? Map your paths with the <Link href="/branching-story-planner" className="text-amber-700 underline underline-offset-2 font-medium">branching story planner</Link>, or jump straight into the <Link href="/choose-your-own-adventure-maker" className="text-amber-700 underline underline-offset-2 font-medium">choose your own adventure maker</Link>.
           </p>
         </div>
       </section>

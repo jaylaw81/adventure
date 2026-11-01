@@ -197,7 +197,7 @@ export default function BranchingStoryStructurePage() {
               { href: '/guide/how-to-write-branching-stories', title: 'How to Write Branching Stories', description: 'A step-by-step approach to planning and drafting a branching story from premise to first draft.', tag: 'Guide' },
               { href: '/guide/how-to-create-meaningful-choices', title: 'How to Create Meaningful Choices', description: 'The craft techniques that make a branch feel weighty instead of decorative.', tag: 'Guide' },
               { href: '/guide/how-to-write-multiple-endings', title: 'How to Write Multiple Endings', description: 'Designing endings that all feel earned, however the reader arrives.', tag: 'Guide' },
-              { href: '/guide/what-is-interactive-fiction', title: 'What Is Interactive Fiction?', description: 'A complete introduction to the medium and how branching actually works under the hood.', tag: 'Guide' },
+              { href: '/branching-story-planner', title: 'Branching Story Planner', description: 'Lay out your structure on a visual map before you write a scene.', tag: 'Tool' },
             ]}
           />
         </div>

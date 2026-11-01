@@ -13,6 +13,16 @@ const LINK_COLUMNS = [
     ],
   },
   {
+    label: 'Create',
+    links: [
+      { href: '/choose-your-own-adventure-maker', label: 'CYOA maker' },
+      { href: '/interactive-story-maker', label: 'Interactive story maker' },
+      { href: '/branching-story-planner', label: 'Story planner' },
+      { href: '/twine-alternative', label: 'Twine alternative' },
+      { href: '/interactive-fiction-for-teachers', label: 'For teachers' },
+    ],
+  },
+  {
     label: 'Learn',
     links: [
       { href: '/guide', label: 'Writing guide' },
@@ -66,7 +76,7 @@ export default function Footer() {
           </div>
 
           {/* Link columns */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 flex-1">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-8 flex-1">
             {LINK_COLUMNS.map(col => (
               <div key={col.label}>
                 <p className="text-xs font-semibold mb-3" style={{ color: '#374151' }}>

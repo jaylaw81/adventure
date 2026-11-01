@@ -13,6 +13,29 @@ const SITE_URL = 'https://www.storyquestor.com'
 
 export const revalidate = 300
 
+const INLINE_LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g
+
+/** Renders markdown-style [label](href) links in plain-text blog copy. Other text is left as-is. */
+function withLinks(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = []
+  let last = 0
+  for (const m of text.matchAll(INLINE_LINK)) {
+    const [whole, label, rawHref] = m
+    const start = m.index ?? 0
+    const href = rawHref.replace(/^https:\/\/www\.storyquestor\.com/, '') || '/'
+    const internal = href.startsWith('/') && !href.startsWith('//')
+    if (!internal && !/^https?:\/\//.test(href)) continue // ignore javascript:, mailto:, etc.
+    parts.push(text.slice(last, start))
+    parts.push(internal
+      ? <Link key={start} href={href} className="text-violet-700 underline underline-offset-2 font-medium hover:text-violet-900">{label}</Link>
+      : <a key={start} href={href} target="_blank" rel="noopener noreferrer" className="text-violet-700 underline underline-offset-2 font-medium hover:text-violet-900">{label}</a>)
+    last = start + whole.length
+  }
+  if (last === 0) return text
+  parts.push(text.slice(last))
+  return parts
+}
+
 const CATEGORY_PILL: Record<BlogCategory, string> = {
   'Writing Tips':        'bg-violet-100 text-violet-800',
   'Interactive Fiction': 'bg-blue-100 text-blue-800',
@@ -200,7 +223,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             className="text-gray-800 leading-[1.85] mb-8"
             style={{ fontSize: '1.125rem', textWrap: 'pretty' } as React.CSSProperties}
           >
-            {post.intro}
+            {withLinks(post.intro)}
           </p>
 
           <hr className="border-violet-200/60 mb-10" />
@@ -242,7 +265,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                       className="text-gray-700 leading-[1.85] mb-4"
                       style={{ fontSize: '1.0625rem', textWrap: 'pretty' } as React.CSSProperties}
                     >
-                      {p}
+                      {withLinks(p)}
                     </p>
                     {(imagesByPosition[j] ?? []).map((img, k) => (
                       <InlineImage key={`${j}-${k}`} img={img} />
@@ -263,7 +286,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                         <div className="text-[1.0125rem] leading-relaxed">
                           <span className="font-semibold text-gray-900">{li.item}</span>
                           {li.detail && (
-                            <span className="text-gray-500"> — {li.detail}</span>
+                            <span className="text-gray-500"> — {withLinks(li.detail)}</span>
                           )}
                         </div>
                       </li>
@@ -288,13 +311,21 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 <p className="text-violet-800/60 text-sm leading-relaxed mb-4">
                   StoryQuestor gives you a free visual canvas to build interactive fiction with branching paths, character stats, and scene images.
                 </p>
-                <Link
-                  href="/sign-up"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white hover:brightness-110 transition-all"
-                  style={{ background: 'oklch(50% 0.27 285)' }}
-                >
-                  Try it free <ArrowRight size={12} />
-                </Link>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <Link
+                    href="/sign-up"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold text-white hover:brightness-110 transition-all"
+                    style={{ background: 'oklch(50% 0.27 285)' }}
+                  >
+                    Try it free <ArrowRight size={12} />
+                  </Link>
+                  <Link href="/choose-your-own-adventure-maker" className="text-xs font-semibold text-violet-800 hover:text-violet-950 underline underline-offset-2">
+                    How the story maker works
+                  </Link>
+                  <Link href="/guide" className="text-xs font-semibold text-violet-800 hover:text-violet-950 underline underline-offset-2">
+                    Writing guides
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

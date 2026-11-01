@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { inArray } from 'drizzle-orm'
+import { inArray, or } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures } from '@/lib/schema'
-import { isGSCConfigured, getTopStoryPages, adventureIdFromUrl } from '@/lib/gsc-data'
+import { isGSCConfigured, getTopStoryPages, adventureIdFromUrl, storySlugFromUrl } from '@/lib/gsc-data'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -17,25 +17,28 @@ export async function GET() {
   try {
     const pages = await getTopStoryPages(25)
 
-    // Resolve adventure IDs → titles in one batch query
-    const idMap = new Map<string, string>() // adventureId → page URL
-    for (const p of pages) {
-      const id = adventureIdFromUrl(p.page)
-      if (id && !idMap.has(id)) idMap.set(id, p.page)
-    }
-
-    const ids = [...idMap.keys()]
+    // Resolve /play/{id} and /story/{slug} pages → adventure IDs and titles in one batch query
+    const ids = [...new Set(pages.map(p => adventureIdFromUrl(p.page)).filter((x): x is string => !!x))]
+    const slugs = [...new Set(pages.map(p => storySlugFromUrl(p.page)).filter((x): x is string => !!x))]
     const titleMap = new Map<string, string>()
-    if (ids.length > 0) {
+    const slugToId = new Map<string, string>()
+    if (ids.length > 0 || slugs.length > 0) {
       const rows = await db
-        .select({ id: adventures.id, title: adventures.title })
+        .select({ id: adventures.id, title: adventures.title, storySlug: adventures.storySlug })
         .from(adventures)
-        .where(inArray(adventures.id, ids))
-      for (const r of rows) titleMap.set(r.id, r.title)
+        .where(or(
+          ids.length > 0 ? inArray(adventures.id, ids) : undefined,
+          slugs.length > 0 ? inArray(adventures.storySlug, slugs) : undefined,
+        ))
+      for (const r of rows) {
+        titleMap.set(r.id, r.title)
+        if (r.storySlug) slugToId.set(r.storySlug, r.id)
+      }
     }
 
     const enriched = pages.map(p => {
-      const id = adventureIdFromUrl(p.page)
+      const slug = storySlugFromUrl(p.page)
+      const id = adventureIdFromUrl(p.page) ?? (slug ? slugToId.get(slug) ?? null : null)
       return {
         ...p,
         adventureId: id ?? null,

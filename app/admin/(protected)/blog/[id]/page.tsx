@@ -744,6 +744,9 @@ export default function BlogEditorPage() {
         <textarea className={textareaCls} rows={5} value={form.intro}
           onChange={e => set('intro', e.target.value)}
           placeholder="Opening paragraph shown at the top of the article…" />
+        <p className="text-xs text-gray-400 mt-2">
+          Add links anywhere in the intro, paragraphs or list details with <code className="font-mono text-gray-500">[link text](/guide/how-to-write-branching-stories)</code>.
+        </p>
       </div>
 
       {/* Sections */}

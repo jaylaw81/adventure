@@ -80,6 +80,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     {
+      url: `${SITE_URL}/choose-your-own-adventure-maker`,
+      lastModified: new Date('2026-11-01'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/interactive-story-maker`,
+      lastModified: new Date('2026-11-01'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/branching-story-planner`,
+      lastModified: new Date('2026-11-01'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/twine-alternative`,
+      lastModified: new Date('2026-11-01'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/interactive-fiction-for-teachers`,
+      lastModified: new Date('2026-11-01'),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
       url: `${SITE_URL}/resources`,
       lastModified: new Date('2026-08-22'),
       changeFrequency: 'weekly',
@@ -145,7 +175,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ])
 
   const storyPages: MetadataRoute.Sitemap = stories.map(story => ({
-    url: `${SITE_URL}/play/${story.id}`,
+    url: story.storySlug ? `${SITE_URL}/story/${story.storySlug}` : `${SITE_URL}/play/${story.id}`,
     lastModified: new Date(story.updatedAt ?? story.createdAt),
     changeFrequency: 'weekly',
     priority: 0.8,

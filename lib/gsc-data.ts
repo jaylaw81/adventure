@@ -83,8 +83,8 @@ export async function getTopStoryPages(limit = 25): Promise<GSCPageRow[]> {
     dimensionFilterGroups: [{
       filters: [{
         dimension: 'page',
-        operator: 'contains',
-        expression: '/play/',
+        operator: 'includingRegex',
+        expression: '/(play|story)/',
       } satisfies DimensionFilter],
     }],
     orderby: [{ fieldName: 'impressions', sortOrder: 'DESCENDING' }],
@@ -101,7 +101,7 @@ export async function getTopStoryPages(limit = 25): Promise<GSCPageRow[]> {
 }
 
 // Top search queries bringing traffic to a specific story (last 90 days)
-export async function getStorySearchQueries(adventureId: string, limit = 15): Promise<GSCQueryRow[]> {
+export async function getStorySearchQueries(adventureId: string, storySlug: string | null, limit = 15): Promise<GSCQueryRow[]> {
   const end = new Date()
   const start = new Date(end.getTime() - 90 * 86_400_000)
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
@@ -113,8 +113,11 @@ export async function getStorySearchQueries(adventureId: string, limit = 15): Pr
     dimensionFilterGroups: [{
       filters: [{
         dimension: 'page',
-        operator: 'contains',
-        expression: `/play/${adventureId}`,
+        operator: 'includingRegex',
+        // Stories moved from /play/{id} to /story/{slug}; count both so history isn't lost
+        expression: storySlug
+          ? `/play/${adventureId}|/story/${storySlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`
+          : `/play/${adventureId}`,
       } satisfies DimensionFilter],
     }],
     orderby: [{ fieldName: 'impressions', sortOrder: 'DESCENDING' }],
@@ -128,6 +131,12 @@ export async function getStorySearchQueries(adventureId: string, limit = 15): Pr
     ctr: r.ctr,
     position: r.position,
   }))
+}
+
+// Extract a story slug from a /story/{slug} URL
+export function storySlugFromUrl(url: string): string | null {
+  const m = url.match(/\/story\/([^/?#]+)/)
+  return m ? decodeURIComponent(m[1]) : null
 }
 
 // Extract adventure ID from a /play/{id} or /play/{id}/{nodeId} URL
