@@ -2,7 +2,7 @@ import { db } from '@/lib/db'
 import { siteSettings } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 
-export type BillingInterval = 'day' | 'week' | 'month'
+export type BillingInterval = 'day' | 'week' | 'month' | 'year'
 
 export type IntervalConfig = {
   interval: BillingInterval
@@ -23,6 +23,7 @@ export const DEFAULT_PRICING: PricingConfig = {
   intervals: [
     { interval: 'week',  enabled: true,  priceCents: 200 },
     { interval: 'month', enabled: true,  priceCents: 800 },
+    { interval: 'year',  enabled: true,  priceCents: 8000 },
   ],
   trialDays: 0,
 }
@@ -33,9 +34,9 @@ export function formatCents(cents: number): string {
   return Number.isInteger(d) ? `$${d}` : `$${d.toFixed(2)}`
 }
 
-/** "day" → "Daily", "week" → "Weekly", "month" → "Monthly" */
+/** "day" → "Daily", "week" → "Weekly", "month" → "Monthly", "year" → "Yearly" */
 export function intervalLabel(i: BillingInterval): string {
-  return i === 'day' ? 'Daily' : i === 'week' ? 'Weekly' : 'Monthly'
+  return i === 'day' ? 'Daily' : i === 'week' ? 'Weekly' : i === 'month' ? 'Monthly' : 'Yearly'
 }
 
 /** Get the interval pre-selected on the subscribe page */

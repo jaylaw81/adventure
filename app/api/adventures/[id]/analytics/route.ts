@@ -4,13 +4,14 @@ import { eq, sql, desc, and, gte } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { adventures, storyReferrers } from '@/lib/schema'
+import { isPremiumInterval } from '@/lib/plans'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   // Monthly subscribers + admins only
-  const isMonthly = session.user.subscriptionInterval === 'month'
+  const isMonthly = isPremiumInterval(session.user.subscriptionInterval)
   const isAdmin = !!session.user.isAdmin
   if (!isMonthly && !isAdmin) {
     return NextResponse.json({ error: 'Analytics require a monthly subscription' }, { status: 403 })

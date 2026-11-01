@@ -6,6 +6,15 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-11-01
+
+- **Yearly plan**: Creators can now subscribe yearly for all Monthly features at a lower price, chosen from the Monthly card on the pricing and subscribe pages.
+- **Pricing page refresh**: The pricing page now shows live reading and story counts, a Questions section covering cancellation, what happens to your stories and payment security, and how much Monthly and Yearly save.
+- **Free story milestone**: Creators who reach the free plan's one-story limit now see a message about the story they wrote and what a plan unlocks, instead of the generic pricing page.
+- **Write your own story prompt**: Signed-out readers who reach a story ending now get an invitation to write their own branching story for free.
+- **Subscription emails**: Creators now get a helpful email after writing their free story, a reminder if they leave checkout unfinished, a heads-up when a renewal payment fails, and a note when a subscription ends asking what we could do better.
+- **Promotion codes at checkout**: Checkout now accepts promotion codes.
+
 ## 2026-10-30
 
 - **Twine export guide and pricing**: A new guide walks through exporting a story to Twine and what carries over, and the pricing table now lists Twine export as included in the Weekly and Monthly plans.

@@ -24,6 +24,9 @@ export const analytics = {
   sceneCopied: (adventureId: string) =>
     track('scene_copied', { adventure_id: adventureId }),
 
+  endingWriteCtaClicked: (adventureId: string) =>
+    track('ending_write_cta_clicked', { adventure_id: adventureId }),
+
   // --- Creator ---
   adventureCreated: (adventureTitle: string) =>
     track('adventure_created', { adventure_title: adventureTitle }),

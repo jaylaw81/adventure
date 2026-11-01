@@ -7,7 +7,7 @@ import { users } from '@/lib/schema'
 import type { BillingInterval } from '@/lib/pricing'
 
 // Normalize a subscription amount to a monthly-equivalent for MRR/ARR math and bucketing.
-const MONTHLY_MULTIPLIER: Record<BillingInterval, number> = { day: 30.44, week: 4.345, month: 1 }
+const MONTHLY_MULTIPLIER: Record<BillingInterval, number> = { day: 30.44, week: 4.345, month: 1, year: 1 / 12 }
 
 function toMonthlyCents(amountCents: number, interval: string | null): number {
   const mult = MONTHLY_MULTIPLIER[(interval as BillingInterval) ?? 'month'] ?? 1

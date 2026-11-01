@@ -10,6 +10,7 @@ import SoundPicker from './SoundPicker'
 import PhotoSourcePicker from './PhotoSourcePicker'
 import SceneItemsEditor from './WorldBuilder/SceneItemsEditor'
 import type { WBCharacter, WorldItem, SceneItemPickup } from '@/lib/worldBuilder'
+import { isPremiumInterval } from '@/lib/plans'
 
 interface Props {
   node: Node | null
@@ -30,7 +31,7 @@ interface Props {
 export default function NodeEditor({ node, adventureId, chapters, nodes, onClose, onUpdate, onDelete, onDirtyChange, externalSaveRef, storyType, worldItems = [], characters = [] }: Props) {
   const { data: session } = useSession()
   const isOrgTier = session?.user?.tier === 'organization'
-  const canUseMedia = isOrgTier || session?.user?.subscriptionInterval === 'month' || session?.user?.isAdmin || session?.user?.grandfathered
+  const canUseMedia = isOrgTier || isPremiumInterval(session?.user?.subscriptionInterval) || session?.user?.isAdmin || session?.user?.grandfathered
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')

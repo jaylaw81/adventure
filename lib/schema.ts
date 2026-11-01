@@ -21,13 +21,15 @@ export const users = pgTable('users', {
   stripeSubscriptionId: text('stripe_subscription_id'),
   subscriptionStatus: text('subscription_status'), // 'active'|'trialing'|'paused'|'past_due'|'canceled'
   subscriptionAmountCents: integer('subscription_amount_cents'),
-  subscriptionInterval: text('subscription_interval'), // 'month' | 'week' — null for non-subscribers
+  subscriptionInterval: text('subscription_interval'), // 'week' | 'month' | 'year' — null for non-subscribers
   trialEndsAt: timestamp('trial_ends_at'),
   gracePeriodEndsAt: timestamp('grace_period_ends_at'),
   welcomeEmailSentAt: timestamp('welcome_email_sent_at'),
   trialReminderSentAt: timestamp('trial_reminder_sent_at'),
   reEngagementSentAt: timestamp('re_engagement_sent_at'),
   inactivityReminderSentAt: timestamp('inactivity_reminder_sent_at'),
+  upgradeNudgeSentAt: timestamp('upgrade_nudge_sent_at'), // free-limit upgrade email (once)
+  checkoutReminderSentAt: timestamp('checkout_reminder_sent_at'), // abandoned-checkout email (at most every 30 days)
   lastLoginAt: timestamp('last_login_at'),
   languagePreference: text('language_preference').notNull().default('en'), // ISO 639-1 reader language
   acquisitionSource: text('acquisition_source'), // how the user found StoryQuestor

@@ -830,7 +830,7 @@ function ProfileContent() {
                                   }`}
                                 >
                                   <div className={`text-xs font-bold ${isCurrent ? 'text-violet-700' : isPending ? 'text-amber-800' : 'text-gray-700'}`}>
-                                    {ic.interval === 'day' ? 'Daily' : ic.interval === 'week' ? 'Weekly' : 'Monthly'}
+                                    {ic.interval === 'day' ? 'Daily' : ic.interval === 'week' ? 'Weekly' : ic.interval === 'month' ? 'Monthly' : 'Yearly'}
                                     {isCurrent && <span className="ml-1 text-[9px]">✓</span>}
                                   </div>
                                   <div className={`text-[11px] mt-0.5 font-medium ${isCurrent ? 'text-violet-500' : isPending ? 'text-amber-600' : 'text-gray-400'}`}>

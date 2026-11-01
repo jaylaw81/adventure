@@ -4,6 +4,9 @@ import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { db } from '@/lib/db'
 import { users, friendInvites } from '@/lib/schema'
+import { sendCheckoutReminderEmail, sendPaymentFailedEmail, sendCancellationEmail } from '@/lib/email'
+
+const CHECKOUT_REMINDER_COOLDOWN_MS = 30 * 86_400_000
 
 export const dynamic = 'force-dynamic'
 
@@ -36,7 +39,7 @@ export async function POST(req: Request) {
           expand: ['items.data.price'],
         })
         const amountCents = subscription.items.data[0]?.price?.unit_amount ?? null
-        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? null) as 'day' | 'week' | 'month' | null
+        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? null) as 'day' | 'week' | 'month' | 'year' | null
 
         // Fetch user to check invite state and pending reward weeks
         const [user] = await db
@@ -91,7 +94,7 @@ export async function POST(req: Request) {
         if (subscription.pause_collection) status = 'paused'
 
         const amountCents = subscription.items.data[0]?.price?.unit_amount ?? null
-        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? null) as 'day' | 'week' | 'month' | null
+        const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? null) as 'day' | 'week' | 'month' | 'year' | null
 
         await db.update(users)
           .set({
@@ -108,9 +111,29 @@ export async function POST(req: Request) {
         const subscription = event.data.object as Stripe.Subscription
         const customerId = subscription.customer as string
 
+        const [user] = await db
+          .select({
+            email: users.email,
+            displayName: users.displayName,
+            subscriptionStatus: users.subscriptionStatus,
+            emailSubscribed: users.emailSubscribed,
+            unsubscribeToken: users.unsubscribeToken,
+          })
+          .from(users)
+          .where(eq(users.stripeCustomerId, customerId))
+
         await db.update(users)
           .set({ subscriptionStatus: 'canceled', stripeSubscriptionId: null })
           .where(eq(users.stripeCustomerId, customerId))
+
+        // Skip on webhook retries (already canceled) and for people who opted out of email
+        if (user && user.subscriptionStatus !== 'canceled' && user.emailSubscribed) {
+          await sendCancellationEmail({
+            to: user.email,
+            displayName: user.displayName || null,
+            unsubscribeToken: user.unsubscribeToken,
+          }).catch(err => console.error('Cancellation email failed:', err))
+        }
         break
       }
 
@@ -121,6 +144,48 @@ export async function POST(req: Request) {
         await db.update(users)
           .set({ subscriptionStatus: 'past_due' })
           .where(eq(users.stripeCustomerId, customerId))
+
+        // Stripe retries failed renewals; only email on the first attempt
+        if (invoice.attempt_count === 1 && invoice.billing_reason === 'subscription_cycle') {
+          const [user] = await db
+            .select({ email: users.email, displayName: users.displayName })
+            .from(users)
+            .where(eq(users.stripeCustomerId, customerId))
+          if (user) {
+            await sendPaymentFailedEmail({ to: user.email, displayName: user.displayName || null })
+              .catch(err => console.error('Payment failed email failed:', err))
+          }
+        }
+        break
+      }
+
+      case 'checkout.session.expired': {
+        const session = event.data.object as Stripe.Checkout.Session
+        const email = session.metadata?.email
+        if (!email || session.mode !== 'subscription') break
+
+        const [user] = await db
+          .select({
+            displayName: users.displayName,
+            subscriptionStatus: users.subscriptionStatus,
+            emailSubscribed: users.emailSubscribed,
+            unsubscribeToken: users.unsubscribeToken,
+            checkoutReminderSentAt: users.checkoutReminderSentAt,
+          })
+          .from(users)
+          .where(eq(users.email, email))
+
+        if (!user || !user.emailSubscribed) break
+        if (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing') break
+        if (user.checkoutReminderSentAt && Date.now() - user.checkoutReminderSentAt.getTime() < CHECKOUT_REMINDER_COOLDOWN_MS) break
+
+        await sendCheckoutReminderEmail({
+          to: email,
+          displayName: user.displayName || null,
+          interval: session.metadata?.interval ?? null,
+          unsubscribeToken: user.unsubscribeToken,
+        })
+        await db.update(users).set({ checkoutReminderSentAt: new Date() }).where(eq(users.email, email))
         break
       }
     }

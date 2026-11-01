@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { BookOpen, Sparkles, Gift, ArrowRight, Lock, Wand2, Check, Music, Globe, Tag, Star, Sword, Users } from 'lucide-react'
+import { BookOpen, Sparkles, Gift, ArrowRight, Lock, Wand2, Check, Music, Globe, Tag, Star, Sword, Users, Download } from 'lucide-react'
 import OnboardingProgress from '@/components/shared/OnboardingProgress'
 import { formatCents, getDefaultInterval, getEnabledIntervals } from '@/lib/pricing'
 import type { PricingConfig, IntervalConfig } from '@/lib/pricing'
@@ -24,12 +24,13 @@ const FEATURES: {
   { label: 'Private stories',                   icon: Lock,     free: false, weekly: true,  monthly: true  },
   { label: 'Tags & audience controls',          icon: Tag,      free: false, weekly: true,  monthly: true  },
   { label: 'Story ratings & reviews',           icon: Star,     free: true,  weekly: true,  monthly: true  },
+  { label: 'Export to Twine',                   icon: Download, free: false, weekly: true,  monthly: true  },
   { label: 'Scene image generation',            icon: Sparkles, free: false, weekly: false, monthly: true  },
   { label: 'Character portraits',               icon: Sparkles, free: false, weekly: false, monthly: true  },
   { label: 'Scene soundscapes',                 icon: Music,    free: false, weekly: false, monthly: true  },
 ]
 
-const PREMIUM_START = 8
+const PREMIUM_START = 9
 
 // Floating background particles — amber/violet/white
 const SPARKS: { size: number; left: string; top: string; color: string; dur: number; delay: number }[] = [
@@ -72,6 +73,10 @@ export default function SubscribeForm({
 
   const weeklyIC  = enabledIntervals.find(i => i.interval === 'week')  ?? null
   const monthlyIC = enabledIntervals.find(i => i.interval === 'month') ?? null
+  const yearlyIC  = enabledIntervals.find(i => i.interval === 'year')  ?? null
+  const yearlySavingsPct = monthlyIC && yearlyIC
+    ? Math.round((1 - yearlyIC.priceCents / (monthlyIC.priceCents * 12)) * 100)
+    : 0
 
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError]     = useState('')
@@ -317,7 +322,7 @@ export default function SubscribeForm({
               </div>
               <p className="text-sm text-amber-400/45 mb-6">per week</p>
               <p className="text-xs text-white/45 mb-6 leading-relaxed flex-1">
-                All editors. Unlimited stories. Public and private. Full creative control.
+                Try everything for a short project. Unlimited stories, World Builder, private stories and Twine export.
               </p>
               <button
                 onClick={() => handleSubscribe('week')}
@@ -387,6 +392,21 @@ export default function SubscribeForm({
                     </>
                   )}
                 </button>
+                {yearlyIC && (
+                  <button
+                    onClick={() => handleSubscribe('year')}
+                    disabled={loading !== null}
+                    className={`mt-2.5 w-full py-2 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
+                      initialInterval === 'year'
+                        ? 'text-white border border-violet-300/60 bg-violet-500/20 hover:bg-violet-500/30'
+                        : 'text-violet-200/80 hover:text-white'
+                    }`}
+                  >
+                    {loading === 'year'
+                      ? 'Redirecting…'
+                      : `Or ${formatCents(yearlyIC.priceCents)}/year${yearlySavingsPct > 0 ? ` · save ${yearlySavingsPct}%` : ''}`}
+                  </button>
+                )}
               </div>
             </div>
           )}

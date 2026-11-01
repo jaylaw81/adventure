@@ -41,7 +41,7 @@ export async function POST() {
       })
 
       const amountCents = subscription.items.data[0]?.price?.unit_amount ?? null
-      const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? null) as 'day' | 'week' | 'month' | null
+      const interval = (subscription.items.data[0]?.price?.recurring?.interval ?? null) as 'day' | 'week' | 'month' | 'year' | null
       const status = subscription.pause_collection ? 'paused' : subscription.status
 
       await db

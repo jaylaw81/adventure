@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const { interval: rawInterval } = await req.json()
     const pricing = await getPricingConfig()
 
-    const interval: BillingInterval = (['day', 'week', 'month'] as const).includes(rawInterval)
+    const interval: BillingInterval = (['day', 'week', 'month', 'year'] as const).includes(rawInterval)
       ? rawInterval as BillingInterval
       : pricing.intervals.find(i => i.interval === pricing.defaultInterval && i.enabled)?.interval
         ?? pricing.intervals.find(i => i.enabled)?.interval
@@ -61,8 +61,10 @@ export async function POST(req: Request) {
       ],
       metadata: {
         email,
+        interval,
         pendingFriendRewardWeeks: String(pendingWeeks),
       },
+      allow_promotion_codes: true,
       success_url: `${SITE_URL}/?subscribed=1`,
       cancel_url: `${SITE_URL}/subscribe`,
     })

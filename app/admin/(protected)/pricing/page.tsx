@@ -19,8 +19,8 @@ function fmtCents(c: number) {
   return Number.isInteger(d) ? `$${d}` : `$${d.toFixed(2)}`
 }
 
-const INTERVALS: BillingInterval[] = ['week', 'month']
-const INTERVAL_LABELS: Record<BillingInterval, string> = { day: 'Daily', week: 'Weekly', month: 'Monthly' }
+const INTERVALS: BillingInterval[] = ['week', 'month', 'year']
+const INTERVAL_LABELS: Record<BillingInterval, string> = { day: 'Daily', week: 'Weekly', month: 'Monthly', year: 'Yearly' }
 
 export default function AdminPricingPage() {
   const [config, setConfig] = useState<PricingConfig | null>(null)

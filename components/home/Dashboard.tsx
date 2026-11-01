@@ -8,6 +8,7 @@ import AdventureCard from '@/components/shared/AdventureCard'
 import PageBanner from '@/components/shared/PageBanner'
 import type { AdventureWithCounts } from '@/lib/queries'
 import { fetchOrgMe } from '@/lib/orgMeClient'
+import { isPremiumInterval } from '@/lib/plans'
 
 export default function Dashboard() {
   const { data: session } = useSession()
@@ -82,7 +83,7 @@ export default function Dashboard() {
     !['active', 'trialing'].includes(session.user.subscriptionStatus ?? '')
 
   const canViewAnalytics = !!session?.user && (
-    session.user.subscriptionInterval === 'month' ||
+    isPremiumInterval(session.user.subscriptionInterval) ||
     !!session.user.isAdmin
   )
 

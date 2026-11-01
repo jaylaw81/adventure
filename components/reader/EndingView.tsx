@@ -1,8 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import { PenLine, ArrowRight } from 'lucide-react'
 import RestartButton from './RestartButton'
 import ReviewForm from './ReviewForm'
+import { analytics } from '@/lib/analytics'
 
 // ── Ember canvas ───────────────────────────────────────────────────────────────
 
@@ -319,6 +323,7 @@ interface Props {
 }
 
 export default function EndingView({ adventureId, restartHref }: Props) {
+  const { status: sessionStatus } = useSession()
   const [showReview, setShowReview] = useState(false)
   const [history, setHistory] = useState<string[]>([])
   const [flashbackDone, setFlashbackDone] = useState(false)
@@ -396,6 +401,26 @@ export default function EndingView({ adventureId, restartHref }: Props) {
             >
               Rate this story ★
             </button>
+          </div>
+        )}
+
+        {/* Reader → writer: only for signed-out readers */}
+        {sessionStatus === 'unauthenticated' && (
+          <div className="mt-12 mx-auto max-w-md rounded-2xl border border-violet-200 bg-violet-50 p-6 text-center">
+            <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-violet-100 border border-violet-200 flex items-center justify-center">
+              <PenLine size={18} className="text-violet-600" />
+            </div>
+            <p className="text-base font-bold mb-1" style={{ color: '#1e0a3c' }}>Write a story like this one</p>
+            <p className="text-sm text-violet-900/70 leading-relaxed mb-4">
+              Build your own branching adventure on a visual canvas. No code, and your first story is free.
+            </p>
+            <Link
+              href="/sign-up"
+              onClick={() => analytics.endingWriteCtaClicked(adventureId)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-900 bg-amber-500 hover:bg-amber-600 transition-colors"
+            >
+              Start writing free <ArrowRight size={14} />
+            </Link>
           </div>
         )}
       </div>

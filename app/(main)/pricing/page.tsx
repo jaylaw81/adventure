@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
-import { eq } from 'drizzle-orm'
+import { unstable_cache } from 'next/cache'
+import { asc, eq, sql } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { users } from '@/lib/schema'
+import { users, adventures } from '@/lib/schema'
 import { getPricingConfig, formatCents } from '@/lib/pricing'
 import Link from 'next/link'
-import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock, Sword, Users, BarChart2, Link2, Download } from 'lucide-react'
+import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock, Sword, Users, BarChart2, Link2, Download, PartyPopper } from 'lucide-react'
 
 const SITE_URL = 'https://www.storyquestor.com'
 
@@ -42,30 +43,86 @@ const FEATURES: {
 // Index after which the "monthly-only" features start
 const PREMIUM_START = 9
 
-export default async function PricingPage() {
-  const [session, pricing] = await Promise.all([
+const FAQS: { q: string; a: string }[] = [
+  { q: 'Can I cancel anytime?', a: 'Yes. Cancel from your profile in a couple of clicks. You keep your plan until the end of the period you paid for, and you won’t be charged again.' },
+  { q: 'What happens to my stories if I cancel?', a: 'Nothing is deleted. Your stories stay saved, and public stories can still be read. You just can’t edit them or create new ones beyond the free plan until you subscribe again.' },
+  { q: 'What’s the difference between Weekly and Monthly?', a: 'Weekly is an easy way to try everything for a short project. Monthly costs less over time and adds AI scene images, character portraits, soundscapes, story analytics and custom story URLs. Yearly is Monthly at the lowest price.' },
+  { q: 'Do I need a card for the free plan?', a: 'No. Sign up and write your first story for free. You only enter payment details if you choose a paid plan.' },
+  { q: 'Can I take my stories elsewhere?', a: 'Yes. Paid plans can export any story as a Twine 2 file and open it in Twine.' },
+  { q: 'Is payment secure?', a: 'Checkout is handled by Stripe. StoryQuestor never sees or stores your card details.' },
+]
+
+// Social proof numbers — cached so the pricing page doesn't hit the DB on every view.
+const getSiteStats = unstable_cache(
+  async () => {
+    const [row] = await db
+      .select({
+        publicStories: sql<number>`count(*) filter (where ${adventures.isPublic})::int`,
+        reads: sql<number>`coalesce(sum(${adventures.readCount}), 0)::int`,
+      })
+      .from(adventures)
+      .where(eq(adventures.status, 'active'))
+    return row ?? { publicStories: 0, reads: 0 }
+  },
+  ['pricing-site-stats-v1'],
+  { revalidate: 3600 },
+)
+
+function roundDown(n: number): string {
+  if (n >= 1000) return `${(Math.floor(n / 100) / 10).toLocaleString('en-US')}k+`
+  if (n >= 100) return `${Math.floor(n / 10) * 10}+`
+  return String(n)
+}
+
+export default async function PricingPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const [session, pricing, stats, params] = await Promise.all([
     getServerSession(authOptions),
     getPricingConfig(),
+    getSiteStats(),
+    searchParams,
   ])
+  const atFreeLimit = params.reason === 'free_tier_limit'
 
   let subStatus: string | null = null
+  let freeStoryTitle: string | null = null
   if (session?.user?.email) {
-    const [user] = await db
-      .select({ subscriptionStatus: users.subscriptionStatus })
-      .from(users)
-      .where(eq(users.email, session.user.email))
+    const email = session.user.email
+    const [[user], [firstStory]] = await Promise.all([
+      db
+        .select({ subscriptionStatus: users.subscriptionStatus })
+        .from(users)
+        .where(eq(users.email, email)),
+      atFreeLimit
+        ? db
+            .select({ title: adventures.title })
+            .from(adventures)
+            .where(eq(adventures.userEmail, email))
+            .orderBy(asc(adventures.createdAt))
+            .limit(1)
+        : Promise.resolve([] as { title: string }[]),
+    ])
     subStatus = user?.subscriptionStatus ?? null
+    freeStoryTitle = firstStory?.title ?? null
   }
 
   const isActive = subStatus === 'active' || subStatus === 'trialing'
 
   const weeklyIC  = pricing.intervals.find(i => i.interval === 'week'  && i.enabled)
   const monthlyIC = pricing.intervals.find(i => i.interval === 'month' && i.enabled)
+  const yearlyIC  = pricing.intervals.find(i => i.interval === 'year'  && i.enabled)
 
   const weeklyPrice  = weeklyIC  ? formatCents(weeklyIC.priceCents)  : '$2'
   const monthlyPrice = monthlyIC ? formatCents(monthlyIC.priceCents) : '$8'
 
-  function ctaHref(interval: 'week' | 'month') {
+  // Savings shown on the Monthly card: Monthly vs paying weekly, Yearly vs paying monthly
+  const monthlySavingsPct = weeklyIC && monthlyIC
+    ? Math.round((1 - monthlyIC.priceCents / (weeklyIC.priceCents * 52 / 12)) * 100)
+    : 0
+  const yearlySavingsPct = monthlyIC && yearlyIC
+    ? Math.round((1 - yearlyIC.priceCents / (monthlyIC.priceCents * 12)) * 100)
+    : 0
+
+  function ctaHref(interval: 'week' | 'month' | 'year') {
     if (isActive) return '/profile'
     return `/subscribe?interval=${interval}`
   }
@@ -96,6 +153,24 @@ export default async function PricingPage() {
       />
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 pt-32 pb-20">
+
+        {atFreeLimit && !isActive && (
+          <div
+            className="mb-10 rounded-xl p-5 flex gap-4 items-start"
+            style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}
+          >
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(245,158,11,0.18)' }}>
+              <PartyPopper size={18} className="text-amber-300" />
+            </div>
+            <div>
+              <p className="text-base font-bold text-amber-200 mb-1">You&apos;ve written your free story</p>
+              <p className="text-sm text-amber-100/75 leading-relaxed">
+                {freeStoryTitle ? <>&ldquo;{freeStoryTitle}&rdquo; is saved and yours to keep sharing. </> : 'Your story is saved and yours to keep sharing. '}
+                To start your next one, pick a plan below. You&apos;ll also unlock World Builder, private stories and Twine export, and you can cancel anytime.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Page header */}
         <div className="text-center mb-12">
@@ -180,7 +255,7 @@ export default async function PricingPage() {
             </div>
             <p className="text-sm text-white/35 mb-6">per week</p>
             <p className="text-xs text-white/40 mb-6 leading-relaxed flex-1">
-              Story editor, unlimited scenes, public and private stories
+              Try everything for a short project. Unlimited stories, World Builder, private stories and Twine export.
             </p>
             <Link
               href={ctaHref('week')}
@@ -212,9 +287,11 @@ export default async function PricingPage() {
                 {monthlyPrice}
               </span>
             </div>
-            <p className="text-sm text-white/35 mb-6">per month</p>
+            <p className="text-sm text-white/35 mb-6">
+              per month{monthlySavingsPct > 0 && <span className="text-amber-400/80"> · save {monthlySavingsPct}% vs weekly</span>}
+            </p>
             <p className="text-xs text-white/40 mb-6 leading-relaxed flex-1">
-              Everything in Weekly — private stories, scene images, character portraits, soundscapes, story analytics, and custom story URLs
+              Everything in Weekly, plus scene images, character portraits, soundscapes, story analytics, and custom story URLs
             </p>
             <Link
               href={ctaHref('month')}
@@ -224,8 +301,30 @@ export default async function PricingPage() {
               {ctaLabel ?? 'Start Monthly'}
               {!isActive && <ArrowRight size={14} />}
             </Link>
+            {yearlyIC && !isActive && (
+              <Link
+                href={ctaHref('year')}
+                className="mt-3 text-center text-xs font-semibold text-violet-200/80 hover:text-white transition-colors"
+              >
+                Or {formatCents(yearlyIC.priceCents)}/year{yearlySavingsPct > 0 && ` · save ${yearlySavingsPct}%`}
+              </Link>
+            )}
           </div>
         </div>
+
+        {/* ── Social proof ── */}
+        {stats.reads >= 100 && (
+          <div className="mb-6 grid grid-cols-2 gap-4 text-center">
+            <div className="rounded-xl py-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="text-2xl font-extrabold text-white" style={{ letterSpacing: '-0.02em' }}>{roundDown(stats.reads)}</p>
+              <p className="text-xs text-white/45 mt-1">story reads so far</p>
+            </div>
+            <div className="rounded-xl py-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <p className="text-2xl font-extrabold text-white" style={{ letterSpacing: '-0.02em' }}>{roundDown(stats.publicStories)}</p>
+              <p className="text-xs text-white/45 mt-1">published stories to explore</p>
+            </div>
+          </div>
+        )}
 
         {/* ── Feature comparison table ── */}
         <div
@@ -292,6 +391,28 @@ export default async function PricingPage() {
           <p className="text-xs text-white/18">
             Reading all stories is free — no account needed.
           </p>
+        </div>
+
+        {/* ── FAQ ── */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-extrabold text-white text-center mb-6" style={{ letterSpacing: '-0.02em' }}>
+            Questions
+          </h2>
+          <div className="flex flex-col gap-2">
+            {FAQS.map(f => (
+              <details
+                key={f.q}
+                className="group rounded-xl px-5 py-4"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+              >
+                <summary className="cursor-pointer list-none flex items-center justify-between gap-4 text-sm font-semibold text-white/80">
+                  {f.q}
+                  <span className="text-white/30 transition-transform group-open:rotate-45 text-lg leading-none">+</span>
+                </summary>
+                <p className="mt-3 text-sm text-white/50 leading-relaxed">{f.a}</p>
+              </details>
+            ))}
+          </div>
         </div>
 
       </div>

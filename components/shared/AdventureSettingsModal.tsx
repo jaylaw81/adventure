@@ -9,6 +9,7 @@ import { STORY_TAGS } from '@/lib/tags'
 import { LANGUAGES } from '@/lib/languages'
 import { titleToSlug } from '@/lib/slugUtils'
 import PhotoSourcePicker from '@/components/editor/PhotoSourcePicker'
+import { isPremiumInterval } from '@/lib/plans'
 
 interface Props {
   adventure: AdventureWithCounts
@@ -25,7 +26,7 @@ const AUDIENCE_OPTIONS = [
 export default function AdventureSettingsModal({ adventure, onClose, onSave }: Props) {
   const { data: session } = useSession()
   const isOrgTier = session?.user?.tier === 'organization'
-  const canUseMedia = isOrgTier || session?.user?.subscriptionInterval === 'month' || session?.user?.isAdmin || session?.user?.grandfathered
+  const canUseMedia = isOrgTier || isPremiumInterval(session?.user?.subscriptionInterval) || session?.user?.isAdmin || session?.user?.grandfathered
 
   const [title, setTitle] = useState(adventure.title)
   const [description, setDescription] = useState(adventure.description ?? '')

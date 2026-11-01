@@ -62,7 +62,7 @@ export async function POST(
   const newPrice = await stripe.prices.create({
     unit_amount: offer.offeredAmountCents,
     currency: 'usd',
-    recurring: { interval: currentInterval as 'day' | 'week' | 'month' },
+    recurring: { interval: currentInterval as 'day' | 'week' | 'month' | 'year' },
     product_data: { name: 'StoryQuestor Subscription' },
   })
 

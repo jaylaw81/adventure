@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const { interval: rawInterval } = await req.json()
   const interval = rawInterval as BillingInterval
 
-  if (!['day', 'week', 'month'].includes(interval)) {
+  if (!['day', 'week', 'month', 'year'].includes(interval)) {
     return NextResponse.json({ error: 'Invalid interval' }, { status: 400 })
   }
 

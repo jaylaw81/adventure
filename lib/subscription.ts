@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { users, organizations, organizationMembers } from '@/lib/schema'
+import { isPremiumInterval } from '@/lib/plans'
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'jaylaw81@gmail.com'
 
@@ -21,7 +22,7 @@ export async function isOrgUser(email: string): Promise<boolean> {
   return !!orgMember
 }
 
-/** True if the user can use AI image generation and scene sounds (monthly plan or org/grandfathered). */
+/** True if the user can use AI image generation and scene sounds (monthly/yearly plan or org/grandfathered). */
 export async function canGenerateImages(email: string): Promise<boolean> {
   if (email === ADMIN_EMAIL) return true
   const [user] = await db
@@ -40,7 +41,7 @@ export async function canGenerateImages(email: string): Promise<boolean> {
   if (await isOrgUser(email)) return true
   return (
     (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing') &&
-    user.subscriptionInterval === 'month'
+    isPremiumInterval(user.subscriptionInterval)
   )
 }
 

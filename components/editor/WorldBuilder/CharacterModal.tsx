@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { X, Plus, Trash2, Check, Info, Skull, Sparkles, Loader2 } from 'lucide-react'
 import type { WBCharacter, CharacterAttribute } from '@/lib/worldBuilder'
+import { isPremiumInterval } from '@/lib/plans'
 
 function genId() {
   return Math.random().toString(36).slice(2, 10)
@@ -109,7 +110,7 @@ export default function CharacterModal({ char, adventureId, onSave, onDelete, on
   const isNew = !char
   const { data: session } = useSession()
   const canGenerateAvatars = (session?.user as { tier?: string; subscriptionInterval?: string } | undefined)?.tier === 'organization'
-    || (session?.user as { subscriptionInterval?: string } | undefined)?.subscriptionInterval === 'month'
+    || isPremiumInterval((session?.user as { subscriptionInterval?: string } | undefined)?.subscriptionInterval)
 
   const [characterType, setCharacterType] = useState<'hero' | 'foe'>(char?.characterType ?? 'hero')
   const [name, setName] = useState(char?.name ?? '')

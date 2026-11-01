@@ -428,7 +428,7 @@ export async function sendWelcomeEmail(opts: {
     : `<div style="margin:24px 0;padding:18px 22px;background:#f5f3ff;border-radius:12px;border:1px solid #ddd6fe;">
         <p style="font-size:13px;font-weight:700;color:#5b21b6;margin:0 0 4px;">Subscribe to start creating</p>
         <p style="font-size:13px;color:#4c1d95;margin:0;">
-          Plans start at <strong>${minPriceText}/week</strong>. Cancel anytime. Know someone who'd love it?
+          Plans start at <strong>${minPriceText}</strong>. Cancel anytime. Know someone who'd love it?
           Invite them and earn a free week when they subscribe.
         </p>
       </div>`
@@ -794,6 +794,194 @@ export async function sendInactivityReminderEmail(opts: {
         </body>
       </html>
     `,
+  })
+}
+
+// ── Conversion lifecycle emails ─────────────────────────────────────────────
+// Optional promo codes are created in the Stripe dashboard (Products → Coupons →
+// Promotion codes) and named here via env vars. Checkout accepts promotion codes,
+// so the email only needs to tell the reader what to type.
+
+function promoBox(code: string | undefined, text: string | undefined): string {
+  if (!code) return ''
+  return `<div style="margin:24px 0;padding:18px 22px;background:#fffbeb;border-radius:12px;border:1px solid #fde68a;">
+    <p style="font-size:13px;font-weight:700;color:#92400e;margin:0 0 4px;">${escapeHtml(text || 'A little something to get you started')}</p>
+    <p style="font-size:13px;color:#78350f;margin:0;">
+      Use code <strong style="font-family:monospace;font-size:14px;letter-spacing:0.05em;">${escapeHtml(code)}</strong> at checkout.
+    </p>
+  </div>`
+}
+
+function ctaButton(href: string, label: string): string {
+  return `<a href="${href}"
+    style="display:inline-block;margin:8px 0 24px;padding:13px 30px;background:linear-gradient(135deg,#f59e0b,#f97316);
+           color:#1a1a1a;font-weight:700;font-size:15px;border-radius:10px;text-decoration:none;">
+    ${label}
+  </a>`
+}
+
+function lifecycleEmailHtml(body: string, unsubscribeUrl: string | null): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <body style="font-family:sans-serif;max-width:580px;margin:0 auto;padding:32px 16px;color:#111;">
+        <h1 style="font-size:22px;font-weight:800;margin-bottom:4px;">
+          Story<span style="color:#f59e0b;">Questor</span>
+        </h1>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+        ${body}
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 12px;" />
+        <p style="font-size:12px;color:#9ca3af;line-height:1.6;">
+          &copy; ${new Date().getFullYear()} StoryQuestor &mdash;
+          <a href="${CANONICAL_URL}" style="color:#9ca3af;">storyquestor.com</a>
+          ${unsubscribeUrl ? `&nbsp;&middot;&nbsp;<a href="${unsubscribeUrl}" style="color:#9ca3af;">Unsubscribe</a>` : ''}
+        </p>
+      </body>
+    </html>
+  `
+}
+
+const P = 'font-size:15px;line-height:1.7;color:#1e0a3c;'
+
+/** Sent once to free users who've written their one free story. */
+export async function sendUpgradeNudgeEmail(opts: {
+  to: string
+  displayName: string | null
+  storyTitle: string
+  unsubscribeToken: string
+}) {
+  const { to, displayName, storyTitle, unsubscribeToken } = opts
+  const greeting = displayName ? escapeHtml(displayName) : 'there'
+  const unsubscribeUrl = `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+  const minPrice = getMinPriceCopy(await getPricingConfig())
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: `What's next after "${storyTitle}"?`,
+    headers: {
+      'List-Unsubscribe': `<${unsubscribeUrl}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
+    html: lifecycleEmailHtml(`
+      <p style="${P}">Hi ${greeting},</p>
+      <p style="${P}">
+        You've written <strong>${escapeHtml(storyTitle)}</strong> on StoryQuestor. That's your free story,
+        and it's yours to keep sharing.
+      </p>
+      <p style="${P}">When you're ready for the next one, a subscription unlocks:</p>
+      <ul style="font-size:14px;line-height:1.9;color:#374151;padding-left:20px;margin:0 0 8px;">
+        <li>As many stories as you want, in every editor</li>
+        <li>World Builder: character stats, items and foe combat</li>
+        <li>Private stories, tags and audience controls</li>
+        <li>Export to Twine</li>
+        <li>On Monthly or Yearly: AI scene images, portraits, soundscapes and story analytics</li>
+      </ul>
+      ${promoBox(process.env.UPGRADE_PROMO_CODE, process.env.UPGRADE_PROMO_TEXT)}
+      <p style="${P}">Plans start at ${minPrice}, and you can cancel anytime.</p>
+      ${ctaButton(`${CANONICAL_URL}/pricing`, 'See plans')}
+      <p style="font-size:13px;color:#6b7280;line-height:1.6;">
+        Questions? Just reply to this email. We read everything.
+      </p>
+    `, unsubscribeUrl),
+  })
+}
+
+/** Sent when a Stripe checkout session expires without payment. */
+export async function sendCheckoutReminderEmail(opts: {
+  to: string
+  displayName: string | null
+  interval: string | null
+  unsubscribeToken: string | null
+}) {
+  const { to, displayName, interval, unsubscribeToken } = opts
+  const greeting = displayName ? escapeHtml(displayName) : 'there'
+  const unsubscribeUrl = unsubscribeToken
+    ? `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+    : null
+  const resumeUrl = `${CANONICAL_URL}/subscribe${interval ? `?interval=${encodeURIComponent(interval)}` : ''}`
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: 'Your StoryQuestor subscription is one step away',
+    ...(unsubscribeUrl ? { headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } } : {}),
+    html: lifecycleEmailHtml(`
+      <p style="${P}">Hi ${greeting},</p>
+      <p style="${P}">
+        You started subscribing to StoryQuestor but didn't finish checkout. No charge was made.
+        If something got in the way, you can pick up where you left off.
+      </p>
+      ${promoBox(process.env.UPGRADE_PROMO_CODE, process.env.UPGRADE_PROMO_TEXT)}
+      ${ctaButton(resumeUrl, 'Finish subscribing')}
+      <p style="font-size:13px;color:#6b7280;line-height:1.6;">
+        Had a problem with payment, or a question about plans? Reply to this email and we'll help.
+      </p>
+    `, unsubscribeUrl),
+  })
+}
+
+/** Transactional: sent on the first failed renewal attempt. */
+export async function sendPaymentFailedEmail(opts: { to: string; displayName: string | null }) {
+  const { to, displayName } = opts
+  const greeting = displayName ? escapeHtml(displayName) : 'there'
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: 'Action needed: your StoryQuestor payment didn’t go through',
+    html: lifecycleEmailHtml(`
+      <p style="${P}">Hi ${greeting},</p>
+      <p style="${P}">
+        We couldn't process the latest payment for your StoryQuestor subscription. This usually
+        means a card expired or the bank declined the charge.
+      </p>
+      <p style="${P}">
+        Update your payment method from your profile to keep your stories and features without interruption.
+        We'll retry the payment automatically over the next few days.
+      </p>
+      ${ctaButton(`${CANONICAL_URL}/profile`, 'Update payment method')}
+      <p style="font-size:13px;color:#6b7280;line-height:1.6;">
+        Think this is a mistake? Reply to this email and we'll look into it.
+      </p>
+    `, null),
+  })
+}
+
+/** Sent once when a subscription ends. Asks why, and offers a way back. */
+export async function sendCancellationEmail(opts: {
+  to: string
+  displayName: string | null
+  unsubscribeToken: string | null
+}) {
+  const { to, displayName, unsubscribeToken } = opts
+  const greeting = displayName ? escapeHtml(displayName) : 'there'
+  const unsubscribeUrl = unsubscribeToken
+    ? `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
+    : null
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    replyTo: 'contact@storyquestor.com',
+    subject: 'Your StoryQuestor subscription has ended',
+    ...(unsubscribeUrl ? { headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } } : {}),
+    html: lifecycleEmailHtml(`
+      <p style="${P}">Hi ${greeting},</p>
+      <p style="${P}">
+        Your StoryQuestor subscription has ended. Thanks for writing with us. Your stories are still saved,
+        and your public stories can still be read.
+      </p>
+      <p style="${P}">
+        <strong>Would you tell us why you left?</strong> Just hit reply. Even one sentence helps us decide
+        what to fix or build next.
+      </p>
+      ${promoBox(process.env.WINBACK_PROMO_CODE, process.env.WINBACK_PROMO_TEXT || 'If you come back')}
+      ${ctaButton(`${CANONICAL_URL}/pricing`, 'Resubscribe')}
+    `, unsubscribeUrl),
   })
 }
 
