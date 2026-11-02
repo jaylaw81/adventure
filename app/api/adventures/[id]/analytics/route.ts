@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { eq, sql, desc, and, gte } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { adventures, storyReferrers } from '@/lib/schema'
+import { adventures, nodes, storyReferrers, storySceneStats } from '@/lib/schema'
 import { isPremiumInterval } from '@/lib/plans'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -34,7 +34,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const [byCategory, byDomain, daily] = await Promise.all([
+  const [byCategory, byDomain, daily, scenes] = await Promise.all([
     db
       .select({
         category: storyReferrers.referrerCategory,
@@ -69,7 +69,35 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       ))
       .groupBy(sql`date_trunc('day', ${storyReferrers.createdAt})`)
       .orderBy(sql`date_trunc('day', ${storyReferrers.createdAt})`),
+
+    db
+      .select({
+        title: nodes.title,
+        nodeType: nodes.nodeType,
+        views: storySceneStats.views,
+        continues: storySceneStats.continues,
+      })
+      .from(storySceneStats)
+      .innerJoin(nodes, eq(nodes.id, storySceneStats.nodeId))
+      .where(eq(storySceneStats.adventureId, id)),
   ])
+
+  // Reader journey: approximate, since going back or replaying counts as another view
+  const endings = scenes.filter(s => s.nodeType === 'ending')
+  const journey = {
+    starts: Math.max(0, ...scenes.filter(s => s.nodeType === 'start').map(s => s.views)),
+    completions: endings.reduce((sum, s) => sum + s.views, 0),
+    endings: endings
+      .map(s => ({ title: s.title, views: s.views }))
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 6),
+    dropOffs: scenes
+      .filter(s => s.nodeType !== 'ending')
+      .map(s => ({ title: s.title, exits: Math.max(0, s.views - s.continues) }))
+      .filter(s => s.exits > 0)
+      .sort((a, b) => b.exits - a.exits)
+      .slice(0, 5),
+  }
 
   const trackedTotal = byCategory.reduce((s, r) => s + r.count, 0)
   const socialCount = byCategory.find(r => r.category === 'social')?.count ?? 0
@@ -81,5 +109,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     byCategory,
     byDomain,
     daily,
+    journey,
   })
 }

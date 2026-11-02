@@ -20,7 +20,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function PrivacyPage() {
-  const updated = 'May 30, 2026'
+  const updated = 'November 2, 2026'
 
   return (
     <>
@@ -48,10 +48,13 @@ export default function PrivacyPage() {
 
         <Section title="Information We Collect">
           <p><strong>Account information</strong> — when you sign in with Google we receive your name, email address, and profile picture from your Google account. We store your email as your account identifier.</p>
-          <p><strong>Payment information</strong> — if you subscribe to StoryQuestor, your payment details (card number, billing address) are collected and stored directly by Stripe. We never see or store your full card number. We store your Stripe customer ID and subscription status in our database to manage your access to the Service.</p>
+          <p><strong>Payment information</strong> — if you subscribe to StoryQuestor, your payment details (card number, billing address) are collected and stored directly by Stripe. We never see or store your full card number. We store your Stripe customer ID and subscription status in our database to manage your access to the Service, along with a history of your subscription: when it starts, changes or ends, the plan and price, failed payments, and any cancellation reason or comment you give.</p>
           <p><strong>Profile information</strong> — you may optionally provide a display name. You are required to provide a date of birth so we can apply age-appropriate content filters. We store this in our database but do not share it with third parties.</p>
           <p><strong>Content you create</strong> — story titles, scene text, choices, tags, and audience settings you author on StoryQuestor are stored in our database and, if you choose to make them public, are visible to other users.</p>
           <p><strong>Usage data</strong> — we collect anonymised analytics data (pages visited, actions taken, browser and device type) via Google Analytics 4. This data is aggregated and used to improve the Service.</p>
+          <p><strong>Account activity</strong> — when you&apos;re signed in, we record certain steps against your email address: reaching the free story limit, viewing the pricing or subscribe pages, and starting, completing or abandoning a checkout. This isn&apos;t anonymised, and we use it to understand why people do or don&apos;t subscribe.</p>
+          <p><strong>Email activity</strong> — for emails about upgrading, unfinished checkouts, failed payments and cancellations, we record against your email address whether each one was sent and delivered, whether it bounced or was marked as spam, and whether it was opened or a link in it was clicked. Opens are detected with a small invisible image in the email, and clicks by routing links through our email provider.</p>
+          <p><strong>Story reading statistics</strong> — we count how many times each scene of a story is viewed and how many readers continue from it. These counts aren&apos;t linked to you, and creators can see the totals for their own stories. Your browser temporarily remembers the last scene you viewed so we can count this.</p>
           <p><strong>Cookies</strong> — we use session cookies to keep you signed in and analytics cookies placed by Google Analytics. No advertising cookies are set by StoryQuestor itself; however, see the Advertising section below.</p>
         </Section>
 
@@ -62,6 +65,7 @@ export default function PrivacyPage() {
             <li>To enforce our age-based content restrictions (13+ to use the Service; 18+ for Adults Only stories)</li>
             <li>To generate scene images using the content of your scenes (sent to Hugging Face inference API; not stored by that service)</li>
             <li>To understand how the Service is used and improve it over time</li>
+            <li>To send you emails about your account and subscription, and about upgrading, and to measure whether those emails are useful</li>
             <li>To serve relevant advertisements (see Advertising below)</li>
           </ul>
         </Section>
@@ -91,18 +95,29 @@ export default function PrivacyPage() {
               <a href="https://huggingface.co/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Hugging Face Privacy Policy</a>
             </li>
             <li>
-              <strong>Stripe (payment processing)</strong> — subscription payments are processed by Stripe. When you subscribe, you interact directly with Stripe&apos;s secure checkout. Stripe collects and stores your payment card details under their own security standards (PCI DSS). We receive only a customer ID and subscription status from Stripe.{' '}
+              <strong>Stripe (payment processing)</strong> — subscription payments are processed by Stripe. When you subscribe, you interact directly with Stripe&apos;s secure checkout. Stripe collects and stores your payment card details under their own security standards (PCI DSS). We receive a customer ID and details of your subscription from Stripe, including the plan, price, payment failures and any cancellation reason or comment, but not your card details.{' '}
               <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Stripe Privacy Policy</a>
+            </li>
+            <li>
+              <strong>Resend (email delivery)</strong> — sends our emails, so it receives your email address and the content of each email. It also reports delivery, opens, clicks, bounces and spam complaints back to us.{' '}
+              <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Resend Privacy Policy</a>
             </li>
           </ul>
         </Section>
 
+        <Section title="Emails">
+          <p>
+            You can stop promotional emails at any time using the unsubscribe link in those emails. We may still send essential messages about your account or payments, such as a notice that a payment failed.
+          </p>
+        </Section>
+
         <Section title="Payments and Billing">
           <p>
-            StoryQuestor offers a subscription for creators with daily, weekly, and monthly billing options. Creating and editing stories requires an active subscription. Reading and browsing stories is always free. A subscription is required to create an account and start creating stories.
+            Reading and browsing stories is always free, and your first story is free to create. Creating more stories and using some features requires a subscription, with the billing options shown on our{' '}
+            <Link href="/pricing" className="text-amber-600 hover:underline">pricing page</Link>.
           </p>
           <p>
-            Subscription payments are processed securely by Stripe. We store your Stripe customer ID and subscription status to determine your access level. We do not store full card numbers or CVV codes.
+            Subscription payments are processed securely by Stripe. We store your Stripe customer ID and subscription status to determine your access level, and a subscription history to understand and report on our business. We do not store full card numbers or CVV codes.
           </p>
           <p>
             You may pause or cancel your subscription at any time from your{' '}
@@ -135,7 +150,16 @@ export default function PrivacyPage() {
           <p>
             We retain your account data and stories for as long as your account is active. You may delete your account at any time from your{' '}
             <Link href="/profile" className="text-amber-600 hover:underline">Profile Settings</Link>.
-            Deleting your account permanently removes all associated stories, scenes, and personal data from our database.
+            Deleting your account permanently removes your profile, your stories and scenes, and your account activity and email activity records.
+          </p>
+          <p>We keep the following after an account is deleted:</p>
+          <ul className="list-disc list-inside space-y-1 mt-1">
+            <li>A record of your email address, when you signed up and deleted your account, whether you used a free trial and whether you had a paid subscription, so that free trials can&apos;t be reused and we can understand how long accounts last</li>
+            <li>Your subscription history, with your email address and any cancellation comment removed</li>
+            <li>Reviews you left on other people&apos;s stories, reports and feedback you sent us, invitations, and delivery records for bulk emails, some of which include your email address</li>
+          </ul>
+          <p>
+            To ask us to remove any of these, contact us at the address below. Stripe and Resend keep their own records under their own privacy policies.
           </p>
         </Section>
 

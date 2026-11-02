@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import { isOrgUser } from '@/lib/subscription'
 import { getPricingConfig } from '@/lib/pricing'
+import { logFunnelEvent } from '@/lib/funnel'
 import SubscribeForm from './SubscribeForm'
 
 interface Props {
@@ -43,6 +44,8 @@ export default async function SubscribePage({ searchParams }: Props) {
   if (user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trialing') {
     redirect(onboarding ? '/' : '/profile')
   }
+
+  await logFunnelEvent('subscribe_viewed', session.user.email, intervalParam || null)
 
   const hasActiveTrial = !!(user?.trialEndsAt && new Date(user.trialEndsAt) > new Date())
 

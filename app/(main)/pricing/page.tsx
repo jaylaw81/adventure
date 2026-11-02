@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures } from '@/lib/schema'
 import { getPricingConfig, formatCents } from '@/lib/pricing'
+import { logFunnelEvent } from '@/lib/funnel'
 import Link from 'next/link'
 import { Check, ArrowRight, Sparkles, Music, BookOpen, Globe, Tag, Star, Lock, Sword, Users, BarChart2, Link2, Download, PartyPopper } from 'lucide-react'
 
@@ -106,6 +107,10 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
   }
 
   const isActive = subStatus === 'active' || subStatus === 'trialing'
+
+  if (session?.user?.email && !isActive) {
+    await logFunnelEvent(atFreeLimit ? 'free_limit_hit' : 'pricing_viewed', session.user.email)
+  }
 
   const weeklyIC  = pricing.intervals.find(i => i.interval === 'week'  && i.enabled)
   const monthlyIC = pricing.intervals.find(i => i.interval === 'month' && i.enabled)

@@ -97,7 +97,7 @@ export default function Dashboard() {
         action={
           atFreeLimit ? (
             <Link
-              href="/pricing"
+              href="/pricing?reason=free_tier_limit"
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white transition-all hover:scale-105 hover:brightness-110 shadow-sm whitespace-nowrap"
               style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
             >

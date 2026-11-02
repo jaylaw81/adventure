@@ -262,6 +262,9 @@ export default function AdminUserDetailPage() {
     })
     if (res.ok) {
       const updated = await res.json()
+      if (updated.stripeUpdateFailed) {
+        alert(`Account ${updated.status === 'suspended' ? 'suspended' : 'unsuspended'}, but its billing couldn't be ${updated.status === 'suspended' ? 'paused' : 'resumed'}. Update ${updated.stripeSubscriptionId} in Stripe.`)
+      }
       setUser(u => u ? { ...u, status: updated.status } : null)
     }
     setActingUser(false)
@@ -287,7 +290,13 @@ export default function AdminUserDetailPage() {
     if (!confirm(`Permanently delete ${user?.email} and all their stories? This cannot be undone.`)) return
     setActingUser(true)
     const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
-    if (res.ok) router.push('/admin/users')
+    if (res.ok) {
+      const result = await res.json()
+      if (result.stripeCancelFailed) {
+        alert(`Account deleted, but its Stripe subscription couldn't be cancelled. Cancel ${result.stripeSubscriptionId} in Stripe so they aren't charged again.`)
+      }
+      router.push('/admin/users')
+    }
     setActingUser(false)
   }
 

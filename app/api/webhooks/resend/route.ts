@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Webhook } from 'svix'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { emailBlastRecipients } from '@/lib/schema'
 
+const TRACKED_EVENTS: Record<string, string> = {
+  'email.delivered': 'delivered',
+  'email.opened': 'opened',
+  'email.clicked': 'clicked',
+  'email.bounced': 'bounced',
+  'email.complained': 'complained',
+}
+
 // Configure this URL in your Resend dashboard:
 // Dashboard → Webhooks → Add endpoint → https://yourdomain.com/api/webhooks/resend
-// Select events: email.delivered, email.bounced, email.complained
+// Select events: email.delivered, email.bounced, email.complained, email.opened, email.clicked
+// (opens and clicks also need tracking turned on for the sending domain in Resend)
 //
 // Copy the signing secret from Resend and set RESEND_WEBHOOK_SECRET in your env vars.
 // Without it the endpoint accepts all requests unauthenticated.
@@ -57,6 +66,18 @@ export async function POST(req: NextRequest) {
       .update(emailBlastRecipients)
       .set({ status: 'complained' })
       .where(eq(emailBlastRecipients.resendId, data.email_id))
+  }
+
+  // Lifecycle emails: copy the type and recipient from the row written when the email was sent.
+  // Other emails have no 'sent' row, so this inserts nothing for them.
+  const tracked = TRACKED_EVENTS[type]
+  if (tracked) {
+    await db.execute(sql`
+      insert into email_events (id, resend_id, email_type, recipient, event)
+      select gen_random_uuid(), resend_id, email_type, recipient, ${tracked}
+      from email_events where resend_id = ${data.email_id} and event = 'sent'
+      on conflict (resend_id, event) do nothing
+    `)
   }
 
   return NextResponse.json({ ok: true })

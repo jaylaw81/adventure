@@ -3,7 +3,8 @@ import { eq, sql } from 'drizzle-orm'
 import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { db } from '@/lib/db'
-import { users, friendInvites } from '@/lib/schema'
+import { users, friendInvites, subscriptionEvents } from '@/lib/schema'
+import { logFunnelEvent } from '@/lib/funnel'
 import { sendCheckoutReminderEmail, sendPaymentFailedEmail, sendCancellationEmail } from '@/lib/email'
 
 const CHECKOUT_REMINDER_COOLDOWN_MS = 30 * 86_400_000
@@ -49,6 +50,10 @@ export async function POST(req: Request) {
           })
           .from(users)
           .where(eq(users.email, email))
+
+        // The account may have been deleted since checkout began: don't store its email again
+        await logSubscriptionEvent(event.id, user ? email : null, 'subscribed', { interval, amountCents })
+        if (user) await logFunnelEvent('checkout_completed', email, interval)
 
         // Clear pending reward weeks that were applied as trial days in this checkout
         const pendingWeeksUsed = parseInt(session.metadata?.pendingFriendRewardWeeks ?? '0')
@@ -104,6 +109,31 @@ export async function POST(req: Request) {
             stripeSubscriptionId: subscription.id,
           })
           .where(eq(users.stripeCustomerId, customerId))
+
+        // History: plan switches and cancellations scheduled or undone
+        const prev = (event.data.previous_attributes ?? {}) as Partial<Stripe.Subscription>
+        const prevPrice = prev.items?.data?.[0]?.price
+        const email = await emailForCustomer(customerId)
+        if (prevPrice && (prevPrice.recurring?.interval !== interval || prevPrice.unit_amount !== amountCents)) {
+          await logSubscriptionEvent(event.id, email, 'plan_changed', {
+            interval,
+            amountCents,
+            detail: `${prevPrice.recurring?.interval ?? '?'}->${interval ?? '?'}`,
+          })
+        } else if ('cancel_at_period_end' in prev || 'cancel_at' in prev) {
+          const scheduled = subscription.cancel_at_period_end || !!subscription.cancel_at
+          const wasScheduled =
+            ('cancel_at_period_end' in prev ? !!prev.cancel_at_period_end : subscription.cancel_at_period_end) ||
+            !!('cancel_at' in prev ? prev.cancel_at : subscription.cancel_at)
+          if (scheduled !== wasScheduled) {
+            await logSubscriptionEvent(event.id, email, scheduled ? 'cancel_scheduled' : 'cancel_reverted', {
+              interval,
+              amountCents,
+              detail: subscription.cancellation_details?.feedback ?? null,
+              comment: subscription.cancellation_details?.comment ?? null,
+            })
+          }
+        }
         break
       }
 
@@ -126,6 +156,13 @@ export async function POST(req: Request) {
           .set({ subscriptionStatus: 'canceled', stripeSubscriptionId: null })
           .where(eq(users.stripeCustomerId, customerId))
 
+        await logSubscriptionEvent(event.id, user?.email ?? null, 'canceled', {
+          interval: subscription.items.data[0]?.price?.recurring?.interval ?? null,
+          amountCents: subscription.items.data[0]?.price?.unit_amount ?? null,
+          detail: subscription.cancellation_details?.feedback ?? null,
+          comment: subscription.cancellation_details?.comment ?? null,
+        })
+
         // Skip on webhook retries (already canceled) and for people who opted out of email
         if (user && user.subscriptionStatus !== 'canceled' && user.emailSubscribed) {
           await sendCancellationEmail({
@@ -144,6 +181,11 @@ export async function POST(req: Request) {
         await db.update(users)
           .set({ subscriptionStatus: 'past_due' })
           .where(eq(users.stripeCustomerId, customerId))
+
+        await logSubscriptionEvent(event.id, await emailForCustomer(customerId), 'payment_failed', {
+          amountCents: invoice.amount_due ?? null,
+          detail: invoice.billing_reason ?? null,
+        })
 
         // Stripe retries failed renewals; only email on the first attempt
         if (invoice.attempt_count === 1 && invoice.billing_reason === 'subscription_cycle') {
@@ -175,7 +217,10 @@ export async function POST(req: Request) {
           .from(users)
           .where(eq(users.email, email))
 
-        if (!user || !user.emailSubscribed) break
+        if (!user) break // account deleted since checkout began: don't store its email again
+        await logFunnelEvent('checkout_expired', email, session.metadata?.interval ?? null)
+
+        if (!user.emailSubscribed) break
         if (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing') break
         if (user.checkoutReminderSentAt && Date.now() - user.checkoutReminderSentAt.getTime() < CHECKOUT_REMINDER_COOLDOWN_MS) break
 
@@ -194,6 +239,24 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ ok: true })
+}
+
+async function emailForCustomer(customerId: string): Promise<string | null> {
+  const [user] = await db.select({ email: users.email }).from(users).where(eq(users.stripeCustomerId, customerId))
+  return user?.email ?? null
+}
+
+/** Permanent subscription history. Never throws, so a logging failure can't lose the billing update. */
+async function logSubscriptionEvent(
+  stripeEventId: string,
+  userEmail: string | null,
+  type: string,
+  fields: { interval?: string | null; amountCents?: number | null; detail?: string | null; comment?: string | null },
+) {
+  await db.insert(subscriptionEvents)
+    .values({ stripeEventId, userEmail, type, ...fields })
+    .onConflictDoNothing()
+    .catch(err => console.error('Subscription event failed:', type, err))
 }
 
 async function rewardInviter(inviteToken: string, inviteeEmail: string, inviteeAmountCents: number | null) {

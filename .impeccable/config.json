@@ -1,0 +1,41 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "#3d0d7e",
+        "createdAt": "2026-11-01T19:50:06.127Z",
+        "reason": "User confirmed #3d0d7e is intentional: StoryQuestor brand palette used site-wide"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1e1040",
+        "createdAt": "2026-11-01T19:50:06.151Z",
+        "reason": "User confirmed #1e1040 is intentional: StoryQuestor brand palette used site-wide"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#5eead4",
+        "createdAt": "2026-11-01T19:50:06.173Z",
+        "reason": "User confirmed #5eead4 is intentional: StoryQuestor brand palette used site-wide"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1e0a3c",
+        "createdAt": "2026-11-01T19:50:06.196Z",
+        "reason": "User confirmed #1e0a3c is intentional: StoryQuestor brand palette used site-wide"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "components/reader/StoryLanding.tsx"
+        ],
+        "createdAt": "2026-11-01T19:50:14.254Z",
+        "reason": "User confirmed: violet is the StoryQuestor brand palette used site-wide"
+      }
+    ]
+  }
+}

@@ -6,6 +6,7 @@ import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import { stripe, SITE_URL } from '@/lib/stripe'
 import { getPricingConfig, getIntervalConfig, type BillingInterval } from '@/lib/pricing'
+import { logFunnelEvent } from '@/lib/funnel'
 
 export async function POST(req: Request) {
   try {
@@ -68,6 +69,8 @@ export async function POST(req: Request) {
       success_url: `${SITE_URL}/?subscribed=1`,
       cancel_url: `${SITE_URL}/subscribe`,
     })
+
+    await logFunnelEvent('checkout_started', email, interval)
 
     return NextResponse.json({ url: checkoutSession.url })
   } catch {

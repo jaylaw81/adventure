@@ -140,6 +140,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
           adventureTitle={adventure?.title ?? ''}
           nodeId={nodeId}
           nodeType={node.nodeType}
+          countStats={!isOwner && !isAdmin}
         />
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
@@ -296,6 +297,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
           adventureTitle={adventure?.title ?? ''}
           nodeId={nodeId}
           nodeType={node.nodeType}
+          countStats={!isOwner && !isAdmin}
         />
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
@@ -383,6 +385,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         adventureTitle={adventure?.title ?? ''}
         nodeId={nodeId}
         nodeType={node.nodeType}
+        countStats={!isOwner && !isAdmin}
       />
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">

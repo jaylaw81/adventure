@@ -458,6 +458,7 @@ export const deletedAccounts = pgTable('deleted_accounts', {
   trialUsed: boolean('trial_used').notNull().default(false),
   hadPaidSubscription: boolean('had_paid_subscription').notNull().default(false),
   reason: text('reason').notNull().default('self_deleted'), // 'self_deleted' | 'admin_deleted'
+  signedUpAt: timestamp('signed_up_at'), // null for accounts deleted before this was recorded
 })
 
 // Tracks when each named cron job last ran successfully — used to enforce global cooldowns
@@ -594,3 +595,53 @@ export type NewAdventure = typeof adventures.$inferInsert
 export type NewChapter = typeof chapters.$inferInsert
 export type NewNode = typeof nodes.$inferInsert
 export type NewChoice = typeof choices.$inferInsert
+
+// ── Growth tracking ─────────────────────────────────────────────────────────
+// Emails are plain text (no FK) so history survives account deletion.
+
+export const subscriptionEvents = pgTable('subscription_events', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  stripeEventId: text('stripe_event_id').unique().notNull(), // webhook retries are ignored
+  userEmail: text('user_email'),
+  type: text('type').notNull(), // 'subscribed' | 'plan_changed' | 'cancel_scheduled' | 'cancel_reverted' | 'canceled' | 'payment_failed'
+  interval: text('interval'),
+  amountCents: integer('amount_cents'),
+  detail: text('detail'), // Stripe cancellation reason, or 'week->month' for plan changes
+  comment: text('comment'), // free-text cancellation comment
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('subscription_events_type_created_idx').on(t.type, t.createdAt),
+  index('subscription_events_user_email_idx').on(t.userEmail),
+])
+
+export const funnelEvents = pgTable('funnel_events', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  event: text('event').notNull(), // see FunnelEvent in lib/funnel.ts
+  userEmail: text('user_email').notNull(),
+  detail: text('detail'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  index('funnel_events_event_created_idx').on(t.event, t.createdAt),
+])
+
+export const emailEvents = pgTable('email_events', {
+  id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  resendId: text('resend_id').notNull(),
+  emailType: text('email_type').notNull(), // 'upgrade_nudge' | 'checkout_reminder' | 'payment_failed' | 'cancellation'
+  recipient: text('recipient').notNull(),
+  event: text('event').notNull(), // 'sent' | 'delivered' | 'opened' | 'clicked' | 'bounced' | 'complained'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [
+  uniqueIndex('email_events_resend_event_idx').on(t.resendId, t.event), // first open/click per email only
+  index('email_events_type_idx').on(t.emailType),
+])
+
+// Anonymous per-scene counters, so no reader is identified and no cookie consent is involved.
+export const storySceneStats = pgTable('story_scene_stats', {
+  nodeId: uuid('node_id').primaryKey().references(() => nodes.id, { onDelete: 'cascade' }),
+  adventureId: uuid('adventure_id').notNull().references(() => adventures.id, { onDelete: 'cascade' }),
+  views: integer('views').notNull().default(0),
+  continues: integer('continues').notNull().default(0), // readers who moved on to another scene from here
+}, (t) => [
+  index('story_scene_stats_adventure_idx').on(t.adventureId),
+])

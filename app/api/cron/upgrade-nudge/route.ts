@@ -7,9 +7,10 @@ import { sendUpgradeNudgeEmail, isQuotaError } from '@/lib/email'
 export const maxDuration = 60
 
 const DAYS_AFTER_FIRST_STORY = 3 // give people time to finish and share their free story first
+const MIN_WORDS = 200             // template stories start with ~100 placeholder words, so scene counts don't show real writing
 const BATCH_SIZE = 40            // drains the existing backlog over a few days without tripping Resend limits
 
-// Free users who've written their one free story and never subscribed get one upgrade email.
+// Free users who've really written their one free story and never subscribed get one upgrade email.
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -36,7 +37,14 @@ export async function GET(req: Request) {
       isNull(users.subscriptionStatus),
       or(isNull(users.trialEndsAt), lt(users.trialEndsAt, now)),
       or(isNull(users.gracePeriodEndsAt), lt(users.gracePeriodEndsAt, now)),
-      sql`exists (select 1 from adventures a where a.user_email = ${users.email} and a.created_at < ${cutoff})`,
+      sql`exists (
+        select 1 from adventures a
+        where a.user_email = ${users.email} and a.created_at < ${cutoff}
+          and (
+            select coalesce(sum(array_length(regexp_split_to_array(trim(n.content), '\s+'), 1)), 0)
+            from nodes n where n.adventure_id = a.id and trim(n.content) <> ''
+          ) >= ${MIN_WORDS}
+      )`,
       sql`not exists (select 1 from organization_members m where m.user_email = ${users.email})`,
     ))
     .limit(BATCH_SIZE)

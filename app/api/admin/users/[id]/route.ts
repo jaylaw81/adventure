@@ -4,6 +4,9 @@ import { eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures, deletedAccounts } from '@/lib/schema'
+import { removeTrackingData } from '@/lib/accountData'
+import { stripe } from '@/lib/stripe'
+import { pauseBillingForSuspension, resumeBillingAfterSuspension } from '@/lib/suspensionBilling'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -20,7 +23,10 @@ export async function PATCH(req: Request, { params }: Params) {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   }
 
-  const [target] = await db.select({ email: users.email }).from(users).where(eq(users.id, id))
+  const [target] = await db
+    .select({ email: users.email, stripeSubscriptionId: users.stripeSubscriptionId })
+    .from(users)
+    .where(eq(users.id, id))
   if (!target) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   if (action === 'grant_trial') {
@@ -55,6 +61,18 @@ export async function PATCH(req: Request, { params }: Params) {
     .where(eq(users.id, id))
     .returning({ id: users.id, email: users.email, status: users.status })
 
+  // A suspended user can't use the account, so they shouldn't be charged for it. A Stripe
+  // failure doesn't undo the suspension, but the admin is told so they can sort out billing.
+  if (target.stripeSubscriptionId) {
+    try {
+      if (action === 'suspend') await pauseBillingForSuspension(target.stripeSubscriptionId)
+      else await resumeBillingAfterSuspension(target.stripeSubscriptionId)
+    } catch (err) {
+      console.error(`Stripe ${action} billing update failed for subscription ${target.stripeSubscriptionId}:`, err)
+      return NextResponse.json({ ...updated, stripeUpdateFailed: true, stripeSubscriptionId: target.stripeSubscriptionId })
+    }
+  }
+
   return NextResponse.json(updated)
 }
 
@@ -72,6 +90,7 @@ export async function DELETE(_req: Request, { params }: Params) {
       subscriptionStatus: users.subscriptionStatus,
       trialEndsAt: users.trialEndsAt,
       grandfathered: users.grandfathered,
+      createdAt: users.createdAt,
     })
     .from(users)
     .where(eq(users.id, id))
@@ -85,13 +104,26 @@ export async function DELETE(_req: Request, { params }: Params) {
     (['active', 'past_due', 'paused', 'canceled'].includes(target.subscriptionStatus ?? '') &&
     !!target.stripeSubscriptionId)
   await db.insert(deletedAccounts)
-    .values({ email: target.email, trialUsed, hadPaidSubscription: !!hadPaidSubscription, reason: 'admin_deleted' })
+    .values({ email: target.email, trialUsed, hadPaidSubscription: !!hadPaidSubscription, reason: 'admin_deleted', signedUpAt: target.createdAt })
     .onConflictDoUpdate({
       target: deletedAccounts.email,
-      set: { deletedAt: new Date(), trialUsed, hadPaidSubscription: !!hadPaidSubscription, reason: 'admin_deleted' },
+      set: { deletedAt: new Date(), trialUsed, hadPaidSubscription: !!hadPaidSubscription, reason: 'admin_deleted', signedUpAt: target.createdAt },
     })
 
+  await removeTrackingData(target.email)
   await db.delete(adventures).where(eq(adventures.userEmail, target.email))
   await db.delete(users).where(eq(users.id, id))
+
+  // Cancel last: the webhook this triggers must find no user, so it can't log their email or send a cancellation email
+  if (target.stripeSubscriptionId) {
+    try {
+      await stripe.subscriptions.cancel(target.stripeSubscriptionId)
+    } catch (err) {
+      // The account is already gone, so tell the admin: this person may still be getting charged
+      console.error(`Stripe cancel failed for subscription ${target.stripeSubscriptionId}:`, err)
+      return NextResponse.json({ success: true, stripeCancelFailed: true, stripeSubscriptionId: target.stripeSubscriptionId })
+    }
+  }
+
   return NextResponse.json({ success: true })
 }

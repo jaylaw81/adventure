@@ -1,5 +1,7 @@
 import { Resend } from 'resend'
 import { getPricingConfig, getMinPriceCopy } from '@/lib/pricing'
+import { db } from '@/lib/db'
+import { emailEvents } from '@/lib/schema'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -843,6 +845,20 @@ function lifecycleEmailHtml(body: string, unsubscribeUrl: string | null): string
 
 const P = 'font-size:15px;line-height:1.7;color:#1e0a3c;'
 
+type TrackedEmailType = 'upgrade_nudge' | 'checkout_reminder' | 'payment_failed' | 'cancellation'
+
+/** Sends a lifecycle email and records it, so Resend webhooks can report opens, clicks and bounces against it. */
+async function sendTracked(emailType: TrackedEmailType, payload: Parameters<typeof resend.emails.send>[0]) {
+  const { data, error } = await resend.emails.send(payload)
+  if (error) throw new Error(error.message)
+  if (data?.id) {
+    const recipient = Array.isArray(payload.to) ? payload.to[0] : payload.to
+    await db.insert(emailEvents)
+      .values({ resendId: data.id, emailType, recipient, event: 'sent' })
+      .catch(err => console.error('Email event failed:', emailType, err))
+  }
+}
+
 /** Sent once to free users who've written their one free story. */
 export async function sendUpgradeNudgeEmail(opts: {
   to: string
@@ -855,7 +871,7 @@ export async function sendUpgradeNudgeEmail(opts: {
   const unsubscribeUrl = `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
   const minPrice = getMinPriceCopy(await getPricingConfig())
 
-  await resend.emails.send({
+  await sendTracked('upgrade_nudge', {
     from: FROM,
     to,
     replyTo: 'contact@storyquestor.com',
@@ -902,7 +918,7 @@ export async function sendCheckoutReminderEmail(opts: {
     : null
   const resumeUrl = `${CANONICAL_URL}/subscribe${interval ? `?interval=${encodeURIComponent(interval)}` : ''}`
 
-  await resend.emails.send({
+  await sendTracked('checkout_reminder', {
     from: FROM,
     to,
     replyTo: 'contact@storyquestor.com',
@@ -928,7 +944,7 @@ export async function sendPaymentFailedEmail(opts: { to: string; displayName: st
   const { to, displayName } = opts
   const greeting = displayName ? escapeHtml(displayName) : 'there'
 
-  await resend.emails.send({
+  await sendTracked('payment_failed', {
     from: FROM,
     to,
     replyTo: 'contact@storyquestor.com',
@@ -963,7 +979,7 @@ export async function sendCancellationEmail(opts: {
     ? `${CANONICAL_URL}/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`
     : null
 
-  await resend.emails.send({
+  await sendTracked('cancellation', {
     from: FROM,
     to,
     replyTo: 'contact@storyquestor.com',

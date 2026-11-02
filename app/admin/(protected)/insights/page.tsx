@@ -11,6 +11,7 @@ import {
   Search, MousePointerClick, Eye,
 } from 'lucide-react'
 import { ACQUISITION_SOURCE_LABELS } from '@/lib/acquisitionSources'
+import GrowthInsights from '@/components/admin/GrowthInsights'
 
 interface TrialUser {
   email: string
@@ -383,6 +384,9 @@ export default function AdminInsightsPage() {
           </div>
         )}
       </section>
+
+      {/* ── Growth & conversion ─────────────────────────────────────────────── */}
+      <GrowthInsights />
 
       {/* ── Platform snapshot ────────────────────────────────────────────────── */}
       <section>

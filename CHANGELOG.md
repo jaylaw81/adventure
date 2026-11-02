@@ -6,6 +6,10 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 
 ---
 
+## 2026-11-02
+
+- **Privacy policy update**: The privacy policy now explains email open and click tracking, subscription history and what is kept after an account is deleted, and deleting an account now also removes its email and upgrade activity records.
+
 ## 2026-11-01
 
 - **Yearly plan**: Creators can now subscribe yearly for all Monthly features at a lower price, chosen from the Monthly card on the pricing and subscribe pages.
@@ -16,6 +20,7 @@ Skip: dependency bumps, lint fixes, internal refactors, admin-only infrastructur
 - **Promotion codes at checkout**: Checkout now accepts promotion codes.
 - **Richer story pages**: Each public story now lives at its readable /story/ link and shows how the story begins, how many scenes and endings it has, and its review rating.
 - **New guides for getting started**: New pages explain how to make a choose your own adventure, build an interactive story, plan a branching plot, use StoryQuestor as a Twine alternative, and bring interactive fiction to the classroom, all linked from the site footer.
+- **Reader journey in story analytics**: Monthly and Yearly creators can now see how many readers finish their story, which scenes readers stop at, and which endings they reach most.
 - **Links in blog posts**: Blog posts can now link to guides and other pages, and every post links to the writing guides.
 
 ## 2026-10-30

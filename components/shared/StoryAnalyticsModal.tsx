@@ -8,6 +8,12 @@ interface DomainRow { domain: string; category: string; count: number }
 interface DayRow { date: string; count: number }
 
 interface AnalyticsData {
+  journey?: {
+    starts: number
+    completions: number
+    endings: { title: string; views: number }[]
+    dropOffs: { title: string; exits: number }[]
+  }
   readCount: number
   trackedTotal: number
   socialCount: number
@@ -161,6 +167,42 @@ export default function StoryAnalyticsModal({ adventureId, title, onClose }: Pro
                 <div>
                   <p className="text-xs font-medium text-slate-400 mb-2">Reads — last 30 days</p>
                   <SparkLine daily={data.daily} />
+                </div>
+              )}
+
+              {/* Reader journey */}
+              {data.journey && data.journey.starts > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-slate-400 mb-3">Reader journey (approximate)</p>
+                  <p className="text-sm text-slate-700 mb-3">
+                    <span className="font-semibold tabular-nums">{data.journey.starts.toLocaleString()}</span> started
+                    {' · '}
+                    <span className="font-semibold tabular-nums">{data.journey.completions.toLocaleString()}</span> reached an ending
+                    {' · '}
+                    <span className="font-semibold tabular-nums">{Math.min(100, Math.round((data.journey.completions / data.journey.starts) * 100))}%</span> completion
+                  </p>
+                  {data.journey.dropOffs.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs font-semibold text-slate-600 mb-1.5">Where readers stop</p>
+                      {data.journey.dropOffs.map(s => (
+                        <div key={s.title} className="flex justify-between gap-3 text-xs text-slate-600 py-0.5">
+                          <span className="truncate">{s.title}</span>
+                          <span className="tabular-nums text-slate-400 shrink-0">{s.exits}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {data.journey.endings.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-600 mb-1.5">Endings reached</p>
+                      {data.journey.endings.map(s => (
+                        <div key={s.title} className="flex justify-between gap-3 text-xs text-slate-600 py-0.5">
+                          <span className="truncate">{s.title}</span>
+                          <span className="tabular-nums text-slate-400 shrink-0">{s.views}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 

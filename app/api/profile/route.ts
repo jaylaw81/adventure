@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { users, adventures, deletedAccounts } from '@/lib/schema'
 import { stripe } from '@/lib/stripe'
+import { removeTrackingData } from '@/lib/accountData'
 import { ACQUISITION_SOURCES } from '@/lib/acquisitionSources'
 import { validateUsername } from '@/lib/username'
 import { getFollowerCount, getFollowingCount } from '@/lib/queries'
@@ -123,18 +124,10 @@ export async function DELETE() {
       subscriptionStatus: users.subscriptionStatus,
       trialEndsAt: users.trialEndsAt,
       grandfathered: users.grandfathered,
+      createdAt: users.createdAt,
     })
     .from(users)
     .where(eq(users.email, email))
-
-  // Cancel Stripe subscription if one exists
-  if (user?.stripeSubscriptionId) {
-    try {
-      await stripe.subscriptions.cancel(user.stripeSubscriptionId)
-    } catch {
-      // Don't block account deletion if Stripe cancel fails (e.g. already cancelled)
-    }
-  }
 
   // Record deletion so returning users can't re-use their free trial
   const trialUsed = !!user?.trialEndsAt
@@ -142,15 +135,28 @@ export async function DELETE() {
     ['active', 'past_due', 'paused', 'canceled'].includes(user?.subscriptionStatus ?? '') &&
     !!user?.stripeSubscriptionId
   await db.insert(deletedAccounts)
-    .values({ email, trialUsed, hadPaidSubscription: !!hadPaidSubscription, reason: 'self_deleted' })
+    .values({ email, trialUsed, hadPaidSubscription: !!hadPaidSubscription, reason: 'self_deleted', signedUpAt: user?.createdAt ?? null })
     .onConflictDoUpdate({
       target: deletedAccounts.email,
-      set: { deletedAt: new Date(), trialUsed, hadPaidSubscription: !!hadPaidSubscription, reason: 'self_deleted' },
+      set: { deletedAt: new Date(), trialUsed, hadPaidSubscription: !!hadPaidSubscription, reason: 'self_deleted', signedUpAt: user?.createdAt ?? null },
     })
+
+  await removeTrackingData(email)
 
   // Adventures cascade-delete nodes and choices automatically
   await db.delete(adventures).where(eq(adventures.userEmail, email))
   await db.delete(users).where(eq(users.email, email))
+
+  // Cancel last: the webhook this triggers must find no user, so it can't log their email or send a cancellation email
+  if (user?.stripeSubscriptionId) {
+    try {
+      await stripe.subscriptions.cancel(user.stripeSubscriptionId)
+    } catch (err) {
+      // Don't block account deletion if Stripe cancel fails (e.g. already cancelled),
+      // but leave a trace: the account is gone and this person may still be getting charged
+      console.error(`Stripe cancel failed for subscription ${user.stripeSubscriptionId} on account deletion:`, err)
+    }
+  }
 
   return NextResponse.json({ success: true })
 }
