@@ -7,7 +7,7 @@ import {
   ArrowLeft, Play, ExternalLink, Globe, Lock, ShieldOff,
   Trash2, UserCheck, UserX, BookOpen, PauseCircle, CheckCircle2,
   Mail, X, Send, MessageSquare, ChevronDown, ChevronUp, Clock,
-  Eye, EyeOff,
+  Eye, EyeOff, Network,
 } from 'lucide-react'
 
 const AUDIENCE_LABEL: Record<string, string> = {
@@ -32,6 +32,7 @@ interface AdminUser {
   storyCount: number
   profileVisible: boolean
   trialEndsAt: string | null
+  signupIp: string | null
 }
 
 interface AdminStory {
@@ -211,6 +212,7 @@ export default function AdminUserDetailPage() {
   const id = params.id as string
 
   const [user, setUser] = useState<AdminUser | null>(null)
+  const [sharedIpUsers, setSharedIpUsers] = useState<AdminUser[]>([])
   const [stories, setStories] = useState<AdminStory[]>([])
   const [messages, setMessages] = useState<AdminMessage[]>([])
   const [loading, setLoading] = useState(true)
@@ -224,7 +226,14 @@ export default function AdminUserDetailPage() {
       fetch(`/api/admin/users/${id}/stories`).then(r => r.json()),
       fetch(`/api/admin/users/${id}/messages`).then(r => r.json()),
     ]).then(([allUsers, userStories, userMessages]) => {
-      setUser((allUsers as AdminUser[]).find((u: AdminUser) => u.id === id) ?? null)
+      const list = allUsers as AdminUser[]
+      const found = list.find(u => u.id === id) ?? null
+      setUser(found)
+      setSharedIpUsers(
+        found?.signupIp
+          ? list.filter(u => u.id !== id && u.signupIp === found.signupIp)
+          : []
+      )
       setStories(userStories)
       setMessages(userMessages)
       setLoading(false)
@@ -435,6 +444,73 @@ export default function AdminUserDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Accounts sharing this signup IP */}
+      {sharedIpUsers.length > 0 && (
+        <div className="mb-10">
+          <div className="mb-1 flex items-center gap-3">
+            <Network size={16} className="text-orange-500" />
+            <h2 className="text-lg font-semibold text-slate-900">
+              Accounts sharing signup IP ({sharedIpUsers.length})
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500 mb-4">
+            Signed up from <span className="font-mono">{user.signupIp}</span>. Soft signal only — shared wifi, offices, schools and mobile networks also cause this.
+          </p>
+          <div className="bg-white rounded-xl border border-orange-200 overflow-hidden shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500 uppercase tracking-wide">
+                  <th className="text-left px-5 py-3 font-semibold">Account</th>
+                  <th className="text-left px-4 py-3 font-semibold">Tier</th>
+                  <th className="text-left px-4 py-3 font-semibold">Status</th>
+                  <th className="text-left px-4 py-3 font-semibold">Trial</th>
+                  <th className="text-left px-4 py-3 font-semibold">Stories</th>
+                  <th className="text-left px-4 py-3 font-semibold">Joined</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {sharedIpUsers.map(u => {
+                  const trialEnd = u.trialEndsAt ? new Date(u.trialEndsAt) : null
+                  return (
+                    <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-5 py-3">
+                        <Link href={`/admin/users/${u.id}`} className="font-medium text-slate-900 hover:text-blue-600 hover:underline">
+                          {u.displayName || '(no name)'}
+                        </Link>
+                        <p className="text-xs text-slate-400 font-mono">{u.email}</p>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-600">{u.tier}</td>
+                      <td className="px-4 py-3">
+                        {u.status === 'suspended' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                            <UserX size={11} /> Suspended
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            <UserCheck size={11} /> Active
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">
+                        {!trialEnd
+                          ? 'No trial'
+                          : trialEnd > new Date()
+                            ? `Ends ${trialEnd.toLocaleDateString()}`
+                            : `Expired ${trialEnd.toLocaleDateString()}`}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 font-medium">{u.storyCount}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">
+                        {new Date(u.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Stories */}
       <div className="mb-4 flex items-center gap-3">
